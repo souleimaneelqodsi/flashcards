@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/Users/souleimaneelqodsi/Code/flashcards/db.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="0"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="2964"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,11:maindifficultes"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1">DROP TRIGGER IF EXISTS trg_progression_best_score_after_update;
+
+CREATE TRIGGER trg_progression_best_score_after_update
+AFTER UPDATE OF dernier_score ON progressions
+FOR EACH ROW
+WHEN NEW.dernier_score &gt; OLD.meilleur_score
+BEGIN
+    UPDATE progressions
+    SET meilleur_score = NEW.dernier_score
+    WHERE id_utilisateur = NEW.id_utilisateur
+      AND id_paquet = NEW.id_paquet;
+END;</sql><current_tab id="0"/></tab_sql></sqlb_project>
