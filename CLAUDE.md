@@ -216,7 +216,7 @@ src/
 ├── core/                # DB singleton, session, helpers
 ├── views/               # templates HTML (ou templates JS front)
 ├── sql/                 # install.php + migrations eventuelles
-└── data/                # fichier SQLite (gitignore)
+└── data/                # fichier SQLite (tracke - projet universitaire, pas de donnees sensibles)
 ```
 
 ## 10. Penalites a eviter
