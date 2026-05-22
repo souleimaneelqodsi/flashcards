@@ -1,0 +1,120 @@
+{
+    "$schema": "https://json.schemastore.org/claude-code-settings.json",
+    "permissions": {
+        "allow": [
+            "Bash(php -l:*)",
+            "Bash(php -v)",
+            "Bash(php -m)",
+            "Bash(php -r:*)",
+            "Bash(sqlite3 db.db:*)",
+            "Bash(sqlite3 src/data/*.db:*)",
+            "Bash(find src:*)",
+            "Bash(grep:*)",
+            "Bash(rg:*)",
+            "Bash(ls:*)",
+            "Bash(cat src/*)",
+            "Bash(wc -l src/*)",
+            "Bash(pdftotext:*)",
+            "Bash(curl -s https://validator.w3.org/*)",
+            "Bash(curl -s https://jigsaw.w3.org/*)",
+            "Bash(git status)",
+            "Bash(git diff:*)",
+            "Bash(git log:*)",
+            "Bash(git show:*)",
+            "Bash(git branch:*)",
+            "Read",
+            "Grep",
+            "Glob"
+        ],
+        "deny": [
+            "Bash(rm -rf:*)",
+            "Bash(npm install:*)",
+            "Bash(yarn add:*)",
+            "Bash(composer require:*)",
+            "Bash(pip install:*)",
+            "Edit(project-files/**)",
+            "Write(project-files/**)",
+            "Edit(.git/**)",
+            "Write(.git/**)"
+        ],
+        "ask": [
+            "Bash(git commit:*)",
+            "Bash(git push:*)",
+            "Bash(rm:*)",
+            "Bash(mv:*)"
+        ]
+    },
+    "hooks": {
+        "SessionStart": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/inject-context.sh\""
+                    }
+                ]
+            }
+        ],
+        "UserPromptSubmit": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-stack-mentions.sh\""
+                    },
+                    {
+                        "type": "command",
+                        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/router-proactif.sh\""
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Write|Edit|MultiEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/warn-dangerous-patterns.sh\""
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "Write|Edit|MultiEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-indentation.sh\""
+                    },
+                    {
+                        "type": "command",
+                        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-php-syntax.sh\""
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-checklist.sh\""
+                    }
+                ]
+            }
+        ]
+    },
+    "statusLine": {
+        "type": "command",
+        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/statusline.sh\""
+    },
+    "env": {
+        "TER_PROJECT": "flashcards-miage",
+        "TER_STACK": "HTML|CSS2|jQuery|PHP|SQLite",
+        "TER_INDENT": "4-spaces",
+        "TER_INTERFACE_DIR": "project-files/interface",
+        "TER_COURSE_PDFS": "project-files/JavaScript.pdf,project-files/php (1).pdf,project-files/initiation-HTML-CSS.pdf"
+    }
+}
