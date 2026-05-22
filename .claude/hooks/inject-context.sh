@@ -60,11 +60,20 @@ Sous-agents disponibles (.claude/agents/) :
 Slash commands (.claude/commands/) :
   /nouvelle-entite, /nouveau-endpoint, /audit-securite, /valider-w3c,
   /preparer-livraison, /verifier-stack, /justifier-choix, /rapport-section,
-  /commit (sous-tache), /branche <nom> (tache principale, depuis develop)
+  /commit (sous-tache), /branche <nom> (tache principale, depuis develop),
+  /tache <macro-id> (ex /tache BACK-1 : enchaine toutes les micro-taches du CSV
+    en mode auto avec commits individuels, push+PR sur confirmation)
+
+Convention macro/micro taches (cf. CLAUDE.md section 17) :
+  - Source : project-files/repartition_taches_detaillee.csv
+  - Macro-id : <PREFIX>-<PHASE> (ex BACK-1, AUTH-2, UI-1, FRONT-2, FULL-2,
+    DOC-ARCH, QA). Micro-id : <macro-id>.<numero> (ex BACK-1.1).
+  - Si le dev tape un macro-id (ex BACK-1), lance /tache <macro-id>.
 
 Mode automatique : tu invoques les agents/commands proactivement selon la matrice CLAUDE.md section 13, sans attendre instruction explicite. En particulier :
   - Sous-tache terminee : propose /commit (demande confirmation).
   - Nouvelle tache principale : propose /branche (demande confirmation).
+  - Macro-id detecte dans un prompt : propose /tache <macro-id>.
 CTX
 )
 

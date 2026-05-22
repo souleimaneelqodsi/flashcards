@@ -1,0 +1,131 @@
+Phase,Personne,Groupe,ID,Tache,Points,Reference_cours_ou_commentaire
+Phase 1,P1,Conception,DESIGN-0.2,Diagramme de classes UML detaille (multiplicites roles classes-associations heritages),3,Ch3-4 et Ch5-6 - diagrammes de classes UML
+Phase 1,P2,Conception,DESIGN-0.1,Diagramme de cas d'utilisation (acteurs + cas s'inscrire se connecter creer-paquet etudier partager),2,Ch3-4 - cas d'utilisation (inclusion/extension)
+Phase 1,P2,Conception,DESIGN-0.5,Justification du choix architectural MVC vs MVP vs MVVM (extrait rapport),2,Ch8 - patterns architecturaux MVC/MVP/MVVM
+Phase 1,P2,Conception,DESIGN-0.6,Identification des 5 patterns retenus et de leurs points d'application,2,Ch8 - design patterns (Singleton Factory Observer Strategy State Repository)
+Phase 1,P3,Conception,DESIGN-0.3,Diagramme de sequence des cas auth (inscription connexion session expiree),2,Ch3-4 - diagrammes de sequence (User-System / Object-Object)
+Phase 1,P4,Conception,DESIGN-0.4,Diagramme d'etats-transitions de la session d'etude (Q_affichee R_revelee Session_finie),2,Ch5-6 - etats-transitions (entry/exit gardes super-etats)
+Phase 1,P5,Conception,DESIGN-0.7,Revue SOLID des classes services (Single Responsibility Open/Closed DIP),2,Ch8 - principes SOLID
+Phase 1,P1,BD,BD-1.1,Modeliser le MCD final (Utilisateurs Paquets Questions Difficultes Partages),2,Derive du diagramme de classes (Ch3-4) - mapping objet/relationnel hors cours
+Phase 1,P1,BD,BD-1.2,Ecrire install.php avec les CREATE TABLE des 5 entites,3,Hors cours - auto-formation SQL DDL et PHP
+Phase 1,P1,BD,BD-1.3,Ajouter contraintes (UNIQUE email FK NOT NULL CASCADE),1,Hors cours - auto-formation SQL
+Phase 1,P1,BD,BD-1.4,Script seed utilisateurs (3-5 comptes hashes),1,Hors cours - auto-formation SQL + password_hash PHP
+Phase 1,P1,BD,BD-1.5,Script seed paquets + questions + partages coherents,2,Hors cours - auto-formation SQL
+Phase 1,P1,BD,BD-1.6,Rediger section BD de installation.txt (execution + suppression install.php),1,Documentation - autonome
+Phase 1,P2,Backend,BACK-1.1,Arborescence src/ (controllers models views repositories config public),1,Ch8 - applique MVC + Single Responsibility (SOLID)
+Phase 1,P2,Backend,BACK-1.2,Front-controller index.php + .htaccess rewrite vers API,2,Hors cours - auto-formation PHP + Apache rewrite
+Phase 1,P2,Backend,BACK-1.3,Classe Router (mapping route vers controleur) avec stubs,2,Hors cours - routage PHP non aborde
+Phase 1,P2,Backend,BACK-1.4,Classes abstraites BaseController et BaseModel,2,Ch5-6 + Ch8 - abstraction OO et Open/Closed (SOLID)
+Phase 1,P2,Backend,BACK-1.5,Squelette Singleton Database (retours mockes JSON),2,Ch8 - pattern Singleton (instance unique)
+Phase 1,P2,Backend,BACK-1.6,Helper Response::json() (codes HTTP format unifie),1,Hors cours - auto-formation JSON et REST
+Phase 1,P3,Backend,AUTH-1.1,Endpoint mock POST /api/auth/register (renvoie user fictif),2,Hors cours - auto-formation API REST + PHP
+Phase 1,P3,Backend,AUTH-1.2,Endpoint mock POST /api/auth/login (renvoie token/session fictifs),2,Hors cours - auto-formation API REST + sessions PHP
+Phase 1,P3,Backend,AUTH-1.3,Endpoint mock POST /api/auth/logout,1,Hors cours - auto-formation
+Phase 1,P3,Backend,AUTH-1.4,Endpoint mock GET /api/auth/me,1,Hors cours - auto-formation
+Phase 1,P3,Backend,AUTH-1.5,Contrat d'API documente (README endpoints + payloads attendus),1,Documentation - autonome
+Phase 1,P4,Frontend,UI-1.1,Squelette HTML5 SPA (index.html + container #app),1,Hors cours - auto-formation HTML5
+Phase 1,P4,Frontend,UI-1.2,Reset CSS + variables (couleurs typo espacements),2,Hors cours - auto-formation CSS
+Phase 1,P4,Frontend,UI-1.3,Header global (logo navigation bouton menu),2,Hors cours - auto-formation HTML/CSS
+Phase 1,P4,Frontend,UI-1.4,Side menu retractable (parametres),2,Hors cours - auto-formation CSS/jQuery
+Phase 1,P4,Frontend,UI-1.5,Toggle Dark / Light mode (persistance localStorage),2,Hors cours - auto-formation CSS3 + localStorage
+Phase 1,P4,Frontend,UI-1.6,Bibliotheque de composants (boutons inputs cartes),3,Hors cours - auto-formation CSS
+Phase 1,P5,Frontend,DASH-1.1,Layout deux colonnes Mes Flashcards / Partagees avec moi,2,Hors cours - auto-formation CSS (flex/grid)
+Phase 1,P5,Frontend,DASH-1.2,Composant carte-paquet (titre dernier score best date),2,Hors cours - auto-formation HTML/CSS
+Phase 1,P5,Frontend,DASH-1.3,Tri visuel par date decroissante (donnees stub),1,Hors cours - auto-formation JS
+Phase 1,P5,Frontend,DASH-1.4,Bouton + Nouveau paquet + entree du dashboard,1,Hors cours - auto-formation HTML/CSS
+Phase 1,P5,Frontend,DASH-1.5,Bandeau utilisateur (avatar + acces profil),1,Hors cours - auto-formation HTML/CSS
+Phase 2,P1,BD,BD-2.1,Ajustements schema post-feedback Phase 1,2,Hors cours - auto-formation SQL
+Phase 2,P1,BD,BD-2.2,Index email id_proprietaire FK,1,Hors cours - auto-formation SQL
+Phase 2,P1,BD,BD-2.3,Implementer Database reel (PDO SQLite Singleton),2,Ch8 - Singleton (PDO non vu - auto-formation)
+Phase 2,P1,BD,BD-2.4,Gestion exceptions PDO + wrapper securise,2,Hors cours - auto-formation PDO
+Phase 2,P1,BD,BD-2.5,UtilisateurRepository (find create update delete searchByEmail),3,Repository cite par sujet TER mais non couvert en cours - auto-formation (alternative DAO)
+Phase 2,P1,BD,BD-2.6,PaquetRepository (CRUD + findByOwner + findShared),3,Repository (sujet TER) - hors cours
+Phase 2,P1,BD,BD-2.7,QuestionRepository (CRUD + findByPaquet),2,Repository (sujet TER) - hors cours
+Phase 2,P1,BD,BD-2.8,PartageRepository (create list revoke),2,Repository (sujet TER) - hors cours
+Phase 2,P1,BD,BD-2.9,Script reset.php (drop + recreate + seed),1,Hors cours - auto-formation
+Phase 2,P1,BD,BD-2.10,Script de backup/restore (.sql dump),1,Hors cours - auto-formation
+Phase 2,P2,Backend,BACK-2.1,Router JS (hashchange + History API),3,Hors cours - auto-formation jQuery / History API
+Phase 2,P2,Backend,BACK-2.2,Mapping routes vers vues (login register dashboard edit study profil),2,Hors cours - auto-formation JS SPA
+Phase 2,P2,Backend,BACK-2.3,Route 404 + redirection fallback,1,Hors cours - auto-formation
+Phase 2,P2,Backend,BACK-2.4,Service AjaxService (wrapper $.ajax base URL headers),2,Hors cours - auto-formation jQuery AJAX
+Phase 2,P2,Backend,BACK-2.5,Intercepteur 401 vers redirection login,2,Hors cours - auto-formation
+Phase 2,P2,Backend,BACK-2.6,Loader/spinner global pendant requetes,1,Hors cours - auto-formation CSS/jQuery
+Phase 2,P2,Backend,BACK-2.7,Middleware d'erreurs PHP (try/catch vers JSON propre),2,Hors cours - auto-formation PHP (exceptions OO Ch5-6 applicables)
+Phase 2,P2,Backend,BACK-2.8,Logger applicatif Singleton fichier,2,Ch8 - Singleton (2eme occurrence du pattern)
+Phase 2,P2,Backend,BACK-2.9,Composant toast d'erreur/succes cote front,2,Hors cours - auto-formation
+Phase 2,P2,Backend,BACK-2.10,Factory de controleurs (selon route - resolution dynamique),2,Ch8 - pattern Factory
+Phase 2,P3,Backend,AUTH-2.1,AuthController::register (password_hash BCRYPT),3,Hors cours - hachage cite par sujet TER (auto-formation password_hash)
+Phase 2,P3,Backend,AUTH-2.2,AuthController::login (password_verify + session_start),3,Hors cours - sessions PHP citees par sujet TER comme auto-formation
+Phase 2,P3,Backend,AUTH-2.3,AuthController::logout (session_destroy),1,Hors cours - auto-formation
+Phase 2,P3,Backend,AUTH-2.4,Middleware checkAuth pour endpoints proteges,2,Hors cours - auto-formation
+Phase 2,P3,Backend,AUTH-2.5,Validation serveur register (regex email MDP >= 6 date AAAAMMJJ),2,Hors cours - regex citees par sujet TER (auto-formation)
+Phase 2,P3,Backend,AUTH-2.6,Gestion contrainte unicite email + retour 409,1,Hors cours - auto-formation
+Phase 2,P3,Frontend,AUTH-2.7,Vue Login (HTML5 + binding $.ajax),2,Hors cours - auto-formation HTML/jQuery
+Phase 2,P3,Frontend,AUTH-2.8,Vue Register (HTML5 + double saisie MDP),2,Hors cours - auto-formation
+Phase 2,P3,Frontend,AUTH-2.9,Validation JS register (regex MDP >= 6 dates confirmation),3,Hors cours - regex/JS auto-formation (sujet TER l'impose)
+Phase 2,P3,Frontend,AUTH-2.10,Affichage erreurs sur fond rouge + messages explicatifs,2,Hors cours - auto-formation CSS/JS
+Phase 2,P3,Frontend,AUTH-2.11,Liens Login <-> Register + redirection post-inscription,1,Hors cours - auto-formation
+Phase 2,P4,Frontend,FRONT-2.1,Vue edition paquet (liste des questions),2,Hors cours - auto-formation HTML/jQuery
+Phase 2,P4,Frontend,FRONT-2.2,Formulaire ajout question (Q + R + difficulte),2,Hors cours - auto-formation
+Phase 2,P4,Frontend,FRONT-2.3,Edition inline d'une question existante,2,Hors cours - auto-formation
+Phase 2,P4,Frontend,FRONT-2.4,Suppression d'une question (modale de confirmation),1,Hors cours - auto-formation
+Phase 2,P4,Frontend,FRONT-2.5,Validation JS (Q et R non vides),1,Hors cours - auto-formation
+Phase 2,P4,Frontend,FRONT-2.6,Vue Study (carte courante + structure navigation),3,Hors cours - auto-formation (structure derive du diagramme etats-transitions Ch5-6)
+Phase 2,P4,Frontend,FRONT-2.7,Effet flip CSS3 (rotation 3D transform),2,Hors cours - auto-formation CSS3 transform
+Phase 2,P4,Frontend,FRONT-2.8,Boutons Check/Bad + binding API,1,Hors cours - auto-formation
+Phase 2,P4,Frontend,FRONT-2.9,Fleches gauche/droite (clic + clavier),2,Hors cours - auto-formation JS evenements
+Phase 2,P4,Frontend,FRONT-2.10,Ecran recapitulatif de fin de session,2,Hors cours - auto-formation
+Phase 2,P4,Frontend,FRONT-2.11,Compteur score live dans le header de session,2,Hors cours - auto-formation jQuery
+Phase 2,P4,Frontend,FRONT-2.12,Appel API fin de session (last_score calcul best_score),2,Hors cours - auto-formation AJAX
+Phase 2,P4,Frontend,FRONT-2.13,Affichage Dernier/Best sur les cartes-paquet du dashboard,1,Hors cours - auto-formation
+Phase 2,P4,Frontend,FRONT-2.14,Pattern State pour gestion de session study (Q_affichee R_revelee Session_finie),2,Ch8 - pattern State (cible le diagramme DESIGN-0.4)
+Phase 2,P5,Fullstack,FULL-2.1,GET /api/paquets (mes paquets tri date desc),2,Hors cours - auto-formation API REST
+Phase 2,P5,Fullstack,FULL-2.2,POST /api/paquets (titre <= 150 theme),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.3,PUT /api/paquets/:id (edition controle proprietaire),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.4,DELETE /api/paquets/:id (cascade questions + partages),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.5,Vue creation/edition paquet (titre + theme),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.6,Validation serveur titre obligatoire / <= 150 / contenu requis,2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.7,GET /api/paquets/shared (paquets recus tri date partage),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.8,Branchement front Mes Flashcards sur l'API,2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.9,Branchement front Partagees avec moi sur l'API,2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.10,Confirmation tri date desc cote serveur (SQL ORDER BY),1,Hors cours - auto-formation SQL
+Phase 2,P5,Fullstack,FULL-2.11,GET /api/users/search?q= (auto-completion email),3,Hors cours - auto-formation (auto-completion citee par sujet TER)
+Phase 2,P5,Fullstack,FULL-2.12,POST /api/paquets/:id/share (ajout destinataire),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.13,DELETE /api/paquets/:id/share/:userId,1,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.14,UI champ auto-completion (jQuery UI autocomplete),3,Hors cours - auto-formation jQuery UI
+Phase 2,P5,Fullstack,FULL-2.15,Liste des utilisateurs partages (badges + retrait),2,Hors cours - auto-formation HTML/CSS
+Phase 2,P5,Fullstack,FULL-2.16,Pattern Observer PartageNotifier (event sur creation partage),3,Ch8 - pattern Observer (sujet + observateurs)
+Phase 2,P5,Fullstack,FULL-2.17,GET /api/notifications (non lues + historique),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.18,PUT /api/notifications/:id/read,1,Hors cours - auto-formation
+Phase 2,P5,Fullstack,FULL-2.19,Cloche notification dans header + badge compteur,2,Hors cours - auto-formation CSS/jQuery
+Phase 2,P5,Fullstack,FULL-2.20,Polling JS (30 s) pour rafraichir le compteur,1,Hors cours - auto-formation setInterval (alternative: WebSocket non vu non requis)
+Phase 2,P5,Fullstack,FULL-2.21,Pattern Strategy pour calcul de score selon difficulte (Facile Moyen Difficile),2,Ch8 - pattern Strategy
+Phase 3,P1,Documentation,DOC-BD.1,Doc MCD + MLD (schema + commentaires),2,Derive Ch3-4 (modelisation) - mapping relationnel hors cours
+Phase 3,P1,Documentation,DOC-BD.2,Doc contraintes et regles metier BD,1,Documentation - autonome (OCL Ch3-4 mentionnable)
+Phase 3,P1,Documentation,DOC-BD.3,Doc scripts install / seed / reset,1,Documentation - autonome
+Phase 3,P2,Documentation,DOC-ARCH.1,Justification de l'architecture MVC (rapport),2,Ch8 - MVC/MVP/MVVM (comparaison attendue)
+Phase 3,P2,Documentation,DOC-ARCH.2,Doc diagramme de composants,1,Hors cours strict (diagramme deploiement non couvert) - se baser sur composants UML 2
+Phase 3,P2,Documentation,DOC-ARCH.3,Doc patrons utilises (Singleton Factory Observer Strategy State) avec extraits de code,3,Ch8 - design patterns (5 patterns minimum exiges par sujet TER)
+Phase 3,P2,Documentation,DOC-ARCH.4,Doc diagrammes de sequence (login partage session Anki),2,Ch3-4 - sequences User-System et Object-Object
+Phase 3,P3,Documentation,DOC-AUTH.1,Doc sessions PHP (cycle de vie cookies),1,Hors cours - auto-formation (sujet TER l'exige)
+Phase 3,P3,Documentation,DOC-AUTH.2,Doc hachage (algorithme cout salage),1,Hors cours - sujet TER (auto-formation)
+Phase 3,P3,Documentation,DOC-AUTH.3,Doc validation client/serveur (matrice regles),1,Hors cours - regex auto-formation
+Phase 3,P3,Documentation,DOC-AUTH.4,Doc regles d'acces + middleware,1,Documentation - autonome
+Phase 3,P4,Documentation,DOC-UI.1,Charte graphique + themes Dark/Light,2,Hors cours - auto-formation UX
+Phase 3,P4,Documentation,DOC-UI.2,Parcours utilisateur (wireframes commentes),2,Lien Ch3-4 cas d'utilisation (mais wireframes hors cours)
+Phase 3,P4,Documentation,DOC-UI.3,Justification choix UX (flip navigation feedback),1,Hors cours
+Phase 3,P5,Documentation,DOC-FONC.1,Doc CRUD paquets / questions,1,Documentation - autonome
+Phase 3,P5,Documentation,DOC-FONC.2,Doc partage + auto-completion,2,Documentation - autonome
+Phase 3,P5,Documentation,DOC-FONC.3,Doc notifications (Observer),1,Ch8 - Observer (illustrer le pattern par cet usage)
+Phase 3,P5,Documentation,DOC-FONC.4,Doc session Anki + scoring,1,Lien Ch5-6 (etats-transitions) + Ch8 (Strategy/State)
+Phase 3,Tous,QA,QA-1,Plan de tests (matrice fonctionnalites x comptes test),2,Hors cours - autonome
+Phase 3,Tous,QA,QA-2,Tests inscription / connexion / deconnexion,1,Hors cours - autonome
+Phase 3,Tous,QA,QA-3,Tests CRUD paquets et questions,2,Hors cours - autonome
+Phase 3,Tous,QA,QA-4,Tests partage entre comptes,2,Hors cours - autonome
+Phase 3,Tous,QA,QA-5,Tests session Anki (flip score navigation fin),2,Hors cours - autonome
+Phase 3,Tous,QA,QA-6,Tests Dark/Light + responsive,1,Hors cours - autonome
+Phase 3,Tous,QA,QA-7,Validation W3C HTML + CSS2,1,Hors cours - exigence sujet TER (auto-formation)
+Phase 3,Tous,QA,QA-8,Tests securite (injection SQL XSS hijacking session),2,Hors cours - auto-formation securite web
+Phase 3,Tous,QA,QA-9,installation.txt final + verification archive projet-progweb-gN.zip,1,Documentation - autonome
+Phase 3,Tous,QA,QA-10,Compilation rapport.pdf (fusion des docs),3,Documentation - autonome
+Phase 3,Tous,QA,QA-11,Revue SOLID du code complet (SRP OCP LSP ISP DIP) + grille code smells,3,Ch8 - principes SOLID et code smells (TD7-8)
