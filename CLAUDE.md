@@ -280,6 +280,8 @@ Quand l'utilisateur formule une tache, Claude DOIT, sans attendre qu'on le lui d
 | Mention de "indent", "4 espaces", "format" | Lance l'agent `indentation-fixer` |
 | Mention de "rapport", "ecrire la section" | Lance `/rapport-section <section>` |
 | Mention de "justifier", "pourquoi ce choix" | Lance `/justifier-choix <decision>` |
+| Sous-tache terminee / mention de "fini", "fait", "termine", "ok", "commit" | Lance `/commit` (proposer un commit pour la sous-tache, demander confirmation explicite avant `git commit`) |
+| Nouvelle tache principale annoncee / mention de "branche", "nouvelle feature", "tache principale" | Lance `/branche` (proposer la creation d'une branche `feature/<nom>` depuis `develop`, demander confirmation) |
 
 ### Comment Claude doit annoncer les invocations
 
@@ -330,13 +332,93 @@ Slash commands (`.claude/commands/`) :
 - `/verifier-stack` : detecte toute techno interdite dans le repo
 - `/justifier-choix [decision]` : aide a formuler une justification pour le rapport
 - `/rapport-section [section]` : genere/met a jour une section du rapport
+- `/commit` : propose un commit pour la sous-tache en cours (demande confirmation explicite, lance les audits pertinents avant)
+- `/branche [nom]` : propose la creation d'une branche `feature/<nom>` depuis `develop` pour une nouvelle tache principale (demande confirmation explicite)
 
 Hooks actifs (mode **avertissement non bloquant**) :
 - Avant Write/Edit : avertit si pattern dangereux (MDP en clair, MD5/SHA1, concatenation SQL, `.html()` avec contenu utilisateur, API moderne hors-cours probable)
 - Apres Write/Edit : verifie indentation 4 espaces, syntaxe PHP (`php -l`)
 - A la soumission d'un prompt : detecte les technologies interdites ET suggere a Claude les agents/commands pertinents (mode auto)
 - A l'ouverture de session : rappel du contexte projet et des penalites
+- A la fin d'un tour avec des modifs dans src/ : rappel de proposer un `/commit`
+
+## 16. Workflow Git — branche `develop`, commit par sous-tache
+
+Le binome travaille selon le workflow suivant. Claude doit le respecter strictement.
+
+### Branche principale
+
+La branche principale du projet s'appelle **`develop`**. Aucune commande Claude ne pousse sur `main` ni ne le manipule sans demande explicite. Tout le developpement se fait sur des branches feature mergees ensuite sur `develop`.
+
+### Une branche par tache principale
+
+Pour chaque **tache principale** (ex : « implementer l'inscription », « ajouter le mode revision », « mettre en place le partage »), Claude doit proposer une branche dediee.
+
+- **Nom de branche** : `feature/<nom-court-snake-case>` (ex : `feature/inscription`, `feature/mode-revision`, `feature/partage-paquets`).
+- **Branche source** : toujours `develop`.
+- **Quand demander** : quand l'utilisateur annonce le debut d'une nouvelle tache principale, ou quand Claude detecte qu'on commence quelque chose de structurel.
+
+**Protocole obligatoire avant de creer une branche** :
+
+1. Verifier `git status` : tout est-il propre ? S'il reste des modifs non committed sur la branche courante, demander a l'utilisateur si on les commit d'abord (proposer `/commit`) ou si on les stash.
+2. Demander explicitement : « Tu es bien sur que tu as fini la tache precedente / que tout est commit ? Je vais creer la branche `feature/<X>` depuis `develop`. OK ? »
+3. **Attendre un GO explicite**. Ne jamais exécuter `git checkout -b` ou `git switch -c` sans confirmation.
+4. Apres confirmation : `git checkout develop && git pull && git checkout -b feature/<X>`.
+
+### Un commit par sous-tache
+
+Pour chaque **sous-tache** (ex : « ajout du formulaire d'inscription cote front », « validation cote serveur de l'inscription », « test du flux complet »), Claude doit proposer un commit.
+
+- **Quand proposer** : quand une sous-tache est terminee de maniere coherente (le code compile, les agents pertinents sont verts, l'utilisateur valide).
+- **Quand executer** : **jamais** sans confirmation explicite de l'utilisateur. Toujours demander d'abord.
+
+**Protocole obligatoire avant chaque commit** :
+
+1. Lancer `git status` et `git diff --stat` pour montrer ce qui sera committed.
+2. Demander : « Tu as fini cette sous-tache ? Tout est OK pour commit ? »
+3. Si OUI, lancer rapidement les audits pertinents (selon la matrice section 13) — par exemple `validation-checker` pour un formulaire, `php-securite-auditor` pour un controleur, `indentation-fixer` pour la forme.
+4. Si tout est vert, proposer un message de commit au format Conventional Commits francais (cf. plus bas).
+5. **Attendre un GO explicite** pour le message et l'execution.
+6. Apres confirmation : `git add <fichiers concernes>` puis `git commit -m "<message>"`.
+
+### Format de commit (Conventional Commits, francais)
+
+```
+<type>(<scope>): <description courte a l'imperatif>
+
+<corps optionnel : pourquoi, contexte>
+```
+
+Types autorises :
+- `feat` : nouvelle fonctionnalite
+- `fix` : correction de bug
+- `refactor` : refonte sans changement de comportement
+- `style` : indentation, formatage, sans changement de logique
+- `docs` : documentation, rapport, commentaires
+- `chore` : maintenance, gitignore, config
+- `rapport` : modifications du rapport.pdf / rapport.md
+
+Exemples :
+- `feat(inscription): ajoute formulaire client + validation dynamique`
+- `feat(inscription): valide email/mdp/date cote serveur PHP`
+- `fix(auth): remplace md5 par password_hash BCRYPT`
+- `style(css): indentation 4 espaces sur main.css`
+- `refactor(repositories): factorise fromRow dans BaseRepository`
+- `docs(rapport): redige section patrons (Singleton + Repository + Factory)`
+
+### Cas particuliers
+
+- **Fin de tache principale** : quand toutes les sous-taches d'une feature sont committed et que le binome valide, Claude propose un merge `feature/<X>` -> `develop` (en demandant confirmation). Format : `git checkout develop && git merge --no-ff feature/<X>`.
+- **Push** : Claude ne push **jamais** sans confirmation explicite. `git push origin <branche>` est en mode `ask` dans les permissions.
+- **Rebase** : Claude ne rebase pas. Si l'utilisateur le demande explicitement, il execute. Sinon, merge --no-ff.
+- **Conflit** : si un merge produit un conflit, Claude s'arrete, montre les fichiers en conflit, demande comment proceder.
+
+### Refus
+
+- Refuser toute manipulation de la branche `main` sauf demande explicite.
+- Refuser tout `git push --force` sans demande explicite ET justification.
+- Refuser tout `git reset --hard` qui ferait perdre du code non committed sans confirmation tres explicite.
 
 ---
 
-**TL;DR** — Stack imposee (HTML/CSS2/jQuery/PHP/SQLite), **APIs limitees strictement aux PDFs de cours**, MVC + SPA, patrons (Singleton + Repository + Factory min), validation client+serveur partout avec **rouge dynamique** + **message en bas**, BCRYPT, PDO prepare, W3C valide, indentation 4 espaces, francais coherent, **interface project-files/interface/ a respecter** (dashboard en 2 colonnes cote-a-cote, paquets cliquables partout, ecran de visualisation avec destinataires de partage), **mode automatique** (Claude invoque agents/commands proactivement selon matrice section 13), justification ecrite de chaque choix d'archi, ne jamais sortir de la stack ou du perimetre, toujours consulter les docs avant une decision technique, plan avant code.
+**TL;DR** — Stack imposee (HTML/CSS2/jQuery/PHP/SQLite), **APIs limitees strictement aux PDFs de cours**, MVC + SPA, patrons (Singleton + Repository + Factory min), validation client+serveur partout avec **rouge dynamique** + **message en bas**, BCRYPT, PDO prepare, W3C valide, indentation 4 espaces, francais coherent, **interface project-files/interface/ a respecter** (dashboard en 2 colonnes cote-a-cote, paquets cliquables partout, ecran de visualisation avec destinataires de partage), **mode automatique** (Claude invoque agents/commands proactivement selon matrice section 13), **workflow Git** (branche principale `develop`, branche `feature/<X>` par tache principale, commit par sous-tache avec confirmation explicite avant chaque action git), justification ecrite de chaque choix d'archi, ne jamais sortir de la stack ou du perimetre, toujours consulter les docs avant une decision technique, plan avant code.

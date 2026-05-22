@@ -380,28 +380,117 @@ pour la documenter dans la section appropriee, et propose-moi le diff avant d'ec
 
 ---
 
-## 11. Communication entre binomes via Claude
+## 11. Workflow Git - automatise par Claude
 
-### Convention de commit
+### Branche principale
+
+Notre branche principale est **`develop`** (pas `main`). Toute manipulation directe de `main` est bloquee par les permissions.
+
+### Une branche par tache principale
+
+Pour chaque grosse tache (ex : inscription, mode revision, partage), Claude propose **automatiquement** une branche dediee `feature/<nom>` depuis `develop`.
+
+Workflow :
+
+1. Tu dis : « On commence l'inscription. »
+2. Claude detecte le debut d'une tache principale (hook router-proactif).
+3. Claude execute `/branche inscription`.
+4. `/branche` verifie `git status`, demande **explicitement** : « Tu es sur que tu as fini la precedente / que tout est commit ? Je vais creer `feature/inscription` depuis `develop`. OK ? »
+5. Tu reponds OUI/NON.
+6. Si OUI : Claude execute `git checkout develop && git pull && git checkout -b feature/inscription`.
+
+### Un commit par sous-tache
+
+A chaque sous-tache terminee (ex : « formulaire HTML cote front fait », « validation PHP serveur faite »), Claude propose **automatiquement** un commit.
+
+Workflow :
+
+1. Tu dis : « C'est bon, validation cote serveur faite. »
+2. Claude detecte l'expression "c'est bon"/"fini"/"fait" (hook router-proactif).
+3. Claude execute `/commit`.
+4. `/commit` affiche `git status` + `git diff --stat` et demande : « Tu as fini cette sous-tache ? Tout est OK pour commit ? »
+5. Tu reponds OUI/NON.
+6. Si OUI : Claude lance les audits pertinents (validation-checker, php-securite-auditor, etc.) selon les fichiers touches.
+7. Si tout est vert, Claude propose un message :
+   ```
+   feat(inscription): valide email/mdp/date cote serveur PHP
+   ```
+8. Tu valides ou ajustes le message.
+9. Apres validation : Claude execute `git add <fichiers> && git commit -m "<message>"`.
+
+### Permissions
+
+Toutes les commandes Git sensibles sont en mode `ask` (Claude Code te demandera de confirmer chaque execution) :
+
+- `git add`, `git commit`, `git checkout`, `git switch`, `git merge`, `git push`, `git pull`, `git stash`, `git rebase`, `git reset`, `git revert`, `git tag`.
+
+Les commandes **interdites** (deny absolu) :
+
+- `git push --force` / `git push -f` (jamais)
+- `git reset --hard` (ne peut etre passe qu'au cas par cas)
+- `git checkout main` / `git push origin main` (la branche `main` est intouchable depuis Claude)
+
+Les commandes **autorisees sans demande** (lecture seule) :
+
+- `git status`, `git diff`, `git log`, `git show`, `git branch`, `git symbolic-ref`, `git stash list/show`.
+
+### Format de commit (Conventional Commits francais)
 
 ```
-<type>(<scope>): <description courte en francais>
+<type>(<scope>): <description courte a l'imperatif>
+
+<corps optionnel : pourquoi, contexte>
 ```
 
-Types : `feat`, `fix`, `refactor`, `style`, `docs`, `chore`, `rapport`.
+Types :
+- `feat` : nouvelle fonctionnalite
+- `fix` : correction de bug
+- `refactor` : refonte sans changement comportement
+- `style` : indentation, formatage
+- `docs` : documentation, commentaires
+- `chore` : maintenance, gitignore, config
+- `rapport` : modifications du rapport
+
+Scopes courants : `auth`, `inscription`, `connexion`, `paquets`, `questions`, `partage`, `revision`, `profil`, `dashboard`, `css`, `db`, `repositories`, `rapport`.
 
 Exemples :
-- `feat(paquets): ajoute endpoint POST /api/paquets/dupliquer`
+- `feat(inscription): ajoute formulaire client + validation dynamique`
+- `feat(inscription): valide email/mdp/date cote serveur PHP`
 - `fix(auth): remplace md5 par password_hash BCRYPT`
-- `style(css): indentation 4 espaces sur main.css`
-- `rapport(patrons): justification du Singleton DB`
+- `style(css): normalise indentation 4 espaces sur dashboard.css`
+- `refactor(repositories): factorise fromRow dans BaseRepository`
+- `docs(rapport): redige section patrons (Singleton + Repository + Factory)`
 
-### Convention de branche
+### Fin de tache principale : merge sur develop
 
-- `main` : etat stable
-- `dev` : integration
-- `feature/<nom-court>` : developpement de feature
-- `fix/<bug>` : correction de bug
+Quand toutes les sous-taches d'une feature sont committed et que tu valides la feature :
+
+1. Tu dis : « La feature inscription est terminee. »
+2. Claude propose : « Je merge `feature/inscription` sur `develop` ? Je vais lancer :
+   ```
+   git checkout develop
+   git merge --no-ff feature/inscription
+   ```
+   OK ? »
+3. Si OUI : Claude execute et confirme.
+4. Optionnel : Claude propose de supprimer la branche locale (`git branch -d feature/inscription`) si tu le souhaites.
+
+### Push (jamais sans confirmation)
+
+`git push` est en mode `ask`. Claude te demandera explicitement. **Jamais de push --force sauf accord ecrit et justifie.**
+
+### Trois protocoles de securite Git
+
+1. **Ne jamais commit sur `develop` ou `main` directement** : si tu es sur develop par erreur, Claude propose de creer une branche feature avant.
+2. **Toujours montrer le diff avant un commit** : `git status` + `git diff --stat`.
+3. **Toujours demander confirmation** : Claude ne fait JAMAIS de `git commit -am` automatique ni de `git push` non sollicite.
+
+### Convention de branche (rappel)
+
+- `develop` : branche d'integration, **principale du projet**
+- `feature/<nom-court>` : developpement d'une feature (ex : `feature/inscription`, `feature/mode-revision`)
+- `fix/<bug-court>` : correction de bug ponctuel
+- `main` : ne pas y toucher avec Claude
 
 ---
 

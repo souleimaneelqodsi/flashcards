@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # SessionStart hook : injecte un rappel du contexte projet a chaque ouverture de session.
-# Mode : informatif (non bloquant). Sortie via JSON pour additionalContext.
 
 set -euo pipefail
 
@@ -31,6 +30,17 @@ Paquets cliquables partout. Ecran de visualisation d'un paquet affiche les desti
 
 Source d'autorite : project-files/ter_m1_miage.pdf > Dossier de Conception > diagrammes > interface.
 
+Workflow Git (strict) :
+  - Branche principale : develop (jamais main).
+  - Une branche feature/<nom-court-snake-case> par tache principale, partant de develop.
+  - Un commit par sous-tache, format Conventional Commits francais :
+      type(scope): description a l'imperatif
+      ex : feat(inscription): ajoute validation cote serveur PHP
+  - Avant toute action git (commit, branche, merge, push) : DEMANDER CONFIRMATION EXPLICITE au binome.
+  - Slash commands dedies : /commit (sous-tache terminee) et /branche <nom> (tache principale).
+  - Permissions en mode 'ask' sur git add/commit/checkout/merge/push - Claude doit donc proposer
+    le message/la branche, puis attendre validation.
+
 Avant toute decision archi : consulter les diagrammes (class_diagram, DB_relational_model, component_diagram, sequence_diagram).
 Avant tout changement > 3 fichiers : proposer un plan AVANT de coder.
 Avant d'utiliser une API JS/jQuery/PHP : verifier qu'elle apparait dans les PDFs de cours.
@@ -49,9 +59,12 @@ Sous-agents disponibles (.claude/agents/) :
 
 Slash commands (.claude/commands/) :
   /nouvelle-entite, /nouveau-endpoint, /audit-securite, /valider-w3c,
-  /preparer-livraison, /verifier-stack, /justifier-choix, /rapport-section
+  /preparer-livraison, /verifier-stack, /justifier-choix, /rapport-section,
+  /commit (sous-tache), /branche <nom> (tache principale, depuis develop)
 
-Mode automatique : tu invoques les agents/commands proactivement selon la matrice CLAUDE.md section 13, sans attendre instruction explicite.
+Mode automatique : tu invoques les agents/commands proactivement selon la matrice CLAUDE.md section 13, sans attendre instruction explicite. En particulier :
+  - Sous-tache terminee : propose /commit (demande confirmation).
+  - Nouvelle tache principale : propose /branche (demande confirmation).
 CTX
 )
 

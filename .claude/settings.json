@@ -18,10 +18,14 @@
             "Bash(curl -s https://validator.w3.org/*)",
             "Bash(curl -s https://jigsaw.w3.org/*)",
             "Bash(git status)",
+            "Bash(git status:*)",
             "Bash(git diff:*)",
             "Bash(git log:*)",
             "Bash(git show:*)",
             "Bash(git branch:*)",
+            "Bash(git symbolic-ref:*)",
+            "Bash(git stash list)",
+            "Bash(git stash show:*)",
             "Read",
             "Grep",
             "Glob"
@@ -32,14 +36,32 @@
             "Bash(yarn add:*)",
             "Bash(composer require:*)",
             "Bash(pip install:*)",
+            "Bash(git push --force:*)",
+            "Bash(git push -f:*)",
+            "Bash(git reset --hard:*)",
+            "Bash(git checkout main)",
+            "Bash(git checkout master)",
+            "Bash(git push origin main:*)",
+            "Bash(git push origin master:*)",
             "Edit(project-files/**)",
             "Write(project-files/**)",
             "Edit(.git/**)",
             "Write(.git/**)"
         ],
         "ask": [
+            "Bash(git add:*)",
             "Bash(git commit:*)",
+            "Bash(git checkout:*)",
+            "Bash(git switch:*)",
+            "Bash(git merge:*)",
             "Bash(git push:*)",
+            "Bash(git pull:*)",
+            "Bash(git stash:*)",
+            "Bash(git rebase:*)",
+            "Bash(git cherry-pick:*)",
+            "Bash(git reset:*)",
+            "Bash(git revert:*)",
+            "Bash(git tag:*)",
             "Bash(rm:*)",
             "Bash(mv:*)"
         ]
@@ -115,6 +137,8 @@
         "TER_STACK": "HTML|CSS2|jQuery|PHP|SQLite",
         "TER_INDENT": "4-spaces",
         "TER_INTERFACE_DIR": "project-files/interface",
-        "TER_COURSE_PDFS": "project-files/JavaScript.pdf,project-files/php (1).pdf,project-files/initiation-HTML-CSS.pdf"
+        "TER_COURSE_PDFS": "project-files/JavaScript.pdf,project-files/php (1).pdf,project-files/initiation-HTML-CSS.pdf",
+        "TER_GIT_MAIN_BRANCH": "develop",
+        "TER_GIT_FEATURE_PREFIX": "feature/"
     }
 }

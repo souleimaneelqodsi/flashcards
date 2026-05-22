@@ -33,7 +33,7 @@ fi
 
 # Entite / table / modele
 if echo "$prompt" | grep -qE '\b(entite|table|modele|schema|sqlite|repository|repositories)\b'; then
-    suggestions="${suggestions}\n  - Mode auto : pour une entite/table, suis '/nouvelle-entite'. Verifie le modele de donnees figé (CLAUDE.md section 4 + project-files/DB_relational_model.jpeg) avant tout."
+    suggestions="${suggestions}\n  - Mode auto : pour une entite/table, suis '/nouvelle-entite'. Verifie le modele de donnees fige (CLAUDE.md section 4 + project-files/DB_relational_model.jpeg) avant tout."
 fi
 
 # Formulaire / validation
@@ -99,6 +99,34 @@ fi
 # Si on parle de cours, PDFs
 if echo "$prompt" | grep -qE '\b(cours|pdf|enseigne|appris|enseignement)\b'; then
     suggestions="${suggestions}\n  - Mode auto : consulte les PDFs de cours via Read avant d'avancer (project-files/JavaScript.pdf, project-files/php (1).pdf, project-files/initiation-HTML-CSS.pdf)."
+fi
+
+# ============ GIT - sous-tache terminee -> commit ============
+if echo "$prompt" | grep -qE '\b(j.?ai fini|j.?ai termine|c.?est fini|c.?est ok|c.?est bon|fini la sous.?tache|sous.?tache (terminee|finie|done)|tout est ok|tout est bon|tout marche|tout est pret)\b'; then
+    suggestions="${suggestions}\n  - Mode auto Git : il semble qu'une sous-tache soit terminee. Invoque '/commit' pour proposer un commit (demande confirmation explicite avant git commit, lance les audits pertinents avant)."
+fi
+
+if echo "$prompt" | grep -qE '\b(commit|committe?|comitt|commiter|comitter)\b'; then
+    suggestions="${suggestions}\n  - Mode auto Git : invoque '/commit'. Toujours montrer 'git status' + 'git diff --stat' et demander confirmation explicite avant d'executer git commit. Branche principale = develop. Format Conventional Commits francais : type(scope): description."
+fi
+
+# ============ GIT - nouvelle tache principale -> branche ============
+if echo "$prompt" | grep -qE '\b(nouvelle (feature|tache|fonctionnalite)|tache principale|nouvelle branche|cree une branche|cree branche|on commence|on attaque)\b'; then
+    suggestions="${suggestions}\n  - Mode auto Git : il semble qu'une nouvelle tache principale commence. Invoque '/branche <nom>' pour proposer une branche feature/<nom> depuis develop. Verifie d'abord que la branche actuelle est propre/commit (sinon propose '/commit' avant)."
+fi
+
+if echo "$prompt" | grep -qE '\b(branche|branch|switcher|switch|checkout)\b'; then
+    suggestions="${suggestions}\n  - Mode auto Git : pour toute operation de branche, branche principale = develop. Format des branches feature : feature/<nom-court-snake-case>. Demande TOUJOURS confirmation avant git checkout / git checkout -b / git switch."
+fi
+
+# ============ GIT - merge ============
+if echo "$prompt" | grep -qE '\b(merge|merger|fusionne|fusionner|integrer|pull request|pr)\b'; then
+    suggestions="${suggestions}\n  - Mode auto Git : pour un merge sur develop, utilise 'git merge --no-ff feature/<X>'. Demande confirmation explicite. Verifie que la feature est propre (commits coherents, audits verts) avant."
+fi
+
+# ============ GIT - push ============
+if echo "$prompt" | grep -qE '\b(push|pousser|envoyer\s+(sur|au)\s+(remote|origin|github|gitlab))\b'; then
+    suggestions="${suggestions}\n  - Mode auto Git : git push doit etre confirme explicitement. Ne push JAMAIS sans accord. Refuse tout git push --force sauf justification ecrite."
 fi
 
 # ============ Sortie ============
