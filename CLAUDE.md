@@ -282,6 +282,8 @@ Quand l'utilisateur formule une tache, Claude DOIT, sans attendre qu'on le lui d
 | Mention de "justifier", "pourquoi ce choix" | Lance `/justifier-choix <decision>` |
 | Sous-tache terminee / mention de "fini", "fait", "termine", "ok", "commit" | Lance `/commit` (proposer un commit pour la sous-tache, demander confirmation explicite avant `git commit`) |
 | Nouvelle tache principale annoncee / mention de "branche", "nouvelle feature", "tache principale" | Lance `/branche` (proposer la creation d'une branche `feature/<nom>` depuis `develop`, demander confirmation) |
+| Mention d'un macro-id de tache (regex `\b(DESIGN\|BD\|BACK\|AUTH\|UI\|DASH\|FRONT\|FULL\|DOC-[A-Z]+\|QA)-[0-9]+\b`, ex "BACK-1", "AUTH-2", "je travaille sur UI-1") | Lance `/tache <macro-id>` (enchaine toutes les micro-taches du CSV en mode auto avec commits individuels, demande confirmation pour push+PR a la fin - cf. section 17) |
+| Mention d'un micro-id de tache (regex avec `\.` ex "BACK-1.3") | Code uniquement cette micro-tache (pas toute la macro). Consulter le CSV pour l'intitule exact |
 
 ### Comment Claude doit annoncer les invocations
 
@@ -419,6 +421,97 @@ Exemples :
 - Refuser tout `git push --force` sans demande explicite ET justification.
 - Refuser tout `git reset --hard` qui ferait perdre du code non committed sans confirmation tres explicite.
 
+## 17. Convention macro/micro taches et workflow `/tache`
+
+Pour reduire la friction de saisie cote binome, le projet adopte la convention suivante : **le dev tape une macro-tache, Claude execute toutes les micro-taches associees dans l'ordre, en mode automatique, puis demande confirmation pour le push + PR a la fin**.
+
+### Source d'autorite des taches
+
+`project-files/repartition_taches_detaillee.csv`. Format de chaque ligne :
+
+```
+Phase,Personne,Groupe,ID,Tache,Points,Reference_cours_ou_commentaire
+```
+
+Le CSV est **autoritaire**. Si une tache pertinente n'y figure pas, signale-le avant d'agir.
+
+### Convention de nommage
+
+- **Macro-tache** : prefixe metier + numero de phase, sans decimale. Exemples : `BACK-1`, `AUTH-2`, `UI-1`, `FRONT-2`, `FULL-2`, `DOC-ARCH`, `DOC-BD`, `QA`.
+- **Micro-tache** : macro-id + `.` + numero. Exemples : `BACK-1.1`, `BACK-1.6`, `AUTH-2.10`.
+
+### Groupes connus et comportement attendu
+
+| Groupe | Type | Comportement de Claude |
+|---|---|---|
+| `BD` | Code SQL/PHP | Code et invoque `repository-enforcer` + `php-securite-auditor` apres modification |
+| `Backend` (BACK) | Code PHP serveur | Code + `repository-enforcer` + `php-securite-auditor` |
+| `Backend` (AUTH cote serveur) | Code PHP auth | Code + `php-securite-auditor` + `validation-checker` (regex serveur) |
+| `Frontend` (UI, DASH, FRONT, AUTH cote front) | Code HTML/CSS/JS jQuery | Code + `interface-compliance-checker` + `w3c-validator` + `validation-checker` si formulaire |
+| `Fullstack` (FULL) | Code PHP + JS | Code les deux cotes + agents des deux groupes |
+| `Conception` (DESIGN) | Diagrammes UML | **Delegue au dev**, ne genere pas le livrable, propose d'aider apres a documenter |
+| `Documentation` (DOC-*) | Sections de rapport | **Delegue au dev par defaut**, propose explicitement l'aide via l'agent `rapport-writer` |
+| `QA` | Tests manuels | **Delegue au dev**, propose d'aider a rediger le plan de test mais pas l'execution |
+
+### Workflow `/tache <macro-id>`
+
+Le dev tape simplement :
+
+```
+/tache BACK-1
+```
+
+Claude execute :
+
+1. Lit le CSV et liste les micro-taches `BACK-1.x` triees.
+2. Affiche la liste au dev, demande GO.
+3. Verifie qu'on est sur une branche `feature/<X>` (sinon STOP et propose `/branche <nom>`).
+4. Boucle : pour chaque micro-tache codable,
+   - Planifie si > 3 fichiers touches,
+   - Code,
+   - Invoque les agents pertinents,
+   - **Commit individuel sans demander** (justification : `/tache` constitue une autorisation globale donnee par le dev),
+   - Mini-rapport,
+5. Pour chaque micro-tache non-codable (Conception, Documentation, QA) : delegue au dev et passe.
+6. Recap global a la fin.
+7. **Demande confirmation explicite** pour `git push` + ouverture de PR vers `develop`.
+
+Reference complete : `.claude/commands/tache.md`.
+
+### Autorisation globale via `/tache`
+
+Le lancement de `/tache <macro-id>` **autorise les commits individuels** de chaque micro-tache executee dans la boucle, **sans demander confirmation a chaque commit** (sinon le workflow perd son interet). En revanche :
+
+- **Le push final reste explicite** (`git push` declenche uniquement sur confirmation du dev).
+- **L'ouverture de PR reste explicite**.
+- **Une faute majeure detectee** (MDP en clair, concat SQL, techno hors-stack) interrompt la boucle et demande confirmation pour continuer ou corriger.
+
+Cette regle prime sur le protocole standard de `/commit` (CLAUDE.md §16) **uniquement dans le contexte de `/tache`**. Hors de ce contexte, le protocole `/commit` standard avec confirmation explicite par commit reste la regle.
+
+### Format des messages de commit dans `/tache`
+
+```
+<type>(<scope-deduit>): <description-micro-tache> [<ID-micro>]
+```
+
+L'ID de la micro-tache est suffixe entre crochets pour tracer l'execution dans l'historique git :
+
+- `feat(backend): scaffold src/ + .gitkeep [BACK-1.1]`
+- `feat(auth): endpoint mock POST /api/auth/register [AUTH-1.1]`
+- `feat(dashboard): layout 2 colonnes Mes Flashcards / Partagees [DASH-1.1]`
+
+### Trigger automatique
+
+Le hook `router-proactif.sh` detecte les mentions d'IDs de tache (regex `\b(DESIGN|BD|BACK|AUTH|UI|DASH|FRONT|FULL|DOC|QA)-[0-9]+(\.[0-9]+)?\b`) et suggere a Claude d'invoquer `/tache` quand un macro-id est mentionne dans le prompt.
+
+Exemples qui declenchent la suggestion :
+- "je travaille sur BACK-1"
+- "lance BACK-1"
+- "BACK-1"
+- "on attaque AUTH-2"
+
+Si une **micro**-id est mentionnee (ex : `BACK-1.3`), Claude ne lance pas toute la macro mais cible la micro-tache specifique.
+
 ---
 
-**TL;DR** — Stack imposee (HTML/CSS2/jQuery/PHP/SQLite), **APIs limitees strictement aux PDFs de cours**, MVC + SPA, patrons (Singleton + Repository + Factory min), validation client+serveur partout avec **rouge dynamique** + **message en bas**, BCRYPT, PDO prepare, W3C valide, indentation 4 espaces, francais coherent, **interface project-files/interface/ a respecter** (dashboard en 2 colonnes cote-a-cote, paquets cliquables partout, ecran de visualisation avec destinataires de partage), **mode automatique** (Claude invoque agents/commands proactivement selon matrice section 13), **workflow Git** (branche principale `develop`, branche `feature/<X>` par tache principale, commit par sous-tache avec confirmation explicite avant chaque action git), justification ecrite de chaque choix d'archi, ne jamais sortir de la stack ou du perimetre, toujours consulter les docs avant une decision technique, plan avant code.
+**TL;DR** — Stack imposee (HTML/CSS2/jQuery/PHP/SQLite), **APIs limitees strictement aux PDFs de cours**, MVC + SPA, patrons (Singleton + Repository + Factory min), validation client+serveur partout avec **rouge dynamique** + **message en bas**, BCRYPT, PDO prepare, W3C valide, indentation 4 espaces, francais coherent, **interface project-files/interface/ a respecter** (dashboard en 2 colonnes cote-a-cote, paquets cliquables partout, ecran de visualisation avec destinataires de partage), **mode automatique** (Claude invoque agents/commands proactivement selon matrice section 13), **workflow Git** (branche principale `develop`, branche `feature/<X>` par tache principale, commit par sous-tache avec confirmation explicite avant chaque action git), **workflow macro/micro taches** (le dev tape `/tache <macro-id>` ex `BACK-1`, Claude execute toutes les micro-taches du CSV `project-files/repartition_taches_detaillee.csv` en mode auto avec commits individuels, demande confirmation pour push+PR a la fin - cf. §17), justification ecrite de chaque choix d'archi, ne jamais sortir de la stack ou du perimetre, toujours consulter les docs avant une decision technique, plan avant code.

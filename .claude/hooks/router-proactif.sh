@@ -21,6 +21,19 @@ suggestions=""
 
 # ============ Detections d'intent ============
 
+# Detection ID de tache (macro ou micro) - declenche /tache
+# Macro : BACK-1, AUTH-2, UI-1, FRONT-2, FULL-2, DOC-ARCH, DOC-BD, QA
+# Micro : BACK-1.1, AUTH-2.10, etc.
+task_id_match=$(echo "$prompt" | grep -oE '\b(design|bd|back|auth|ui|dash|front|full|doc-[a-z]+|qa)-[0-9]+(\.[0-9]+)?\b' | head -1)
+if [ -n "$task_id_match" ]; then
+    macro_id=$(echo "$task_id_match" | tr 'a-z' 'A-Z' | sed -E 's/\.[0-9]+$//')
+    if echo "$task_id_match" | grep -q '\.'; then
+        suggestions="${suggestions}\n  - Mode auto : ID de micro-tache detecte ($task_id_match). Consulte 'project-files/repartition_taches_detaillee.csv' pour lire l'intitule. Pour executer toute la macro $macro_id, lance '/tache $macro_id'. Pour cibler uniquement cette micro-tache, code-la directement en respectant son intitule."
+    else
+        suggestions="${suggestions}\n  - Mode auto : macro-tache $macro_id detectee dans le prompt. Lance '/tache $macro_id' qui va lire le CSV 'project-files/repartition_taches_detaillee.csv', enchainer toutes les micro-taches en mode auto avec commits individuels, et te demander confirmation pour push + PR a la fin."
+    fi
+fi
+
 # Securite / mot de passe / auth
 if echo "$prompt" | grep -qE '\b(secu|securit|mot\s*de\s*passe|password|mdp|bcrypt|csrf|xss|session|inject|injection|hash|hachage)\b'; then
     suggestions="${suggestions}\n  - Mode auto : tu vas probablement avoir besoin de l'agent 'php-securite-auditor' et de la commande '/audit-securite' apres ta modification. Invoque-les sans attendre."
