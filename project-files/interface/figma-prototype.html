@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlashCards MIAGE — Desktop Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+
+/* ── Tokens ──────────────────────────────────── */
+:root {
+  --p:    #7C4DFF;
+  --p-h:  #6B3FE7;
+  --p-l:  #EDE7FF;
+  --p-m:  #B388FF;
+  --acc:  #FF6584;
+  --ok:   #22C55E;
+  --ok-l: #DCFCE7;
+  --err:  #EF4444;
+  --err-l:#FEE2E2;
+  --warn: #F59E0B;
+  --warn-l:#FFF3E0;
+
+  --bg:      #F0F2F8;
+  --surf:    #FFFFFF;
+  --surf2:   #F3F4F6;
+  --t1:      #111827;
+  --t2:      #374151;
+  --t3:      #6B7280;
+  --t4:      #9CA3AF;
+  --brd:     #E5E7EB;
+
+  --sh-sm: 0 1px 2px rgba(0,0,0,.05);
+  --sh:    0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --sh-md: 0 4px 6px -1px rgba(0,0,0,.1);
+  --sh-lg: 0 10px 15px -3px rgba(0,0,0,.1);
+  --sh-xl: 0 20px 25px -5px rgba(0,0,0,.15);
+  --sh-c:  0 2px 10px rgba(124,77,255,.08),0 1px 3px rgba(0,0,0,.05);
+
+  --r-sm:4px; --r:8px; --r-md:12px; --r-lg:18px; --r-xl:24px; --r-f:9999px;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg:#0F1117; --surf:#1F2937; --surf2:#374151;
+  --t1:#F9FAFB; --t2:#E5E7EB; --t3:#9CA3AF; --t4:#6B7280;
+  --brd:#374151; --sh-c:0 2px 10px rgba(0,0,0,.4);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  font-family:var(--font);
+  background:#1e1e2e;
+  display:flex;
+  height:100vh;
+  overflow:hidden;
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── Prototype sidebar (screen switcher) ─────── */
+.proto-nav{
+  width:180px;
+  flex-shrink:0;
+  background:#12121d;
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#333 transparent;
+}
+
+.proto-logo{
+  padding:18px 16px 12px;
+  border-bottom:1px solid #2a2a3e;
+}
+
+.proto-logo h1{
+  font-size:14px;
+  font-weight:800;
+  background:linear-gradient(135deg,#7C4DFF,#FF6584);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.proto-logo p{font-size:10px;color:#555;margin-top:2px;}
+
+.proto-section{padding:12px 10px 4px;}
+
+.proto-section-title{
+  font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;
+  color:#444;padding:0 6px 6px;
+}
+
+.proto-item{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 8px;border-radius:6px;
+  cursor:pointer;font-size:11px;font-weight:500;
+  color:#888;transition:all .15s;margin-bottom:1px;
+  user-select:none;
+}
+
+.proto-item:hover{background:#1e1e2e;color:#ccc;}
+.proto-item.active{background:#2a1f4e;color:#B388FF;}
+.proto-item .pi{font-size:13px;flex-shrink:0;}
+
+.proto-footer{
+  margin-top:auto;padding:14px 12px;
+  border-top:1px solid #2a2a3e;
+}
+
+.proto-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;color:#666;
+}
+
+.tog{
+  width:32px;height:18px;background:#333;
+  border-radius:9999px;position:relative;
+  cursor:pointer;transition:background .2s;flex-shrink:0;
+}
+.tog.on{background:var(--p);}
+.tog::after{
+  content:'';position:absolute;
+  width:14px;height:14px;background:#fff;
+  border-radius:50%;top:2px;left:2px;
+  transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.3);
+}
+.tog.on::after{transform:translateX(14px);}
+
+/* ── Preview area ────────────────────────────── */
+.proto-preview{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.proto-topbar{
+  height:44px;flex-shrink:0;
+  background:#1a1a2e;
+  border-bottom:1px solid #2a2a3e;
+  display:flex;align-items:center;
+  padding:0 20px;gap:16px;
+}
+
+.proto-topbar h2{font-size:13px;font-weight:600;color:#ccc;}
+
+.proto-badge{
+  font-size:10px;padding:2px 8px;
+  border-radius:9999px;
+  background:#2a1f4e;color:#B388FF;
+  font-weight:600;
+}
+
+.proto-topbar .spacer{flex:1;}
+
+/* Browser chrome */
+.browser-shell{
+  flex:1;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  margin:16px;
+  border-radius:10px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+  overflow:hidden;
+}
+
+.browser-bar{
+  height:40px;flex-shrink:0;
+  background:#e8e8e8;
+  display:flex;align-items:center;
+  padding:0 14px;gap:10px;
+}
+
+[data-theme="dark"] .browser-bar{background:#2d2d2d;}
+
+.win-dots{display:flex;gap:6px;}
+.win-dot{width:12px;height:12px;border-radius:50%;}
+.win-dot.r{background:#FF5F57;}
+.win-dot.y{background:#FEBC2E;}
+.win-dot.g{background:#28C840;}
+
+.browser-nav{display:flex;gap:4px;}
+
+.bnav-btn{
+  width:24px;height:24px;border-radius:50%;
+  background:rgba(0,0,0,.08);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:#666;cursor:pointer;
+}
+
+.url-bar{
+  flex:1;height:26px;
+  background:#fff;border-radius:5px;
+  display:flex;align-items:center;
+  padding:0 10px;gap:6px;
+  font-size:11px;color:#555;
+  border:1px solid #ddd;
+}
+
+[data-theme="dark"] .url-bar{background:#1a1a1a;color:#999;border-color:#444;}
+
+.url-bar .lock{font-size:11px;color:#34C759;}
+
+.browser-content{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  background:var(--bg);
+  scrollbar-width:thin;
+  scrollbar-color:var(--brd) transparent;
+}
+
+/* ── Screen visibility ───────────────────────── */
+.screen{display:none;}
+.screen.active{display:flex;flex-direction:column;min-height:100%;}
+
+/* ═══════════════════════════════════════════════
+   APP LAYOUT (shared)
+═══════════════════════════════════════════════ */
+.app-wrap{
+  display:flex;
+  min-height:100%;
+  background:var(--bg);
+}
+
+/* App sidebar */
+.app-sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--surf);
+  border-right:1px solid var(--brd);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+  overflow-y:auto;
+}
+
+.app-sidebar-logo{
+  padding:22px 20px 18px;
+  border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;gap:10px;
+}
+
+.sidebar-icon{
+  width:36px;height:36px;
+  background:linear-gradient(135deg,var(--p),var(--acc));
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+
+.app-sidebar-logo .brand{
+  font-size:17px;font-weight:800;
+  background:linear-gradient(135deg,var(--p),var(--acc));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  line-height:1;
+}
+
+.app-sidebar-logo .brand-sub{font-size:10px;color:var(--t4);margin-top:2px;}
+
+.nav-section{padding:14px 12px 6px;}
+
+.nav-section-title{
+  font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;
+  color:var(--t4);padding:0 8px 8px;
+}
+
+.nav-link{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--r);
+  font-size:13px;font-weight:500;
+  color:var(--t2);
+  cursor:pointer;transition:all .15s;
+  margin-bottom:2px;user-select:none;
+}
+
+.nav-link:hover{background:var(--surf2);}
+
+.nav-link.active{
+  background:var(--p-l);color:var(--p);font-weight:600;
+}
+
+.nav-link .nl-icon{
+  width:32px;height:32px;
+  border-radius:var(--r);
+  background:var(--surf2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
+  transition:all .15s;
+}
+
+.nav-link.active .nl-icon{background:rgba(124,77,255,.15);}
+
+.nav-link .nl-text{flex:1;}
+.nav-link .nl-count{
+  padding:1px 7px;
+  background:var(--p-l);color:var(--p);
+  border-radius:var(--r-f);font-size:10px;font-weight:700;
+}
+
+.nav-link.active .nl-count{background:var(--p);color:#fff;}
+
+.app-sidebar-footer{
+  margin-top:auto;padding:16px 12px;
+  border-top:1px solid var(--brd);
+}
+
+.user-chip{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:var(--r);
+  cursor:pointer;transition:all .15s;
+}
+
+.user-chip:hover{background:var(--surf2);}
+
+.user-av{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--p),var(--acc));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:13px;font-weight:800;
+  flex-shrink:0;
+}
+
+.user-chip-name{font-size:13px;font-weight:600;color:var(--t1);}
+.user-chip-role{font-size:11px;color:var(--t3);}
+
+/* Main area */
+.app-main{
+  flex:1;
+  display:flex;flex-direction:column;
+  min-width:0;
+}
+
+/* Top bar */
+.app-topbar{
+  height:56px;flex-shrink:0;
+  background:var(--surf);
+  border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;
+  padding:0 28px;gap:12px;
+  position:sticky;top:0;z-index:50;
+}
+
+.topbar-title{font-size:17px;font-weight:700;color:var(--t1);flex:1;}
+
+.search-bar{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surf2);border:1.5px solid var(--brd);
+  border-radius:var(--r-f);
+  padding:7px 14px;
+  width:260px;
+}
+
+.search-bar input{
+  background:none;border:none;outline:none;
+  font-size:13px;color:var(--t1);width:100%;
+  font-family:var(--font);
+}
+
+.search-bar input::placeholder{color:var(--t4);}
+
+.topbar-actions{display:flex;gap:8px;align-items:center;}
+
+.icon-btn{
+  width:36px;height:36px;
+  border-radius:var(--r);
+  background:var(--surf2);
+  border:1.5px solid var(--brd);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;cursor:pointer;
+  position:relative;transition:all .15s;
+}
+
+.icon-btn:hover{background:var(--brd);}
+
+.notif-dot{
+  width:8px;height:8px;background:var(--acc);
+  border-radius:50%;position:absolute;
+  top:-2px;right:-2px;
+  border:2px solid var(--surf);
+}
+
+.topbar-av{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--p),var(--acc));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:13px;font-weight:800;
+  cursor:pointer;border:2px solid var(--surf);
+  box-shadow:var(--sh);
+}
+
+/* ═══════════════════════════════════════════════
+   SCREEN 1 — LOGIN
+═══════════════════════════════════════════════ */
+.auth-layout{
+  display:grid;grid-template-columns:1fr 1fr;
+  min-height:100%;
+}
+
+.auth-left{
+  background:linear-gradient(145deg,#7C4DFF 0%,#5E35B1 50%,#9B59B6 100%);
+  display:flex;flex-direction:column;
+  justify-content:center;
+  padding:60px 56px;
+}
+
+.auth-left-logo{
+  width:64px;height:64px;
+  background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:18px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;margin-bottom:32px;
+}
+
+.auth-left h1{font-size:38px;font-weight:800;color:#fff;letter-spacing:-.5px;margin-bottom:10px;}
+.auth-left .tagline{font-size:16px;color:rgba(255,255,255,.72);margin-bottom:48px;line-height:1.6;}
+
+.feature-list{display:flex;flex-direction:column;gap:16px;}
+
+.feature-item{
+  display:flex;align-items:center;gap:14px;
+  color:rgba(255,255,255,.85);font-size:14px;font-weight:500;
+}
+
+.feature-dot{
+  width:36px;height:36px;flex-shrink:0;
+  background:rgba(255,255,255,.15);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+
+.auth-right{
+  background:var(--surf);
+  display:flex;align-items:center;justify-content:center;
+  padding:60px 56px;
+}
+
+.auth-form-box{width:100%;max-width:380px;}
+
+.auth-form-box h2{font-size:26px;font-weight:800;color:var(--t1);margin-bottom:6px;}
+.auth-form-box .sub{font-size:14px;color:var(--t3);margin-bottom:32px;}
+
+.form-group{margin-bottom:18px;}
+
+.form-label{
+  display:block;font-size:11px;font-weight:700;
+  color:var(--t2);margin-bottom:6px;
+  text-transform:uppercase;letter-spacing:.05em;
+}
+
+.form-label .req{color:var(--err);margin-left:2px;}
+
+.form-control{
+  width:100%;padding:11px 14px;
+  border:1.5px solid var(--brd);
+  border-radius:var(--r);
+  font-size:14px;font-family:var(--font);
+  color:var(--t1);background:var(--surf2);outline:none;
+}
+
+.form-control.filled{border-color:var(--p);background:var(--surf);}
+
+.input-icon{position:relative;}
+.input-icon .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
+.input-icon .form-control{padding-left:40px;}
+
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:8px;padding:12px 22px;
+  border-radius:var(--r);font-size:14px;font-weight:600;
+  font-family:var(--font);cursor:pointer;border:none;
+  transition:all .15s;white-space:nowrap;
+}
+
+.btn-primary{
+  background:linear-gradient(135deg,var(--p),var(--p-h));
+  color:#fff;box-shadow:0 4px 14px rgba(124,77,255,.35);
+}
+
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,77,255,.45);}
+
+.btn-secondary{background:var(--surf2);color:var(--t2);border:1.5px solid var(--brd);}
+.btn-secondary:hover{background:var(--brd);}
+.btn-danger{background:var(--err-l);color:var(--err);border:1.5px solid var(--err);}
+.btn-ghost{background:transparent;color:var(--p);border:1.5px solid var(--p-l);}
+.btn-ghost:hover{background:var(--p-l);}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:var(--r-sm);}
+.btn-full{width:100%;}
+
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--brd);}
+.divider span{font-size:12px;color:var(--t4);}
+
+.auth-switch{text-align:center;font-size:13px;color:var(--t3);margin-top:20px;}
+.auth-switch a{color:var(--p);font-weight:600;text-decoration:none;}
+.forgot-link{text-align:right;margin-bottom:18px;}
+.forgot-link a{font-size:12px;color:var(--p);font-weight:600;text-decoration:none;}
+
+/* ═══════════════════════════════════════════════
+   SCREEN 3 — DASHBOARD
+═══════════════════════════════════════════════ */
+.page-body{padding:28px;flex:1;}
+
+.page-title-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;
+}
+
+.page-title{font-size:22px;font-weight:800;color:var(--t1);}
+.page-sub{font-size:13px;color:var(--t3);margin-top:3px;}
+
+/* Stats row */
+.stats-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:16px;margin-bottom:28px;
+}
+
+.stat-card{
+  background:var(--surf);
+  border-radius:var(--r-md);
+  padding:20px 22px;
+  box-shadow:var(--sh-c);
+  display:flex;align-items:center;gap:16px;
+  border:1.5px solid transparent;
+  transition:all .15s;
+}
+
+.stat-card:hover{border-color:var(--p-l);transform:translateY(-1px);}
+
+.stat-icon{
+  width:48px;height:48px;
+  border-radius:var(--r-md);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+
+.stat-icon.purple{background:var(--p-l);}
+.stat-icon.green{background:var(--ok-l);}
+.stat-icon.orange{background:var(--warn-l);}
+.stat-icon.pink{background:#FFE4EA;}
+
+.stat-num{font-size:26px;font-weight:800;color:var(--t1);line-height:1;}
+.stat-lbl{font-size:12px;color:var(--t3);font-weight:500;margin-top:3px;}
+
+/* Tabs */
+.tabs-row{
+  display:flex;align-items:center;
+  border-bottom:1px solid var(--brd);
+  margin-bottom:20px;gap:0;
+}
+
+.tab-btn{
+  padding:10px 20px;font-size:13px;font-weight:600;
+  color:var(--t3);cursor:pointer;border:none;background:none;
+  font-family:var(--font);position:relative;transition:color .15s;
+  user-select:none;
+}
+
+.tab-btn.active{color:var(--p);}
+
+.tab-btn.active::after{
+  content:'';position:absolute;
+  bottom:-1px;left:0;right:0;height:2.5px;
+  background:var(--p);border-radius:var(--r-f);
+}
+
+.tab-ct{
+  display:inline-block;padding:1px 7px;
+  background:var(--p-l);color:var(--p);
+  border-radius:var(--r-f);font-size:10px;font-weight:700;margin-left:5px;
+}
+
+.tab-btn.active .tab-ct{background:var(--p);color:#fff;}
+
+/* Deck grid */
+.deck-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+}
+
+.deck-card{
+  background:var(--surf);
+  border-radius:var(--r-md);
+  padding:20px;
+  box-shadow:var(--sh-c);
+  cursor:pointer;
+  position:relative;overflow:hidden;
+  border:1.5px solid transparent;
+  transition:all .18s;
+}
+
+.deck-card::before{
+  content:'';position:absolute;
+  top:0;left:0;width:4px;height:100%;
+  background:linear-gradient(180deg,var(--p),var(--acc));
+}
+
+.deck-card:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--sh-lg);
+  border-color:var(--p-l);
+}
+
+.deck-card-head{
+  display:flex;align-items:flex-start;
+  justify-content:space-between;
+  padding-left:12px;margin-bottom:12px;
+}
+
+.deck-title{font-size:14px;font-weight:700;color:var(--t1);line-height:1.35;}
+.deck-theme{font-size:11px;color:var(--t3);font-weight:500;margin-top:3px;}
+
+.badge{
+  display:inline-block;padding:3px 9px;
+  border-radius:var(--r-f);font-size:10px;font-weight:700;
+  flex-shrink:0;margin-left:8px;
+}
+
+.badge-p{background:var(--p-l);color:var(--p);}
+.badge-ok{background:var(--ok-l);color:#15803D;}
+.badge-warn{background:var(--warn-l);color:#C2410C;}
+.badge-err{background:var(--err-l);color:#B91C1C;}
+
+.deck-score-row{
+  display:flex;gap:12px;
+  padding-left:12px;margin-bottom:14px;
+  font-size:11px;color:var(--t3);font-weight:500;
+}
+
+.deck-score-row strong{color:var(--t1);font-weight:700;}
+
+/* Progress mini bar */
+.deck-progress{
+  margin:0 0 14px 12px;
+  height:5px;background:var(--surf2);
+  border-radius:var(--r-f);overflow:hidden;
+}
+
+.deck-progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--p),var(--acc));
+  border-radius:var(--r-f);
+}
+
+.deck-actions{
+  display:flex;gap:6px;
+  padding-left:12px;
+  padding-top:12px;
+  border-top:1px solid var(--brd);
+}
+
+/* Empty state */
+.empty-state{
+  text-align:center;padding:64px 20px;
+  color:var(--t3);grid-column:1/-1;
+}
+
+.empty-state .ei{font-size:52px;display:block;margin-bottom:16px;}
+.empty-state h3{font-size:18px;font-weight:700;color:var(--t1);margin-bottom:8px;}
+.empty-state p{font-size:13px;margin-bottom:22px;}
+
+/* ═══════════════════════════════════════════════
+   SCREEN 4 & 5 — STUDY
+═══════════════════════════════════════════════ */
+.study-layout{
+  display:grid;
+  grid-template-columns:1fr 320px;
+  gap:0;flex:1;
+  min-height:0;
+}
+
+.study-main{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:48px 40px;
+  gap:24px;
+}
+
+.study-topbar{
+  background:var(--surf);
+  border-bottom:1px solid var(--brd);
+  padding:14px 28px;
+  display:flex;align-items:center;gap:14px;
+}
+
+.back-btn{
+  width:36px;height:36px;
+  border-radius:var(--r);
+  background:var(--surf2);border:1.5px solid var(--brd);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;cursor:pointer;color:var(--t2);
+  transition:all .15s;flex-shrink:0;
+}
+
+.back-btn:hover{background:var(--brd);}
+
+.study-deck-name{font-size:16px;font-weight:700;color:var(--t1);flex:1;}
+.study-deck-sub{font-size:12px;color:var(--t3);}
+
+.prog-row{display:flex;align-items:center;gap:12px;flex:1;}
+
+.prog-bg{
+  flex:1;height:8px;
+  background:var(--brd);
+  border-radius:var(--r-f);overflow:hidden;
+}
+
+.prog-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--p),var(--acc));
+  border-radius:var(--r-f);
+  transition:width .4s ease;
+}
+
+.prog-txt{font-size:12px;font-weight:600;color:var(--t3);flex-shrink:0;}
+
+.diff-tag{
+  padding:5px 14px;
+  border-radius:var(--r-f);font-size:12px;font-weight:700;
+}
+
+.diff-tag.med{background:var(--warn-l);color:#C2410C;}
+.diff-tag.easy{background:var(--ok-l);color:#15803D;}
+.diff-tag.hard{background:var(--err-l);color:#B91C1C;}
+
+/* Flashcard */
+.flashcard{
+  width:520px;height:280px;
+  perspective:1200px;cursor:pointer;user-select:none;
+}
+
+.fc-inner{
+  width:100%;height:100%;
+  position:relative;transform-style:preserve-3d;
+  transition:transform .6s cubic-bezier(.4,0,.2,1);
+}
+
+.flashcard.flipped .fc-inner{transform:rotateY(180deg);}
+
+.fc-face{
+  position:absolute;width:100%;height:100%;
+  backface-visibility:hidden;
+  border-radius:var(--r-xl);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:36px;box-shadow:var(--sh-xl);
+}
+
+.fc-front{background:linear-gradient(135deg,#7C4DFF,#9B59B6);}
+.fc-back{background:linear-gradient(135deg,#059669,#0D9488);transform:rotateY(180deg);}
+
+.fc-label{
+  font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;
+  color:rgba(255,255,255,.6);margin-bottom:16px;
+}
+
+.fc-text{
+  font-size:20px;font-weight:700;color:#fff;
+  text-align:center;line-height:1.45;
+}
+
+.fc-hint{
+  font-size:12px;color:rgba(255,255,255,.5);
+  margin-top:18px;text-align:center;
+}
+
+/* Eval buttons */
+.eval-row{display:flex;gap:16px;width:520px;}
+
+.eval-btn{
+  flex:1;padding:18px 16px;
+  border-radius:var(--r-md);
+  border:2px solid transparent;cursor:pointer;
+  display:flex;flex-direction:column;
+  align-items:center;gap:8px;
+  font-family:var(--font);transition:all .15s;
+}
+
+.eval-btn:hover{transform:translateY(-2px);}
+.eval-btn .ei{font-size:30px;}
+.eval-btn .el{font-size:13px;font-weight:700;}
+
+.eval-correct{background:var(--ok-l);border-color:var(--ok);}
+.eval-correct .el{color:#15803D;}
+.eval-incorrect{background:var(--err-l);border-color:var(--err);}
+.eval-incorrect .el{color:#B91C1C;}
+
+.key-hints{
+  display:flex;gap:16px;
+  font-size:11px;color:var(--t4);
+  align-items:center;
+}
+
+.key-hint{
+  display:flex;align-items:center;gap:5px;
+}
+
+.kbd{
+  background:var(--surf2);border:1.5px solid var(--brd);
+  border-radius:4px;padding:2px 7px;
+  font-size:11px;font-weight:600;color:var(--t2);
+  box-shadow:0 1px 0 var(--brd);
+}
+
+/* Study sidebar */
+.study-sidebar{
+  background:var(--surf);
+  border-left:1px solid var(--brd);
+  display:flex;flex-direction:column;
+  overflow-y:auto;
+}
+
+.study-sidebar-head{
+  padding:20px 20px 14px;
+  border-bottom:1px solid var(--brd);
+}
+
+.study-sidebar-head h3{
+  font-size:14px;font-weight:700;color:var(--t1);margin-bottom:14px;
+}
+
+.score-block{
+  background:var(--p-l);
+  border-radius:var(--r-md);
+  padding:18px;text-align:center;
+  margin-bottom:14px;
+}
+
+.score-big{
+  font-size:42px;font-weight:900;
+  background:linear-gradient(135deg,var(--p),var(--acc));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;line-height:1;margin-bottom:4px;
+}
+
+.score-lbl{font-size:11px;color:var(--t3);font-weight:500;}
+
+.score-row{display:flex;gap:8px;justify-content:center;margin-top:12px;}
+
+.sc-chip{
+  display:flex;align-items:center;gap:4px;
+  padding:5px 12px;border-radius:var(--r-f);
+  font-size:12px;font-weight:600;
+}
+
+.sc-chip.ok{background:var(--ok-l);color:#15803D;}
+.sc-chip.ko{background:var(--err-l);color:#B91C1C;}
+.sc-chip.best{background:var(--warn-l);color:#C2410C;}
+
+.questions-list{padding:14px 20px;flex:1;overflow-y:auto;}
+
+.q-mini{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:10px;border-radius:var(--r);
+  margin-bottom:6px;cursor:pointer;
+  transition:all .15s;
+}
+
+.q-mini:hover{background:var(--surf2);}
+.q-mini.current{background:var(--p-l);}
+.q-mini.done-ok{opacity:.6;}
+.q-mini.done-ko{opacity:.6;}
+
+.q-mini-num{
+  width:22px;height:22px;border-radius:50%;
+  background:var(--surf2);color:var(--t3);
+  font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+
+.q-mini.current .q-mini-num{background:var(--p);color:#fff;}
+.q-mini.done-ok .q-mini-num{background:var(--ok-l);color:#15803D;}
+.q-mini.done-ko .q-mini-num{background:var(--err-l);color:#B91C1C;}
+
+.q-mini-text{font-size:12px;color:var(--t2);line-height:1.35;flex:1;}
+.q-mini.current .q-mini-text{font-weight:600;color:var(--p);}
+
+/* ═══════════════════════════════════════════════
+   SCREEN 6 — CREATE DECK
+═══════════════════════════════════════════════ */
+.create-layout{
+  display:grid;
+  grid-template-columns:400px 1fr;
+  gap:24px;
+  padding:28px;
+  flex:1;
+  align-items:start;
+}
+
+.card{
+  background:var(--surf);
+  border-radius:var(--r-md);
+  padding:22px;
+  box-shadow:var(--sh-c);
+}
+
+.card-title{
+  font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.07em;
+  color:var(--t3);margin-bottom:16px;
+}
+
+.char-hint{text-align:right;font-size:11px;color:var(--t4);margin-top:4px;}
+
+.q-item-desktop{
+  background:var(--surf2);
+  border-radius:var(--r);
+  padding:14px;
+  margin-bottom:10px;
+  border:1.5px solid var(--brd);
+  display:flex;gap:12px;align-items:flex-start;
+  transition:all .15s;
+}
+
+.q-item-desktop:hover{border-color:var(--p-l);}
+
+.q-num{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--p-l);color:var(--p);
+  font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+
+.q-body{flex:1;min-width:0;}
+.q-q-text{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:4px;line-height:1.3;}
+.q-a-text{font-size:12px;color:var(--t3);line-height:1.3;}
+
+.diff-chips{display:flex;gap:6px;margin-top:8px;}
+
+.diff-chip{
+  padding:4px 12px;border-radius:var(--r-f);
+  font-size:11px;font-weight:600;
+  border:1.5px solid var(--brd);
+  cursor:pointer;background:transparent;
+  font-family:var(--font);color:var(--t3);
+  transition:all .15s;
+}
+
+.diff-chip.active-easy{background:var(--ok-l);border-color:var(--ok);color:#15803D;}
+.diff-chip.active-med{background:var(--warn-l);border-color:var(--warn);color:#C2410C;}
+.diff-chip.active-hard{background:var(--err-l);border-color:var(--err);color:#B91C1C;}
+
+.q-del{color:var(--t4);font-size:15px;cursor:pointer;padding:2px;transition:all .15s;}
+.q-del:hover{color:var(--err);}
+
+.add-q-btn{
+  width:100%;padding:12px;
+  border:2px dashed var(--brd);
+  border-radius:var(--r);
+  background:transparent;
+  color:var(--p);font-size:13px;font-weight:600;
+  font-family:var(--font);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:all .15s;margin-top:4px;
+}
+
+.add-q-btn:hover{border-color:var(--p);background:var(--p-l);}
+
+/* ═══════════════════════════════════════════════
+   SCREEN 7 — SHARE MODAL
+═══════════════════════════════════════════════ */
+.modal-overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.5);
+  backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:100;
+}
+
+.modal-box{
+  background:var(--surf);
+  border-radius:var(--r-xl);
+  padding:28px;
+  width:480px;
+  box-shadow:var(--sh-xl);
+  animation:pop-in .25s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes pop-in{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+
+.modal-head{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:6px;
+}
+
+.modal-title{font-size:20px;font-weight:700;color:var(--t1);}
+.modal-close{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--surf2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;color:var(--t3);
+  border:1.5px solid var(--brd);
+  transition:all .15s;
+}
+.modal-close:hover{background:var(--brd);}
+.modal-sub{font-size:13px;color:var(--t3);margin-bottom:20px;}
+
+.user-result{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:var(--r);
+  cursor:pointer;transition:all .1s;
+  border:1.5px solid transparent;
+}
+
+.user-result:hover{background:var(--surf2);}
+.user-result.selected{background:var(--p-l);border-color:var(--p-l);}
+
+.u-av{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#fff;flex-shrink:0;
+}
+
+.u-name{font-size:14px;font-weight:600;color:var(--t1);}
+.u-email{font-size:12px;color:var(--t3);margin-top:1px;}
+.u-check{margin-left:auto;color:var(--p);font-size:20px;font-weight:800;}
+
+.info-box{
+  background:var(--p-l);border-radius:var(--r);
+  padding:12px 14px;margin:14px 0;
+  display:flex;gap:8px;align-items:flex-start;
+  font-size:12px;color:var(--p);font-weight:500;line-height:1.5;
+}
+
+.modal-actions{display:flex;gap:10px;margin-top:20px;}
+
+/* ═══════════════════════════════════════════════
+   SCREEN 8 — PROFILE
+═══════════════════════════════════════════════ */
+.profile-layout{
+  display:grid;
+  grid-template-columns:280px 1fr;
+  gap:24px;
+  padding:28px;
+  flex:1;
+  align-items:start;
+}
+
+.profile-card-left{
+  background:linear-gradient(145deg,#7C4DFF,#9B59B6);
+  border-radius:var(--r-xl);
+  padding:28px;
+  text-align:center;
+  box-shadow:var(--sh-lg);
+}
+
+.profile-big-av{
+  width:90px;height:90px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  border:3px solid rgba(255,255,255,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:34px;font-weight:800;color:#fff;
+  margin:0 auto 16px;
+}
+
+.profile-name{font-size:20px;font-weight:800;color:#fff;}
+.profile-email{font-size:12px;color:rgba(255,255,255,.72);margin-top:4px;}
+
+.profile-stats{
+  display:flex;gap:0;margin-top:20px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:var(--r);overflow:hidden;
+}
+
+.p-stat{
+  flex:1;padding:12px 8px;text-align:center;
+  border-right:1px solid rgba(255,255,255,.15);
+}
+
+.p-stat:last-child{border-right:none;}
+.p-stat-num{font-size:20px;font-weight:800;color:#fff;display:block;}
+.p-stat-lbl{font-size:9px;color:rgba(255,255,255,.65);font-weight:500;margin-top:2px;text-transform:uppercase;letter-spacing:.06em;}
+
+.profile-change-av{
+  margin-top:16px;
+  display:block;font-size:12px;
+  color:rgba(255,255,255,.7);cursor:pointer;
+  text-decoration:underline;text-underline-offset:2px;
+}
+
+.list-group{
+  background:var(--surf);border-radius:var(--r-md);
+  overflow:hidden;box-shadow:var(--sh-c);margin-bottom:16px;
+}
+
+.list-row{
+  display:flex;align-items:center;
+  padding:16px 18px;border-bottom:1px solid var(--brd);
+  gap:14px;cursor:pointer;transition:all .15s;
+}
+
+.list-row:hover{background:var(--surf2);}
+.list-row:last-child{border-bottom:none;}
+
+.list-icon{
+  width:38px;height:38px;border-radius:var(--r);
+  background:var(--p-l);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;
+}
+
+.list-content{flex:1;}
+.list-lbl{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.list-val{font-size:14px;font-weight:500;color:var(--t1);}
+.list-arr{color:var(--t4);font-size:17px;}
+
+.setting-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;border-bottom:1px solid var(--brd);
+}
+
+.setting-row:last-child{border-bottom:none;}
+.setting-lbl{font-size:14px;font-weight:500;color:var(--t1);}
+.setting-sub{font-size:11px;color:var(--t3);margin-top:2px;}
+
+.toggle-sw{
+  width:42px;height:24px;background:var(--brd);
+  border-radius:var(--r-f);position:relative;
+  cursor:pointer;transition:background .2s;flex-shrink:0;
+}
+
+.toggle-sw.on{background:var(--p);}
+.toggle-sw::after{
+  content:'';position:absolute;
+  width:18px;height:18px;background:#fff;
+  border-radius:50%;top:3px;left:3px;
+  transition:transform .2s;box-shadow:var(--sh-sm);
+}
+
+.toggle-sw.on::after{transform:translateX(18px);}
+
+/* ═══════════════════════════════════════════════
+   SCREEN 9 — DESIGN TOKENS
+═══════════════════════════════════════════════ */
+.tokens-body{padding:28px;flex:1;}
+
+.tokens-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;margin-bottom:28px;
+}
+
+.swatch{border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-sm);}
+.swatch-color{height:52px;}
+.swatch-info{background:var(--surf);padding:10px 12px;}
+.swatch-name{font-size:12px;font-weight:600;color:var(--t2);}
+.swatch-hex{font-size:11px;color:var(--t3);font-family:monospace;}
+
+.type-samples{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;margin-bottom:28px;
+}
+
+.type-card{background:var(--surf);border-radius:var(--r);padding:16px;box-shadow:var(--sh-sm);}
+.type-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t4);margin-bottom:8px;}
+
+.radius-row{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;margin-bottom:28px;}
+.radius-item{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.radius-box{background:var(--p);}
+.radius-lbl{font-size:11px;color:var(--t3);}
+
+.btn-showcase{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px;}
+
+.section-title-tokens{
+  font-size:13px;font-weight:700;color:var(--t1);
+  margin-bottom:14px;margin-top:24px;
+  padding-bottom:8px;border-bottom:1px solid var(--brd);
+}
+
+/* ═══════════════════════════════════════════════
+   SUMMARY SCREEN
+═══════════════════════════════════════════════ */
+.summary-page{
+  flex:1;
+  background:linear-gradient(145deg,#7C4DFF 0%,#5E35B1 55%,#9B59B6 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:40px;
+}
+
+.summary-box{
+  background:var(--surf);
+  border-radius:var(--r-xl);
+  padding:40px 48px;
+  text-align:center;
+  max-width:480px;width:100%;
+  box-shadow:var(--sh-xl);
+}
+
+.summary-box h2{font-size:26px;font-weight:800;color:var(--t1);margin-bottom:6px;}
+.summary-sub{font-size:14px;color:var(--t3);margin-bottom:24px;}
+
+.big-score{
+  font-size:72px;font-weight:900;line-height:1;
+  background:linear-gradient(135deg,var(--p),var(--acc));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:8px;
+}
+
+.score-detail{font-size:14px;color:var(--t3);margin-bottom:24px;}
+
+.breakdown{display:flex;justify-content:center;gap:36px;margin-bottom:32px;}
+.bd-item{text-align:center;}
+.bd-num{font-size:28px;font-weight:800;display:block;}
+.bd-lbl{font-size:12px;color:var(--t3);font-weight:500;}
+.bd-item.ok .bd-num{color:var(--ok);}
+.bd-item.ko .bd-num{color:var(--err);}
+.bd-item.rec .bd-num{color:var(--p);}
+
+.summary-actions{display:flex;gap:12px;justify-content:center;}
+
+  </style>
+</head>
+<body>
+
+<!-- ── Prototype navigation ─────────────────── -->
+<aside class="proto-nav">
+  <div class="proto-logo">
+    <h1>⚡ FlashCards</h1>
+    <p>Desktop UI Prototype</p>
+  </div>
+
+  <div class="proto-section">
+    <div class="proto-section-title">Écrans</div>
+    <div class="proto-item active" onclick="show('login',this)">
+      <span class="pi">🔐</span> Connexion
+    </div>
+    <div class="proto-item" onclick="show('register',this)">
+      <span class="pi">👤</span> Inscription
+    </div>
+    <div class="proto-item" onclick="show('dashboard',this)">
+      <span class="pi">🏠</span> Dashboard
+    </div>
+    <div class="proto-item" onclick="show('study-q',this)">
+      <span class="pi">🃏</span> Révision — Question
+    </div>
+    <div class="proto-item" onclick="show('study-a',this)">
+      <span class="pi">✅</span> Révision — Réponse
+    </div>
+    <div class="proto-item" onclick="show('summary',this)">
+      <span class="pi">🏆</span> Fin de session
+    </div>
+    <div class="proto-item" onclick="show('create',this)">
+      <span class="pi">➕</span> Créer un paquet
+    </div>
+    <div class="proto-item" onclick="show('share',this)">
+      <span class="pi">🔗</span> Partager
+    </div>
+    <div class="proto-item" onclick="show('profile',this)">
+      <span class="pi">⚙️</span> Profil
+    </div>
+  </div>
+
+  <div class="proto-section">
+    <div class="proto-section-title">Design System</div>
+    <div class="proto-item" onclick="show('tokens',this)">
+      <span class="pi">🎨</span> Tokens & Typo
+    </div>
+  </div>
+
+  <div class="proto-footer">
+    <div class="proto-toggle">
+      <span>🌙 Sombre</span>
+      <div class="tog" id="themeToggle" onclick="toggleTheme()"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Preview area ───────────────────────────── -->
+<main class="proto-preview">
+  <div class="proto-topbar">
+    <h2 id="screenTitle">Connexion</h2>
+    <span class="proto-badge" id="screenBadge">Écran 1 / 9</span>
+    <div class="spacer"></div>
+    <span style="font-size:11px;color:#555;">1440 × 900 px</span>
+  </div>
+
+  <div class="browser-shell">
+    <!-- Browser chrome -->
+    <div class="browser-bar">
+      <div class="win-dots">
+        <div class="win-dot r"></div>
+        <div class="win-dot y"></div>
+        <div class="win-dot g"></div>
+      </div>
+      <div class="browser-nav">
+        <div class="bnav-btn">‹</div>
+        <div class="bnav-btn">›</div>
+      </div>
+      <div class="url-bar">
+        <span class="lock">🔒</span>
+        <span id="urlBar">localhost/flashcards/</span>
+      </div>
+    </div>
+
+    <!-- Screens -->
+    <div class="browser-content">
+
+      <!-- ════════════════════════════════════════
+           SCREEN 1 — LOGIN
+      ════════════════════════════════════════ -->
+      <div class="screen active" id="s-login">
+        <div class="auth-layout" style="flex:1;min-height:100%;">
+          <div class="auth-left">
+            <div class="auth-left-logo">⚡</div>
+            <h1>FlashCards</h1>
+            <p class="tagline">Révisez intelligemment avec des flashcards<br>à répétition espacée, style Anki.</p>
+            <div class="feature-list">
+              <div class="feature-item">
+                <div class="feature-dot">🃏</div>
+                <span>Cartes interactives avec auto-évaluation</span>
+              </div>
+              <div class="feature-item">
+                <div class="feature-dot">📊</div>
+                <span>Suivi de progression et scores personnels</span>
+              </div>
+              <div class="feature-item">
+                <div class="feature-dot">🔗</div>
+                <span>Partage de paquets entre étudiants</span>
+              </div>
+              <div class="feature-item">
+                <div class="feature-dot">🌙</div>
+                <span>Mode sombre / clair selon vos préférences</span>
+              </div>
+            </div>
+          </div>
+          <div class="auth-right">
+            <div class="auth-form-box">
+              <h2>Bon retour !</h2>
+              <p class="sub">Connectez-vous à votre compte MIAGE</p>
+              <div class="form-group">
+                <label class="form-label">Adresse email</label>
+                <div class="input-icon">
+                  <span class="ic">✉️</span>
+                  <input class="form-control filled" type="email" value="jean.dupont@univ.fr" readonly>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mot de passe</label>
+                <div class="input-icon">
+                  <span class="ic">🔒</span>
+                  <input class="form-control filled" type="password" value="••••••••" readonly>
+                </div>
+              </div>
+              <div class="forgot-link"><a href="#">Mot de passe oublié ?</a></div>
+              <button class="btn btn-primary btn-full" style="font-size:15px;padding:13px;">🚀 Se connecter</button>
+              <div class="divider"><span>ou</span></div>
+              <div class="auth-switch">Pas encore de compte ? <a href="#">Créer un compte →</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           SCREEN 2 — REGISTER
+      ════════════════════════════════════════ -->
+      <div class="screen" id="s-register">
+        <div class="auth-layout" style="flex:1;min-height:100%;">
+          <div class="auth-left">
+            <div class="auth-left-logo">⚡</div>
+            <h1>Rejoignez<br>FlashCards</h1>
+            <p class="tagline">Créez votre compte et commencez à réviser<br>avec vos camarades MIAGE dès aujourd'hui.</p>
+            <div class="feature-list">
+              <div class="feature-item">
+                <div class="feature-dot">✅</div>
+                <span>Compte gratuit, aucune carte bancaire</span>
+              </div>
+              <div class="feature-item">
+                <div class="feature-dot">📚</div>
+                <span>Créez un nombre illimité de paquets</span>
+              </div>
+              <div class="feature-item">
+                <div class="feature-dot">👥</div>
+                <span>Collaborez avec vos camarades</span>
+              </div>
+            </div>
+          </div>
+          <div class="auth-right">
+            <div class="auth-form-box" style="max-width:420px;">
+              <h2>Créer un compte</h2>
+              <p class="sub">Tous les champs sont requis</p>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label">Prénom</label>
+                  <input class="form-control filled" value="Jean" readonly>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Nom</label>
+                  <input class="form-control filled" value="Dupont" readonly>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email universitaire</label>
+                <input class="form-control filled" type="email" value="jean.dupont@univ.fr" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date de naissance</label>
+                <input class="form-control filled" value="15/03/2002" readonly>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label">Mot de passe</label>
+                  <input class="form-control" type="password" placeholder="8 caractères min.">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Confirmer</label>
+                  <input class="form-control" type="password" placeholder="Répétez">
+                </div>
+              </div>
+              <button class="btn btn-primary btn-full" style="font-size:15px;padding:13px;">✨ Créer mon compte</button>
+              <div class="auth-switch" style="margin-top:16px;">Déjà un compte ? <a href="#">Se connecter →</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           SCREEN 3 — DASHBOARD
+      ════════════════════════════════════════ -->
+      <div class="screen" id="s-dashboard">
+        <div class="app-wrap">
+          <!-- Sidebar -->
+          <aside class="app-sidebar">
+            <div class="app-sidebar-logo">
+              <div class="sidebar-icon">⚡</div>
+              <div>
+                <div class="brand">FlashCards</div>
+                <div class="brand-sub">MIAGE</div>
+              </div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-section-title">Navigation</div>
+              <div class="nav-link active">
+                <div class="nl-icon">🏠</div>
+                <span class="nl-text">Tableau de bord</span>
+              </div>
+              <div class="nav-link">
+                <div class="nl-icon">➕</div>
+                <span class="nl-text">Nouveau paquet</span>
+              </div>
+              <div class="nav-link">
+                <div class="nl-icon">🔗</div>
+                <span class="nl-text">Partagés avec moi</span>
+                <span class="nl-count">3</span>
+              </div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-section-title">Compte</div>
+              <div class="nav-link">
+                <div class="nl-icon">👤</div>
+                <span class="nl-text">Mon profil</span>
+              </div>
+              <div class="nav-link">
+                <div class="nl-icon">⚙️</div>
+                <span class="nl-text">Paramètres</span>
+              </div>
+            </div>
+            <div class="app-sidebar-footer">
+              <div class="user-chip">
+                <div class="user-av">JD</div>
+                <div>
+                  <div class="user-chip-name">Jean Dupont</div>
+                  <div class="user-chip-role">M1 MIAGE</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Main -->
+          <div class="app-main">
+            <div class="app-topbar">
+              <div>
+                <div class="topbar-title">Tableau de bord</div>
+              </div>
+              <div class="search-bar">
+                <span style="font-size:14px;color:var(--t4);">🔍</span>
+                <input placeholder="Rechercher un paquet…">
+              </div>
+              <div class="topbar-actions">
+                <div class="icon-btn">
+                  🔔<span class="notif-dot"></span>
+                </div>
+                <div class="topbar-av">JD</div>
+              </div>
+            </div>
+
+            <div class="page-body">
+              <div class="page-title-row">
+                <div>
+                  <div class="page-title">Bonjour, Jean 👋</div>
+                  <div class="page-sub">Continuez votre progression — vous avez 3 paquets à réviser aujourd'hui.</div>
+                </div>
+                <button class="btn btn-primary">➕ Nouveau paquet</button>
+              </div>
+
+              <!-- Stats -->
+              <div class="stats-strip">
+                <div class="stat-card">
+                  <div class="stat-icon purple">📦</div>
+                  <div>
+                    <div class="stat-num">5</div>
+                    <div class="stat-lbl">Mes paquets</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon green">✅</div>
+                  <div>
+                    <div class="stat-num">87%</div>
+                    <div class="stat-lbl">Meilleur score</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon orange">🔗</div>
+                  <div>
+                    <div class="stat-num">3</div>
+                    <div class="stat-lbl">Partagés avec moi</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon pink">🃏</div>
+                  <div>
+                    <div class="stat-num">78</div>
+                    <div class="stat-lbl">Cartes au total</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabs -->
+              <div class="tabs-row">
+                <button class="tab-btn active">Mes paquets <span class="tab-ct">5</span></button>
+                <button class="tab-btn">Partagés avec moi <span class="tab-ct">3</span></button>
+              </div>
+
+              <!-- Deck grid -->
+              <div class="deck-grid">
+
+                <div class="deck-card">
+                  <div class="deck-card-head">
+                    <div>
+                      <div class="deck-title">Bases de données relationnelles</div>
+                      <div class="deck-theme">📚 SQL &amp; Modélisation</div>
+                    </div>
+                    <span class="badge badge-p">24 cartes</span>
+                  </div>
+                  <div class="deck-progress">
+                    <div class="deck-progress-fill" style="width:92%"></div>
+                  </div>
+                  <div class="deck-score-row">
+                    <span>🏆 Record: <strong>92%</strong></span>
+                    <span>📊 Dernier: <strong>78%</strong></span>
+                    <span>🕐 Il y a 2 j</span>
+                  </div>
+                  <div class="deck-actions">
+                    <button class="btn btn-primary btn-sm">▶ Réviser</button>
+                    <button class="btn btn-secondary btn-sm">✏️ Éditer</button>
+                    <button class="btn btn-secondary btn-sm">🔗 Partager</button>
+                    <button class="btn btn-danger btn-sm" style="margin-left:auto;">🗑️</button>
+                  </div>
+                </div>
+
+                <div class="deck-card">
+                  <div class="deck-card-head">
+                    <div>
+                      <div class="deck-title">Architecture des systèmes d'information</div>
+                      <div class="deck-theme">💻 Systèmes d'information</div>
+                    </div>
+                    <span class="badge badge-p">18 cartes</span>
+                  </div>
+                  <div class="deck-progress">
+                    <div class="deck-progress-fill" style="width:85%"></div>
+                  </div>
+                  <div class="deck-score-row">
+                    <span>🏆 Record: <strong>85%</strong></span>
+                    <span>📊 Dernier: <strong>85%</strong></span>
+                    <span>🕐 Aujourd'hui</span>
+                  </div>
+                  <div class="deck-actions">
+                    <button class="btn btn-primary btn-sm">▶ Réviser</button>
+                    <button class="btn btn-secondary btn-sm">✏️ Éditer</button>
+                    <button class="btn btn-secondary btn-sm">🔗 Partager</button>
+                    <button class="btn btn-danger btn-sm" style="margin-left:auto;">🗑️</button>
+                  </div>
+                </div>
+
+                <div class="deck-card">
+                  <div class="deck-card-head">
+                    <div>
+                      <div class="deck-title">Gestion de projet Agile &amp; Scrum</div>
+                      <div class="deck-theme">🚀 Management &amp; Méthodes</div>
+                    </div>
+                    <span class="badge badge-warn">Nouveau</span>
+                  </div>
+                  <div class="deck-progress">
+                    <div class="deck-progress-fill" style="width:0%"></div>
+                  </div>
+                  <div class="deck-score-row">
+                    <span>🏆 Record: <strong>—</strong></span>
+                    <span>📊 Dernier: <strong>—</strong></span>
+                    <span>🕐 Jamais révisé</span>
+                  </div>
+                  <div class="deck-actions">
+                    <button class="btn btn-primary btn-sm">▶ Réviser</button>
+                    <button class="btn btn-secondary btn-sm">✏️ Éditer</button>
+                    <button class="btn btn-secondary btn-sm">🔗 Partager</button>
+                    <button class="btn btn-danger btn-sm" style="margin-left:auto;">🗑️</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           SCREEN 4 — STUDY: QUESTION
+      ════════════════════════════════════════ -->
+      <div class="screen" id="s-study-q">
+        <div class="app-wrap">
+          <aside class="app-sidebar">
+            <div class="app-sidebar-logo">
+              <div class="sidebar-icon">⚡</div>
+              <div><div class="brand">FlashCards</div><div class="brand-sub">MIAGE</div></div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-link"><div class="nl-icon">🏠</div><span class="nl-text">Tableau de bord</span></div>
+              <div class="nav-link active"><div class="nl-icon">🃏</div><span class="nl-text">Révision en cours</span></div>
+            </div>
+            <div class="app-sidebar-footer">
+              <div class="user-chip">
+                <div class="user-av">JD</div>
+                <div><div class="user-chip-name">Jean Dupont</div><div class="user-chip-role">M1 MIAGE</div></div>
+              </div>
+            </div>
+          </aside>
+          <div class="app-main">
+            <div class="study-topbar">
+              <div class="back-btn">←</div>
+              <div>
+                <div class="study-deck-name">Bases de données relationnelles</div>
+                <div class="study-deck-sub">SQL &amp; Modélisation · 24 cartes</div>
+              </div>
+              <div class="prog-row">
+                <div class="prog-bg"><div class="prog-fill" style="width:37%"></div></div>
+                <span class="prog-txt">9 / 24</span>
+              </div>
+            </div>
+            <div style="display:flex;flex:1;min-height:0;">
+              <div class="study-main">
+                <span class="diff-tag med">⚡ Moyen</span>
+                <div class="flashcard" id="fc-q">
+                  <div class="fc-inner">
+                    <div class="fc-face fc-front">
+                      <span class="fc-label">Question</span>
+                      <p class="fc-text">Qu'est-ce que la normalisation 3NF et dans quels cas l'utiliser ?</p>
+                      <span class="fc-hint">👆 Cliquer pour révéler la réponse</span>
+                    </div>
+                    <div class="fc-face fc-back">
+                      <span class="fc-label">Réponse</span>
+                      <p class="fc-text">Un schéma est en 3NF si toute dépendance fonctionnelle non triviale implique une clé ou dépend d'une clé.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="key-hints">
+                  <div class="key-hint"><kbd class="kbd">Espace</kbd><span>retourner la carte</span></div>
+                  <div class="key-hint"><kbd class="kbd">←</kbd><kbd class="kbd">→</kbd><span>naviguer</span></div>
+                </div>
+              </div>
+              <!-- Sidebar questions -->
+              <div class="study-sidebar" style="width:280px;">
+                <div class="study-sidebar-head">
+                  <h3>Session en cours</h3>
+                  <div class="score-block">
+                    <div class="score-big">75%</div>
+                    <div class="score-lbl">Score actuel</div>
+                    <div class="score-row">
+                      <span class="sc-chip ok">✅ 6</span>
+                      <span class="sc-chip ko">❌ 2</span>
+                      <span class="sc-chip best">🏆 92%</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="questions-list">
+                  <div style="font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Questions</div>
+                  <div class="q-mini done-ok"><div class="q-mini-num">1</div><div class="q-mini-text">Définition de la clé primaire</div></div>
+                  <div class="q-mini done-ko"><div class="q-mini-num">2</div><div class="q-mini-text">Qu'est-ce qu'une transaction ?</div></div>
+                  <div class="q-mini done-ok"><div class="q-mini-num">3</div><div class="q-mini-text">Différence entre INNER et LEFT JOIN</div></div>
+                  <div class="q-mini current"><div class="q-mini-num">9</div><div class="q-mini-text">Normalisation 3NF et cas d'usage</div></div>
+                  <div class="q-mini"><div class="q-mini-num">10</div><div class="q-mini-text">Qu'est-ce qu'une vue SQL ?</div></div>
+                  <div class="q-mini"><div class="q-mini-num">11</div><div class="q-mini-text">Qu'est-ce qu'un index ?</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           SCREEN 5 — STUDY: ANSWER + EVAL
+      ════════════════════════════════════════ -->
+      <div class="screen" id="s-study-a">
+        <div class="app-wrap">
+          <aside class="app-sidebar">
+            <div class="app-sidebar-logo">
+              <div class="sidebar-icon">⚡</div>
+              <div><div class="brand">FlashCards</div><div class="brand-sub">MIAGE</div></div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-link"><div class="nl-icon">🏠</div><span class="nl-text">Tableau de bord</span></div>
+              <div class="nav-link active"><div class="nl-icon">🃏</div><span class="nl-text">Révision en cours</span></div>
+            </div>
+            <div class="app-sidebar-footer">
+              <div class="user-chip">
+                <div class="user-av">JD</div>
+                <div><div class="user-chip-name">Jean Dupont</div><div class="user-chip-role">M1 MIAGE</div></div>
+              </div>
+            </div>
+          </aside>
+          <div class="app-main">
+            <div class="study-topbar">
+              <div class="back-btn">←</div>
+              <div>
+                <div class="study-deck-name">Bases de données relationnelles</div>
+                <div class="study-deck-sub">SQL &amp; Modélisation · 24 cartes</div>
+              </div>
+              <div class="prog-row">
+                <div class="prog-bg"><div class="prog-fill" style="width:37%"></div></div>
+                <span class="prog-txt">9 / 24</span>
+              </div>
+            </div>
+            <div style="display:flex;flex:1;min-height:0;">
+              <div class="study-main">
+                <span class="diff-tag med">⚡ Moyen</span>
+                <div class="flashcard flipped">
+                  <div class="fc-inner">
+                    <div class="fc-face fc-front">
+                      <span class="fc-label">Question</span>
+                      <p class="fc-text">Qu'est-ce que la normalisation 3NF et dans quels cas l'utiliser ?</p>
+                    </div>
+                    <div class="fc-face fc-back">
+                      <span class="fc-label">Réponse</span>
+                      <p class="fc-text">Un schéma est en 3NF si toute dépendance fonctionnelle non triviale implique une clé ou dépend d'une clé.</p>
+                      <span class="fc-hint">↩️ Cliquer pour revoir la question</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="eval-row">
+                  <button class="eval-btn eval-correct">
+                    <span class="ei">✅</span><span class="el">Je savais !</span>
+                  </button>
+                  <button class="eval-btn eval-incorrect">
+                    <span class="ei">❌</span><span class="el">À revoir</span>
+                  </button>
+                </div>
+                <div class="key-hints">
+                  <div class="key-hint"><kbd class="kbd">1</kbd><span>je savais</span></div>
+                  <div class="key-hint"><kbd class="kbd">2</kbd><span>à revoir</span></div>
+                  <div class="key-hint"><kbd class="kbd">←</kbd><kbd class="kbd">→</kbd><span>naviguer</span></div>
+                </div>
+              </div>
+              <div class="study-sidebar" style="width:280px;">
+                <div class="study-sidebar-head">
+                  <h3>Session en cours</h3>
+                  <div class="score-block">
+                    <div class="score-big">75%</div>
+                    <div class="score-lbl">Score actuel</div>
+                    <div class="score-row">
+                      <span class="sc-chip ok">✅ 6</span>
+                      <span class="sc-chip ko">❌ 2</span>
+                      <span class="sc-chip best">🏆 92%</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="questions-list">
+                  <div style="font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Questions</div>
+                  <div class="q-mini done-ok"><div class="q-mini-num">1</div><div class="q-mini-text">Définition de la clé primaire</div></div>
+                  <div class="q-mini done-ok"><div class="q-mini-num">2</div><div class="q-mini-text">Qu'est-ce qu'une transaction ?</div></div>
+                  <div class="q-mini current"><div class="q-mini-num">9</div><div class="q-mini-text">Normalisation 3NF et cas d'usage</div></div>
+                  <div class="q-mini"><div class="q-mini-num">10</div><div class="q-mini-text">Qu'est-ce qu'une vue SQL ?</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           SCREEN 6 — SUMMARY
+      ════════════════════════════════════════ -->
+      <div class="screen" id="s-summary" style="min-height:600px;">
+        <div class="summary-page" style="flex:1;">
+          <div class="summary-box">
+            <span style="font-size:64px;display:block;margin-bottom:16px;">🎉</span>
+            <h2>Session terminée !</h2>
+            <p class="summary-sub">Bases de données relationnelles · 24 cartes</p>
+            <div class="big-score">75%</div>
+            <p class="score-detail">18 sur 24 cartes réussies</p>
+            <div class="breakdown">
+              <div class="bd-item ok"><span class="bd-num">18</span><span class="bd-lbl">Correctes</span></div>
+              <div class="bd-item ko"><span class="bd-num">6</span><span class="bd-lbl">À revoir</span></div>
+              <div class="bd-item rec"><span class="bd-num">92%</span><span class="bd-lbl">Meilleur score</span></div>
+            </div>
+            <div class="summary-actions">
+              <button class="btn btn-primary btn-lg">🔁 Recommencer</button>
+              <button class="btn btn-secondary btn-lg">🏠 Tableau de bord</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           SCREEN 7 — CREATE DECK
+      ════════════════════════════════════════ -->
+      <div class="screen" id="s-create">
+        <div class="app-wrap">
+          <aside class="app-sidebar">
+            <div class="app-sidebar-logo">
+              <div class="sidebar-icon">⚡</div>
+              <div><div class="brand">FlashCards</div><div class="brand-sub">MIAGE</div></div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-link"><div class="nl-icon">🏠</div><span class="nl-text">Tableau de bord</span></div>
+              <div class="nav-link active"><div class="nl-icon">➕</div><span class="nl-text">Nouveau paquet</span></div>
+            </div>
+            <div class="app-sidebar-footer">
+              <div class="user-chip">
+                <div class="user-av">JD</div>
+                <div><div class="user-chip-name">Jean Dupont</div><div class="user-chip-role">M1 MIAGE</div></div>
+              </div>
+            </div>
+          </aside>
+          <div class="app-main">
+            <div class="app-topbar">
+              <div class="back-btn">←</div>
+              <div class="topbar-title">Nouveau paquet</div>
+              <div style="margin-left:auto;display:flex;gap:10px;">
+                <button class="btn btn-secondary btn-sm">Annuler</button>
+                <button class="btn btn-primary btn-sm">💾 Enregistrer le paquet</button>
+              </div>
+            </div>
+            <div class="create-layout">
+              <!-- Left: deck info -->
+              <div>
+                <div class="card" style="margin-bottom:16px;">
+                  <div class="card-title">Informations du paquet</div>
+                  <div class="form-group">
+                    <label class="form-label">Titre <span style="color:var(--err)">*</span></label>
+                    <input class="form-control filled" value="Bases de données relationnelles" readonly>
+                    <div class="char-hint">36 / 150 caractères</div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Thème</label>
+                    <input class="form-control filled" value="SQL &amp; Modélisation" readonly>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-title">Aperçu</div>
+                  <div style="background:linear-gradient(135deg,var(--p),var(--acc));border-radius:var(--r-md);padding:20px;color:#fff;text-align:center;">
+                    <div style="font-size:28px;margin-bottom:8px;">🃏</div>
+                    <div style="font-size:15px;font-weight:700;">Bases de données relationnelles</div>
+                    <div style="font-size:12px;opacity:.8;margin-top:4px;">SQL &amp; Modélisation</div>
+                    <div style="margin-top:14px;font-size:20px;font-weight:800;">2 cartes</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Right: questions -->
+              <div class="card">
+                <div class="card-title">Questions (2)</div>
+                <div class="q-item-desktop">
+                  <div class="q-num">1</div>
+                  <div class="q-body">
+                    <div class="q-q-text">Qu'est-ce que la normalisation 3NF ?</div>
+                    <div class="q-a-text">→ Un schéma est en 3NF si toute dépendance fonctionnelle non triviale implique une clé.</div>
+                    <div class="diff-chips">
+                      <button class="diff-chip active-easy">Facile</button>
+                      <button class="diff-chip">Moyen</button>
+                      <button class="diff-chip">Difficile</button>
+                    </div>
+                  </div>
+                  <span class="q-del">✕</span>
+                </div>
+                <div class="q-item-desktop">
+                  <div class="q-num">2</div>
+                  <div class="q-body">
+                    <div class="q-q-text">Qu'est-ce qu'une jointure INNER JOIN ?</div>
+                    <div class="q-a-text">→ Retourne les lignes communes aux deux tables selon une condition de jointure.</div>
+                    <div class="diff-chips">
+                      <button class="diff-chip">Facile</button>
+                      <button class="diff-chip active-med">Moyen</button>
+                      <button class="diff-chip">Difficile</button>
+                    </div>
+                  </div>
+                  <span class="q-del">✕</span>
+                </div>
+                <button class="add-q-btn">＋ Ajouter une question</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           SCREEN 8 — SHARE MODAL
+      ════════════════════════════════════════ -->
+      <div class="screen" id="s-share">
+        <div class="app-wrap" style="position:relative;">
+          <!-- Blurred background -->
+          <aside class="app-sidebar" style="opacity:.4;pointer-events:none;">
+            <div class="app-sidebar-logo">
+              <div class="sidebar-icon">⚡</div>
+              <div><div class="brand">FlashCards</div></div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-link active"><div class="nl-icon">🏠</div><span class="nl-text">Tableau de bord</span></div>
+            </div>
+          </aside>
+          <div class="app-main" style="opacity:.4;pointer-events:none;">
+            <div class="app-topbar">
+              <div class="topbar-title">Tableau de bord</div>
+            </div>
+            <div class="page-body">
+              <div class="deck-grid">
+                <div class="deck-card"><div class="deck-card-head"><div><div class="deck-title">Bases de données relationnelles</div></div><span class="badge badge-p">24</span></div></div>
+                <div class="deck-card"><div class="deck-card-head"><div><div class="deck-title">Architecture des SI</div></div><span class="badge badge-p">18</span></div></div>
+              </div>
+            </div>
+          </div>
+          <!-- Modal -->
+          <div class="modal-overlay">
+            <div class="modal-box">
+              <div class="modal-head">
+                <div class="modal-title">🔗 Partager ce paquet</div>
+                <div class="modal-close">✕</div>
+              </div>
+              <p class="modal-sub">Bases de données relationnelles</p>
+              <div class="form-group" style="margin-bottom:10px;">
+                <label class="form-label">Rechercher un utilisateur</label>
+                <div class="input-icon">
+                  <span class="ic">🔍</span>
+                  <input class="form-control filled" value="sou" readonly>
+                </div>
+              </div>
+              <div style="border:1.5px solid var(--brd);border-radius:var(--r);overflow:hidden;margin-bottom:4px;">
+                <div class="user-result selected">
+                  <div class="u-av" style="background:linear-gradient(135deg,#7C4DFF,#9B59B6);">SE</div>
+                  <div>
+                    <div class="u-name">Souleimane El Qodsi</div>
+                    <div class="u-email">souleimane.elqodsi@univ.fr</div>
+                  </div>
+                  <span class="u-check">✓</span>
+                </div>
+                <div class="user-result">
+                  <div class="u-av" style="background:linear-gradient(135deg,#FF6584,#FF8C00);">SM</div>
+                  <div>
+                    <div class="u-name">Sophie Martin</div>
+                    <div class="u-email">sophie.martin@univ.fr</div>
+                  </div>
+                </div>
+              </div>
+              <div class="info-box">
+                <span>ℹ️</span>
+                <span>Souleimane El Qodsi recevra un accès en lecture seule. Chaque utilisateur garde ses propres scores et progressions.</span>
+              </div>
+              <div class="modal-actions">
+                <button class="btn btn-primary" style="flex:1;">🔗 Partager avec Souleimane</button>
+                <button class="btn btn-secondary">Annuler</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           SCREEN 9 — PROFILE
+      ════════════════════════════════════════ -->
+      <div class="screen" id="s-profile">
+        <div class="app-wrap">
+          <aside class="app-sidebar">
+            <div class="app-sidebar-logo">
+              <div class="sidebar-icon">⚡</div>
+              <div><div class="brand">FlashCards</div><div class="brand-sub">MIAGE</div></div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-link"><div class="nl-icon">🏠</div><span class="nl-text">Tableau de bord</span></div>
+              <div class="nav-link active"><div class="nl-icon">👤</div><span class="nl-text">Mon profil</span></div>
+            </div>
+            <div class="app-sidebar-footer">
+              <div class="user-chip">
+                <div class="user-av">JD</div>
+                <div><div class="user-chip-name">Jean Dupont</div><div class="user-chip-role">M1 MIAGE</div></div>
+              </div>
+            </div>
+          </aside>
+          <div class="app-main">
+            <div class="app-topbar">
+              <div class="topbar-title">Mon profil</div>
+            </div>
+            <div class="profile-layout">
+              <!-- Left card -->
+              <div>
+                <div class="profile-card-left">
+                  <div class="profile-big-av">JD</div>
+                  <div class="profile-name">Jean Dupont</div>
+                  <div class="profile-email">jean.dupont@univ.fr</div>
+                  <div class="profile-stats">
+                    <div class="p-stat">
+                      <span class="p-stat-num">5</span>
+                      <span class="p-stat-lbl">Paquets</span>
+                    </div>
+                    <div class="p-stat">
+                      <span class="p-stat-num">87%</span>
+                      <span class="p-stat-lbl">Record</span>
+                    </div>
+                    <div class="p-stat">
+                      <span class="p-stat-num">12</span>
+                      <span class="p-stat-lbl">Sessions</span>
+                    </div>
+                  </div>
+                  <span class="profile-change-av">Modifier l'avatar</span>
+                </div>
+              </div>
+              <!-- Right settings -->
+              <div>
+                <div class="list-group">
+                  <div class="list-row">
+                    <div class="list-icon">👤</div>
+                    <div class="list-content">
+                      <div class="list-lbl">Prénom</div>
+                      <div class="list-val">Jean</div>
+                    </div>
+                    <span class="list-arr">›</span>
+                  </div>
+                  <div class="list-row">
+                    <div class="list-icon">🏷️</div>
+                    <div class="list-content">
+                      <div class="list-lbl">Nom</div>
+                      <div class="list-val">Dupont</div>
+                    </div>
+                    <span class="list-arr">›</span>
+                  </div>
+                  <div class="list-row">
+                    <div class="list-icon">📅</div>
+                    <div class="list-content">
+                      <div class="list-lbl">Date de naissance</div>
+                      <div class="list-val">15 mars 2002</div>
+                    </div>
+                    <span class="list-arr">›</span>
+                  </div>
+                  <div class="list-row" style="border-bottom:none;">
+                    <div class="list-icon">✉️</div>
+                    <div class="list-content">
+                      <div class="list-lbl">Email</div>
+                      <div class="list-val">jean.dupont@univ.fr</div>
+                    </div>
+                    <span class="list-arr">›</span>
+                  </div>
+                </div>
+                <div class="list-group">
+                  <div class="setting-row">
+                    <div>
+                      <div class="setting-lbl">🌙 Mode sombre</div>
+                      <div class="setting-sub">Changer l'apparence de l'application</div>
+                    </div>
+                    <div class="toggle-sw" id="profileTheme"></div>
+                  </div>
+                  <div class="setting-row" style="border-bottom:none;">
+                    <div>
+                      <div class="setting-lbl">🔒 Mot de passe</div>
+                      <div class="setting-sub">Changer votre mot de passe</div>
+                    </div>
+                    <span class="list-arr">›</span>
+                  </div>
+                </div>
+                <div style="display:flex;gap:12px;margin-top:4px;">
+                  <button class="btn btn-secondary">🚪 Se déconnecter</button>
+                  <button class="btn btn-danger">🗑️ Supprimer le compte</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           SCREEN 10 — DESIGN TOKENS
+      ════════════════════════════════════════ -->
+      <div class="screen" id="s-tokens">
+        <div class="app-wrap">
+          <aside class="app-sidebar">
+            <div class="app-sidebar-logo">
+              <div class="sidebar-icon">⚡</div>
+              <div><div class="brand">FlashCards</div><div class="brand-sub">MIAGE</div></div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-link active"><div class="nl-icon">🎨</div><span class="nl-text">Design Tokens</span></div>
+            </div>
+          </aside>
+          <div class="app-main">
+            <div class="app-topbar">
+              <div class="topbar-title">Design Tokens &amp; Typographie</div>
+            </div>
+            <div class="tokens-body">
+              <div class="section-title-tokens">Palette de couleurs</div>
+              <div class="tokens-grid">
+                <div class="swatch"><div class="swatch-color" style="background:#7C4DFF;"></div><div class="swatch-info"><div class="swatch-name">Primary</div><div class="swatch-hex">#7C4DFF</div></div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#6B3FE7;"></div><div class="swatch-info"><div class="swatch-name">Primary Hover</div><div class="swatch-hex">#6B3FE7</div></div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#EDE7FF;"></div><div class="swatch-info"><div class="swatch-name">Primary Light</div><div class="swatch-hex">#EDE7FF</div></div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#B388FF;"></div><div class="swatch-info"><div class="swatch-name">Primary Mid</div><div class="swatch-hex">#B388FF</div></div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#FF6584;"></div><div class="swatch-info"><div class="swatch-name">Accent / Coral</div><div class="swatch-hex">#FF6584</div></div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#22C55E;"></div><div class="swatch-info"><div class="swatch-name">Success</div><div class="swatch-hex">#22C55E</div></div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#EF4444;"></div><div class="swatch-info"><div class="swatch-name">Error</div><div class="swatch-hex">#EF4444</div></div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#F59E0B;"></div><div class="swatch-info"><div class="swatch-name">Warning</div><div class="swatch-hex">#F59E0B</div></div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#F0F2F8;border:1px solid #e2e2e2;"></div><div class="swatch-info"><div class="swatch-name">BG Light</div><div class="swatch-hex">#F0F2F8</div></div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#111827;"></div><div class="swatch-info"><div class="swatch-name" style="color:#eee;">BG Dark</div><div class="swatch-hex" style="color:#aaa;">#111827</div></div></div>
+              </div>
+
+              <div class="section-title-tokens">Typographie · Inter</div>
+              <div class="type-samples">
+                <div class="type-card"><div class="type-tag">Display — 38px / 800</div><div style="font-size:38px;font-weight:800;color:var(--t1);line-height:1.1;">FlashCards MIAGE</div></div>
+                <div class="type-card"><div class="type-tag">H1 — 26px / 800</div><div style="font-size:26px;font-weight:800;color:var(--t1);">Tableau de bord</div></div>
+                <div class="type-card"><div class="type-tag">H2 — 20px / 700</div><div style="font-size:20px;font-weight:700;color:var(--t1);">Mes paquets</div></div>
+                <div class="type-card"><div class="type-tag">H3 — 16px / 700</div><div style="font-size:16px;font-weight:700;color:var(--t1);">SQL &amp; Modélisation</div></div>
+                <div class="type-card"><div class="type-tag">Body — 14px / 400</div><div style="font-size:14px;color:var(--t2);line-height:1.6;">Révisez intelligemment avec des flashcards à répétition espacée. Créez, partagez et progressez avec vos camarades MIAGE.</div></div>
+                <div class="type-card"><div class="type-tag">Caption — 11px / 700 uppercase</div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);">Thème · Date de naissance · 24 cartes</div></div>
+              </div>
+
+              <div class="section-title-tokens">Rayons de bordure</div>
+              <div class="radius-row">
+                <div class="radius-item"><div class="radius-box" style="width:40px;height:40px;border-radius:4px;"></div><span class="radius-lbl">sm 4px</span></div>
+                <div class="radius-item"><div class="radius-box" style="width:40px;height:40px;border-radius:8px;"></div><span class="radius-lbl">8px</span></div>
+                <div class="radius-item"><div class="radius-box" style="width:40px;height:40px;border-radius:12px;"></div><span class="radius-lbl">md 12px</span></div>
+                <div class="radius-item"><div class="radius-box" style="width:40px;height:40px;border-radius:18px;"></div><span class="radius-lbl">lg 18px</span></div>
+                <div class="radius-item"><div class="radius-box" style="width:40px;height:40px;border-radius:24px;"></div><span class="radius-lbl">xl 24px</span></div>
+                <div class="radius-item"><div class="radius-box" style="width:40px;height:40px;border-radius:50%;"></div><span class="radius-lbl">full</span></div>
+              </div>
+
+              <div class="section-title-tokens">Boutons</div>
+              <div class="btn-showcase">
+                <button class="btn btn-primary">🚀 Primary</button>
+                <button class="btn btn-secondary">Secondary</button>
+                <button class="btn btn-ghost">Ghost</button>
+                <button class="btn btn-danger">🗑️ Danger</button>
+                <button class="btn btn-primary btn-sm">Small</button>
+                <button class="btn btn-secondary btn-sm">Small sec.</button>
+                <button class="btn btn-primary btn-lg">Large</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end browser-content -->
+  </div><!-- end browser-shell -->
+</main>
+
+<script>
+  const meta = {
+    'login':    { title:'Connexion',          badge:'Écran 1 / 9', url:'localhost/flashcards/' },
+    'register': { title:'Inscription',         badge:'Écran 2 / 9', url:'localhost/flashcards/#register' },
+    'dashboard':{ title:'Tableau de bord',     badge:'Écran 3 / 9', url:'localhost/flashcards/#dashboard' },
+    'study-q':  { title:'Révision — Question', badge:'Écran 4 / 9', url:'localhost/flashcards/#study/12' },
+    'study-a':  { title:'Révision — Réponse',  badge:'Écran 5 / 9', url:'localhost/flashcards/#study/12' },
+    'summary':  { title:'Fin de session',      badge:'Écran 6 / 9', url:'localhost/flashcards/#study/12' },
+    'create':   { title:'Créer un paquet',     badge:'Écran 7 / 9', url:'localhost/flashcards/#create' },
+    'share':    { title:'Partager un paquet',  badge:'Écran 8 / 9', url:'localhost/flashcards/#dashboard' },
+    'profile':  { title:'Mon profil',          badge:'Écran 9 / 9', url:'localhost/flashcards/#profile' },
+    'tokens':   { title:'Design Tokens',       badge:'🎨',           url:'localhost/flashcards/design-system' },
+  };
+
+  function show(id, el) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.proto-item').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById('s-' + id);
+    if (target) { target.classList.add('active'); target.closest('.browser-content').scrollTop = 0; }
+    el.classList.add('active');
+    const m = meta[id] || {};
+    document.getElementById('screenTitle').textContent = m.title || id;
+    document.getElementById('screenBadge').textContent = m.badge || '';
+    document.getElementById('urlBar').textContent = m.url || '';
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const t = document.getElementById('themeToggle');
+    const dark = html.getAttribute('data-theme') !== 'dark';
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    t.classList.toggle('on', dark);
+    const pt = document.getElementById('profileTheme');
+    if (pt) pt.classList.toggle('on', dark);
+  }
+
+  // Flashcard flip
+  document.querySelectorAll('.flashcard').forEach(fc => {
+    fc.addEventListener('click', () => fc.classList.toggle('flipped'));
+  });
+</script>
+</body>
+</html>

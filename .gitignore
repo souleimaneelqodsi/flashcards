@@ -1,4 +1,7 @@
 # SQLite
+src/data/*.db
+src/data/*.db-journal
+*.sqbpro
 
 # OS files
 .DS_Store
@@ -6,3 +9,20 @@ Thumbs.db
 
 # Temp files
 /src/install.php
+
+# Claude Code - reglages locaux et historique
+.claude/settings.local.json
+.claude/history/
+.claude/.tmp/
+
+# Editeurs
+.vscode/
+.idea/
+*.swp
+*~
+
+# Dev tooling personnel (jamais commit sur ce projet)
+node_modules/
+vendor/
+.env
+.env.local
