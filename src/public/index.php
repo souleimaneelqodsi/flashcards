@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
     <div id="app">
@@ -132,8 +133,51 @@
                     </div>
                 </header>
 
-                <!-- Zone de contenu : la vue courante sera injectee ici -->
-                <div class="page-body" id="view"></div>
+                <!-- Zone de contenu : la vue courante sera injectee ici.
+                     Contenu temporaire : galerie de composants (UI-1.6),
+                     remplacee par les vraies vues lors des taches suivantes. -->
+                <div class="page-body" id="view">
+                    <div class="gallery">
+                        <div class="card">
+                            <div class="card-title">Boutons</div>
+                            <div class="gallery-row">
+                                <button type="button" class="btn btn-primary">Primaire</button>
+                                <button type="button" class="btn btn-secondary">Secondaire</button>
+                                <button type="button" class="btn btn-ghost">Ghost</button>
+                                <button type="button" class="btn btn-danger">Supprimer</button>
+                            </div>
+                            <div class="gallery-row">
+                                <button type="button" class="btn btn-primary btn-sm">Petit</button>
+                                <button type="button" class="btn btn-secondary btn-sm">Petit sec.</button>
+                                <button type="button" class="btn btn-primary btn-lg">Grand</button>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">Champs de formulaire</div>
+                            <div class="form-group">
+                                <label class="form-label" for="demo-titre">Titre du paquet<span class="req">*</span></label>
+                                <input type="text" id="demo-titre" class="form-control" placeholder="Bases de donnees relationnelles">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="demo-invalide">Champ invalide</label>
+                                <input type="text" id="demo-invalide" class="form-control champ-invalide" value="entree incorrecte">
+                                <p class="message-erreur">Ce champ contient une erreur.</p>
+                            </div>
+                            <div class="recap-erreurs">Le formulaire contient des erreurs a corriger.</div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">Badges</div>
+                            <div class="gallery-row">
+                                <span class="badge badge-p">24 cartes</span>
+                                <span class="badge badge-ok">Facile</span>
+                                <span class="badge badge-warn">Moyen</span>
+                                <span class="badge badge-err">Difficile</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </main>
         </div>
