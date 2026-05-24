@@ -94,6 +94,16 @@
                 </nav>
 
                 <div class="app-sidebar-footer">
+                    <!-- Bandeau utilisateur : avatar + identite, cliquable
+                         pour acceder au profil (DASH-1.5). Les libelles sont
+                         des stubs en attendant l'auth (AUTH-2). -->
+                    <a href="#profil" class="user-chip" aria-label="Acceder a mon profil">
+                        <span class="user-av">JD</span>
+                        <span class="user-chip-info">
+                            <span class="user-chip-name">Jean Dupont</span>
+                            <span class="user-chip-role">M1 MIAGE</span>
+                        </span>
+                    </a>
                     <div class="theme-row">
                         <span>Theme sombre</span>
                         <button type="button" class="theme-switch" id="theme-switch" aria-label="Basculer le theme sombre ou clair"></button>
@@ -131,7 +141,7 @@
                             </svg>
                             <span class="notif-dot"></span>
                         </button>
-                        <span class="topbar-av">JD</span>
+                        <a href="#profil" class="topbar-av" aria-label="Mon profil">JD</a>
                     </div>
                 </header>
 
