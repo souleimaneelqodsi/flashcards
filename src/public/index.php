@@ -140,6 +140,7 @@
     </div>
 
     <script src="js/lib/jquery-3.7.1.min.js"></script>
+    <script src="js/theme.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
