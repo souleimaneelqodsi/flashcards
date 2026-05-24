@@ -1,0 +1,107 @@
+/* src/public/css/theme.css */
+/* Design tokens officiels (palette, typographie, ombres, rayons).
+   Source : project-files/interface/color_palette.png, typography.png,
+   border_curveness_buttons.png. Les variantes light/dark sont definies ici ;
+   le basculement est gere par js/theme.js (tache UI-1.5). */
+
+:root {
+    /* Couleurs primaires */
+    --p: #7C4DFF;          /* Primary */
+    --p-h: #6B3FE7;        /* Primary Hover */
+    --p-l: #EDE7FF;        /* Primary Light */
+    --p-m: #B388FF;        /* Primary Mid */
+
+    /* Couleurs d'accent et d'etat */
+    --acc: #FF6584;        /* Accent / Coral */
+    --ok: #22C55E;         /* Success */
+    --ok-l: #DCFCE7;
+    --err: #EF4444;        /* Error */
+    --err-l: #FEE2E2;
+    --warn: #F59E0B;       /* Warning */
+    --warn-l: #FFF3E0;
+
+    /* Surfaces et textes (theme clair) */
+    --bg: #F0F2F8;         /* BG Light */
+    --surf: #FFFFFF;
+    --surf2: #F3F4F6;
+    --t1: #111827;
+    --t2: #374151;
+    --t3: #6B7280;
+    --t4: #9CA3AF;
+    --brd: #E5E7EB;
+
+    /* Ombres */
+    --sh-sm: 0 1px 2px rgba(0, 0, 0, .05);
+    --sh: 0 1px 3px rgba(0, 0, 0, .1), 0 1px 2px rgba(0, 0, 0, .06);
+    --sh-md: 0 4px 6px -1px rgba(0, 0, 0, .1);
+    --sh-lg: 0 10px 15px -3px rgba(0, 0, 0, .1);
+    --sh-xl: 0 20px 25px -5px rgba(0, 0, 0, .15);
+    --sh-c: 0 2px 10px rgba(124, 77, 255, .08), 0 1px 3px rgba(0, 0, 0, .05);
+
+    /* Rayons de bordure */
+    --r-sm: 4px;
+    --r: 8px;
+    --r-md: 12px;
+    --r-lg: 18px;
+    --r-xl: 24px;
+    --r-f: 9999px;
+
+    /* Typographie */
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Theme sombre : surcharge des surfaces et textes (BG Dark #111827) */
+[data-theme="dark"] {
+    --bg: #0F1117;
+    --surf: #1F2937;
+    --surf2: #374151;
+    --t1: #F9FAFB;
+    --t2: #E5E7EB;
+    --t3: #9CA3AF;
+    --t4: #6B7280;
+    --brd: #374151;
+    --sh-c: 0 2px 10px rgba(0, 0, 0, .4);
+}
+
+/* Styles de base appliques au document */
+body {
+    font-family: var(--font);
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--t1);
+}
+
+/* Hierarchie typographique (project-files/interface/typography.png) */
+.txt-display {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+}
+
+.txt-h1 {
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.txt-h2 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.txt-h3 {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.txt-body {
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.txt-caption {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--t3);
+}
