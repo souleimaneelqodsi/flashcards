@@ -1,0 +1,144 @@
+/* src/public/css/layout.css */
+/* Ossature persistante de la SPA : conteneur application, header (topbar) et
+   sidebar. Reference visuelle : project-files/interface/dashboard.png. */
+
+/* ── Conteneur application ─────────────────────── */
+#app {
+    min-height: 100vh;
+}
+
+.app-wrap {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg);
+}
+
+.app-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* ── Header global (topbar) ────────────────────── */
+.app-topbar {
+    height: 56px;
+    flex-shrink: 0;
+    background: var(--surf);
+    border-bottom: 1px solid var(--brd);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.menu-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r);
+    background: var(--surf2);
+    border: 1px solid var(--brd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--t2);
+    transition: background .15s;
+}
+
+.menu-btn:hover {
+    background: var(--brd);
+}
+
+.topbar-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--t1);
+    flex: 1;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surf2);
+    border: 1px solid var(--brd);
+    border-radius: var(--r-f);
+    padding: 7px 14px;
+    width: 260px;
+}
+
+.search-bar .search-ic {
+    color: var(--t4);
+    flex-shrink: 0;
+}
+
+.search-bar input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--t1);
+    width: 100%;
+}
+
+.search-bar input::placeholder {
+    color: var(--t4);
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r);
+    background: var(--surf2);
+    border: 1px solid var(--brd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--t2);
+    position: relative;
+    transition: background .15s;
+}
+
+.icon-btn:hover {
+    background: var(--brd);
+}
+
+.notif-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--acc);
+    border-radius: 50%;
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    border: 2px solid var(--surf);
+}
+
+.topbar-av {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--p), var(--acc));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    border: 2px solid var(--surf);
+    box-shadow: var(--sh);
+}
+
+/* ── Zone de contenu (vue courante) ────────────── */
+.page-body {
+    padding: 28px;
+    flex: 1;
+}
