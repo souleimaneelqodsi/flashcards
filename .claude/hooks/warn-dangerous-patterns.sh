@@ -316,9 +316,10 @@ esac
 # Sortie
 if [ -n "$warnings" ]; then
     msg="[Avertissements TER]$(printf '%b' "$warnings")\n\nMode avertissement non bloquant. Corrige avant ecriture ou justifie au binome."
+    # PreToolUse ne supporte pas hookSpecificOutput.additionalContext - utiliser systemMessage au niveau racine.
     python3 -c "
 import json
-print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'additionalContext': '''$msg'''}}))
+print(json.dumps({'systemMessage': '''$msg'''}))
 " 2>/dev/null || printf '%b\n' "$msg" >&2
 fi
 

@@ -6,69 +6,69 @@
 
 :root {
     /* Couleurs primaires */
-    --p: #7C4DFF;          /* Primary */
-    --p-h: #6B3FE7;        /* Primary Hover */
-    --p-l: #EDE7FF;        /* Primary Light */
-    --p-m: #B388FF;        /* Primary Mid */
+    --primaire: #7C4DFF;
+    --primaire-hover: #6B3FE7;
+    --primaire-clair: #EDE7FF;
+    --primaire-moyen: #B388FF;
 
     /* Couleurs d'accent et d'etat */
-    --acc: #FF6584;        /* Accent / Coral */
-    --ok: #22C55E;         /* Success */
-    --ok-l: #DCFCE7;
-    --err: #EF4444;        /* Error */
-    --err-l: #FEE2E2;
-    --warn: #F59E0B;       /* Warning */
-    --warn-l: #FFF3E0;
+    --accent: #FF6584;
+    --succes: #22C55E;
+    --succes-clair: #DCFCE7;
+    --erreur: #EF4444;
+    --erreur-clair: #FEE2E2;
+    --attention: #F59E0B;
+    --attention-clair: #FFF3E0;
 
     /* Surfaces et textes (theme clair) */
-    --bg: #F0F2F8;         /* BG Light */
-    --surf: #FFFFFF;
-    --surf2: #F3F4F6;
-    --t1: #111827;
-    --t2: #374151;
-    --t3: #6B7280;
-    --t4: #9CA3AF;
-    --brd: #E5E7EB;
+    --fond: #F0F2F8;
+    --surface: #FFFFFF;
+    --surface-2: #F3F4F6;
+    --texte-primaire: #111827;
+    --texte-secondaire: #374151;
+    --texte-tertiaire: #6B7280;
+    --texte-discret: #9CA3AF;
+    --bordure: #E5E7EB;
 
     /* Ombres */
-    --sh-sm: 0 1px 2px rgba(0, 0, 0, .05);
-    --sh: 0 1px 3px rgba(0, 0, 0, .1), 0 1px 2px rgba(0, 0, 0, .06);
-    --sh-md: 0 4px 6px -1px rgba(0, 0, 0, .1);
-    --sh-lg: 0 10px 15px -3px rgba(0, 0, 0, .1);
-    --sh-xl: 0 20px 25px -5px rgba(0, 0, 0, .15);
-    --sh-c: 0 2px 10px rgba(124, 77, 255, .08), 0 1px 3px rgba(0, 0, 0, .05);
+    --ombre-petite: 0 1px 2px rgba(0, 0, 0, .05);
+    --ombre: 0 1px 3px rgba(0, 0, 0, .1), 0 1px 2px rgba(0, 0, 0, .06);
+    --ombre-moyenne: 0 4px 6px -1px rgba(0, 0, 0, .1);
+    --ombre-grande: 0 10px 15px -3px rgba(0, 0, 0, .1);
+    --ombre-tres-grande: 0 20px 25px -5px rgba(0, 0, 0, .15);
+    --ombre-carte: 0 2px 10px rgba(124, 77, 255, .08), 0 1px 3px rgba(0, 0, 0, .05);
 
     /* Rayons de bordure */
-    --r-sm: 4px;
-    --r: 8px;
-    --r-md: 12px;
-    --r-lg: 18px;
-    --r-xl: 24px;
-    --r-f: 9999px;
+    --radius-petit: 4px;
+    --radius: 8px;
+    --radius-moyen: 12px;
+    --radius-grand: 18px;
+    --radius-tres-grand: 24px;
+    --radius-plein: 9999px;
 
     /* Typographie */
-    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --police: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Theme sombre : surcharge des surfaces et textes (BG Dark #111827) */
 [data-theme="dark"] {
-    --bg: #111827;
-    --surf: #1F2937;
-    --surf2: #374151;
-    --t1: #F9FAFB;
-    --t2: #E5E7EB;
-    --t3: #9CA3AF;
-    --t4: #6B7280;
-    --brd: #374151;
-    --sh-c: 0 2px 10px rgba(0, 0, 0, .4);
+    --fond: #111827;
+    --surface: #1F2937;
+    --surface-2: #374151;
+    --texte-primaire: #F9FAFB;
+    --texte-secondaire: #E5E7EB;
+    --texte-tertiaire: #9CA3AF;
+    --texte-discret: #6B7280;
+    --bordure: #374151;
+    --ombre-carte: 0 2px 10px rgba(0, 0, 0, .4);
 }
 
 /* Styles de base appliques au document */
 body {
-    font-family: var(--font);
+    font-family: var(--police);
     font-size: 14px;
-    background: var(--bg);
-    color: var(--t1);
+    background: var(--fond);
+    color: var(--texte-primaire);
 }
 
 /* Hierarchie typographique (project-files/interface/typography.png) */
@@ -103,5 +103,5 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .06em;
-    color: var(--t3);
+    color: var(--texte-tertiaire);
 }

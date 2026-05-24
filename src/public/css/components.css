@@ -10,7 +10,7 @@
     justify-content: center;
     gap: 8px;
     padding: 12px 22px;
-    border-radius: var(--r);
+    border-radius: var(--radius);
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
@@ -18,7 +18,7 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--p), var(--p-h));
+    background: linear-gradient(135deg, var(--primaire), var(--primaire-hover));
     color: #fff;
     box-shadow: 0 4px 14px rgba(124, 77, 255, .35);
 }
@@ -29,35 +29,35 @@
 }
 
 .btn-secondary {
-    background: var(--surf2);
-    color: var(--t2);
-    border: 1px solid var(--brd);
+    background: var(--surface-2);
+    color: var(--texte-secondaire);
+    border: 1px solid var(--bordure);
 }
 
 .btn-secondary:hover {
-    background: var(--brd);
+    background: var(--bordure);
 }
 
 .btn-ghost {
     background: transparent;
-    color: var(--p);
-    border: 1px solid var(--p-l);
+    color: var(--primaire);
+    border: 1px solid var(--primaire-clair);
 }
 
 .btn-ghost:hover {
-    background: var(--p-l);
+    background: var(--primaire-clair);
 }
 
 .btn-danger {
-    background: var(--err-l);
-    color: var(--err);
-    border: 1px solid var(--err);
+    background: var(--erreur-clair);
+    color: var(--erreur);
+    border: 1px solid var(--erreur);
 }
 
 .btn-sm {
     padding: 7px 14px;
     font-size: 12px;
-    border-radius: var(--r-sm);
+    border-radius: var(--radius-petit);
 }
 
 .btn-lg {
@@ -78,59 +78,59 @@
     display: block;
     font-size: 11px;
     font-weight: 700;
-    color: var(--t2);
+    color: var(--texte-secondaire);
     margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: .05em;
 }
 
 .form-label .req {
-    color: var(--err);
+    color: var(--erreur);
     margin-left: 2px;
 }
 
 .form-control {
     width: 100%;
     padding: 11px 14px;
-    border: 1px solid var(--brd);
-    border-radius: var(--r);
+    border: 1px solid var(--bordure);
+    border-radius: var(--radius);
     font-size: 14px;
-    color: var(--t1);
-    background: var(--surf2);
+    color: var(--texte-primaire);
+    background: var(--surface-2);
     outline: none;
 }
 
 .form-control:focus {
-    border-color: var(--p);
-    background: var(--surf);
+    border-color: var(--primaire);
+    background: var(--surface);
 }
 
 /* Etats de validation (cf. CLAUDE.md section 6) */
 .champ-invalide {
-    background-color: var(--err-l);
-    border: 1px solid var(--err);
-    color: var(--err);
+    background-color: var(--erreur-clair);
+    border: 1px solid var(--erreur);
+    color: var(--erreur);
 }
 
 .message-erreur {
-    color: var(--err);
+    color: var(--erreur);
     font-size: 13px;
     margin-top: 4px;
 }
 
 .recap-erreurs {
-    color: var(--err);
+    color: var(--erreur);
     padding: 12px;
-    background: var(--err-l);
-    border-radius: var(--r);
+    background: var(--erreur-clair);
+    border-radius: var(--radius);
 }
 
 /* ── Cartes ────────────────────────────────────── */
 .card {
-    background: var(--surf);
-    border-radius: var(--r-md);
+    background: var(--surface);
+    border-radius: var(--radius-moyen);
     padding: 22px;
-    box-shadow: var(--sh-c);
+    box-shadow: var(--ombre-carte);
 }
 
 .card-title {
@@ -138,7 +138,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .07em;
-    color: var(--t3);
+    color: var(--texte-tertiaire);
     margin-bottom: 16px;
 }
 
@@ -146,28 +146,28 @@
 .badge {
     display: inline-block;
     padding: 3px 9px;
-    border-radius: var(--r-f);
+    border-radius: var(--radius-plein);
     font-size: 10px;
     font-weight: 700;
 }
 
 .badge-p {
-    background: var(--p-l);
-    color: var(--p);
+    background: var(--primaire-clair);
+    color: var(--primaire);
 }
 
 .badge-ok {
-    background: var(--ok-l);
+    background: var(--succes-clair);
     color: #15803D;
 }
 
 .badge-warn {
-    background: var(--warn-l);
+    background: var(--attention-clair);
     color: #C2410C;
 }
 
 .badge-err {
-    background: var(--err-l);
+    background: var(--erreur-clair);
     color: #B91C1C;
 }
 
