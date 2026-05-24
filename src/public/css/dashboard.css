@@ -1,0 +1,95 @@
+/* src/public/css/dashboard.css */
+/* Styles de l'ecran tableau de bord. Reference visuelle :
+   project-files/interface/dashboard.png. Exception explicite au mockup :
+   les deux listes "Mes paquets" et "Partages avec moi" sont affichees en
+   DEUX COLONNES cote a cote (et non en onglets), conformement au sujet TER
+   qui demande "l'ecran est separe en deux zones" (CLAUDE.md section 5). */
+
+/* ── En-tete de page (salutation + bouton principal) ── */
+.page-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--texte-primaire);
+    line-height: 1.2;
+}
+
+.page-sub {
+    font-size: 13px;
+    color: var(--texte-tertiaire);
+    margin-top: 4px;
+}
+
+/* ── Conteneur des deux colonnes (Mes / Partages) ── */
+/* Flexbox plutot que CSS Grid : Grid n'est pas couvert par les PDFs
+   de cours, flexbox suffit pour deux colonnes egales. */
+.dashboard-columns {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.dashboard-col {
+    flex: 1;
+    background: var(--surface);
+    border-radius: var(--radius-moyen);
+    box-shadow: var(--ombre-carte);
+    /* min-width: 0 empeche le debordement des cartes filles
+       dans un conteneur flex (titre tres long, etc.). */
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-col-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--bordure);
+}
+
+.dashboard-col-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--texte-primaire);
+}
+
+.dashboard-col-count {
+    display: inline-block;
+    padding: 1px 9px;
+    background: var(--primaire-clair);
+    color: var(--primaire);
+    border-radius: var(--radius-plein);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.dashboard-col-body {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Etat vide d'une colonne (aucun paquet a afficher). */
+.dashboard-col-empty {
+    padding: 36px 16px;
+    text-align: center;
+    color: var(--texte-tertiaire);
+    font-size: 13px;
+}
+
+/* Sur petit ecran : passage a une seule colonne (empilement vertical). */
+@media (max-width: 900px) {
+    .dashboard-columns {
+        flex-direction: column;
+    }
+}
