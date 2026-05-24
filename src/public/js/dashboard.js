@@ -124,11 +124,23 @@ function formater_date_maj(date_iso) {
     return "Il y a " + diff_jours + " j";
 }
 
+// ── Navigation vers l'ecran de visualisation d'un paquet ───────
+// Exigence sujet TER : un clic sur la card ou le titre doit ouvrir
+// l'ecran de visualisation. La vue dediee sera ajoutee en FULL-2.17,
+// la route SPA en BACK-2.2. Pour l'instant on positionne l'ancre, le
+// routeur cote client la prendra en charge plus tard.
+function naviguer_vers_paquet(id_paquet) {
+    window.location.hash = "paquet-" + id_paquet;
+}
+
 // ── Rendu d'une carte-paquet ───────────────────────────────────
 // Construit l'element jQuery d'une carte-paquet a partir d'un objet
 // paquet. On utilise .text() pour les champs venant des donnees, plutot
 // que .html() : cela echappe naturellement le contenu et evite tout XSS
-// lorsque les vraies donnees serveur arriveront.
+// lorsque les vraies donnees serveur arriveront. La carte entiere est
+// cliquable (cf. DASH-1.6) : un clic sur le fond ou le titre amene a
+// l'ecran de visualisation ; les boutons internes stoppent la
+// propagation pour conserver leur propre action.
 function rendre_carte_paquet(paquet) {
     var score_record = "—";
     if (paquet.best_score !== null) {
@@ -146,6 +158,20 @@ function rendre_carte_paquet(paquet) {
     // Construction par etapes (pas de gros literal HTML : chaque element
     // est cree et rempli individuellement pour rester lisible).
     var carte = $("<article></article>").addClass("paquet-card");
+    carte.attr("data-id-paquet", paquet.id_paquet);
+    // Carte cliquable : accessibilite clavier via tabindex + role.
+    carte.attr("tabindex", "0");
+    carte.attr("role", "link");
+    carte.attr("aria-label", "Ouvrir le paquet : " + paquet.titre);
+    carte.on("click", function () {
+        naviguer_vers_paquet(paquet.id_paquet);
+    });
+    // Touche Entree au clavier declenche aussi la navigation.
+    carte.on("keydown", function (evenement) {
+        if (evenement.keyCode === 13) {
+            naviguer_vers_paquet(paquet.id_paquet);
+        }
+    });
 
     var entete = $("<div></div>").addClass("paquet-card-head");
     var bloc_titre = $("<div></div>");
@@ -170,8 +196,25 @@ function rendre_carte_paquet(paquet) {
     carte.append(scores);
 
     var actions = $("<div></div>").addClass("paquet-actions");
-    actions.append($("<button></button>").attr("type", "button").addClass("btn btn-primary btn-sm").text("Reviser"));
-    actions.append($("<button></button>").attr("type", "button").addClass("btn btn-secondary btn-sm").text("Editer"));
+    var bouton_reviser = $("<button></button>")
+        .attr("type", "button")
+        .addClass("btn btn-primary btn-sm")
+        .text("Reviser");
+    var bouton_editer = $("<button></button>")
+        .attr("type", "button")
+        .addClass("btn btn-secondary btn-sm")
+        .text("Editer");
+    // Les boutons internes ont leurs propres actions (a venir en FULL-2)
+    // : ils stoppent la propagation du clic pour ne pas declencher la
+    // navigation de la carte vers l'ecran de visualisation.
+    bouton_reviser.on("click", function (evenement) {
+        evenement.stopPropagation();
+    });
+    bouton_editer.on("click", function (evenement) {
+        evenement.stopPropagation();
+    });
+    actions.append(bouton_reviser);
+    actions.append(bouton_editer);
     carte.append(actions);
 
     return carte;

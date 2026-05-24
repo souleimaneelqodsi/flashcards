@@ -100,7 +100,15 @@
     border-radius: var(--radius-moyen);
     padding: 16px 16px 14px 22px;
     box-shadow: var(--ombre-carte);
+    /* Carte cliquable (DASH-1.6) : un clic ouvre la visualisation. */
+    cursor: pointer;
     transition: transform .15s, box-shadow .15s, border-color .15s;
+}
+
+/* Focus visible au clavier (accessibilite). */
+.paquet-card:focus {
+    outline: 2px solid var(--primaire);
+    outline-offset: 2px;
 }
 
 /* Liseré violet/rose vertical a gauche, pour l'identite visuelle. */
