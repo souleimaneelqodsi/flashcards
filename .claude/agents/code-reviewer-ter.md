@@ -64,7 +64,29 @@ find src -name '*.css' -exec wc -l {} + | tail  # taille CSS
 - Aucune techno hors stack (delegue a `verifier-stack`).
 - Aucune trace de mot de passe en clair (Grep agressif).
 
-### 4. Synthese
+### 4. Simplicite du code (regle d'or du binome)
+
+Le code doit etre lisible par un etudiant M1 qui debute en PHP/JS. Verifie systematiquement :
+
+- **Fonctions courtes** : aucune fonction > 30 lignes. Lance :
+  ```bash
+  find src -name '*.php' -o -name '*.js' | xargs -I{} awk '/^[[:space:]]*(function|public function|private function|protected function|static function)/ {start=NR; name=$0} /^}[[:space:]]*$/ && start {if (NR-start > 30) print FILENAME":"start" -> "NR" ("NR-start" lignes)"; start=0}' {}
+  ```
+- **Pas de chainage > 2 niveaux** : `grep -rnE -- '->[a-z]+\([^)]*\)->[a-z]+\([^)]*\)->' src/`
+- **Pas de callbacks JS imbriques >= 3 niveaux** : detecter triple `function(...)` imbriques dans .js
+- **Pas de patron hors des 3 retenus** (Singleton DB + Repository + Factory creer/fromRow) :
+  ```bash
+  grep -rnE 'class \w+(Observer|Strategy|Decorator|State|Builder)|implements (Observer|Strategy|Iterator)' src/
+  ```
+  Si trouve, signale : le binome a fige 3 patrons exactement, ce 4eme est a supprimer.
+- **Pas de meta-programmation** : `call_user_func`, `create_function`, variables variables `$$x`, `Reflection*`, `eval`.
+- **Noms explicites en francais** : pas de variables a 1-2 caracteres sauf indices de boucle (`$i`, `$j`).
+- **Pas de ternaire imbrique** : `grep -rE '\?\s*[^:?]{1,40}\?\s*[^:]{1,40}:' src/`
+- **Docblocks presents** : chaque classe et methode publique doit en avoir un en francais.
+
+Cette dimension impacte la note **fonctionnel** (qualite du code) : un code complexe perd des points meme s'il marche.
+
+### 5. Synthese
 
 Format de sortie :
 

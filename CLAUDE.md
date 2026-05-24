@@ -98,12 +98,23 @@ A eviter sauf si verifie dans `project-files/php (1).pdf` :
 - **Controleur** (back) : endpoints PHP qui recoivent l'AJAX, valident, appellent la persistance, renvoient du JSON
 - **Modele** : entites metier + repositories qui parlent a SQLite via PDO
 
-**Patrons obligatoires (le sujet exige >= 3 parmi 5)** :
-1. **Singleton** — `DB::getInstance()` pour la connexion PDO unique
-2. **Repository (DAO)** — un par entite (`UtilisateurRepository`, `PaquetRepository`, `QuestionRepository`, `PartageRepository`) ; **les controleurs ne touchent jamais a PDO directement**
-3. **Factory** — instanciation des entites depuis les rows SQL (`Paquet::fromRow($row)`)
+**Patrons fixes pour le projet — 3 patrons exactement, pas plus** (le sujet TER exige >= 3 parmi 5) :
 
-Tout patron utilise doit etre justifiable en 1-3 phrases pour le rapport.
+1. **Singleton — pour les configurations** : connexion PDO unique via `DB::getInstance()` (src/core/DB.php). Sert aussi pour toute autre config centralisee si necessaire (chemins, cles, etc.). Une seule instance partagee par requete HTTP.
+
+2. **Repository — pour les classes interagissant avec la BD** : un repository par entite (`UtilisateurRepository`, `PaquetRepository`, `QuestionRepository`, `PartageRepository`, `DifficulteRepository`) dans `src/repositories/`. Les controleurs ne touchent jamais a PDO directement, ils passent par les repositories.
+
+3. **Factory — pour creer les paquets et les questions** : methodes statiques sur les modeles pour l'instanciation :
+   - `Paquet::creer($titre, $theme, $id_proprietaire): Paquet` (creation depuis le formulaire)
+   - `Paquet::fromRow(array $row): Paquet` (reconstruction depuis SQL)
+   - `Question::creer($contenu_q, $contenu_r, $id_paquet, $id_difficulte): Question`
+   - `Question::fromRow(array $row): Question`
+   
+   Pas de classe `PaquetFactory` separee (trop complexe pour un TER). Les methodes statiques suffisent et sont un Factory Method valide.
+
+**Aucun autre patron** : pas d'Observer, pas de Strategy, pas de State, pas de Decorator. Si un de ces patterns est tentant, prefere une solution simple sans pattern.
+
+Chaque patron doit etre justifiable en 1-3 phrases dans le rapport (cf. /justifier-choix).
 
 ## 4. Modele de donnees (fige)
 
@@ -194,6 +205,56 @@ Exemple de classes CSS attendues (a definir dans la feuille de styles) :
 - **XSS** : `htmlspecialchars()` cote PHP, `.text()` plutot que `.html()` cote jQuery.
 - **CSRF** : token CSRF en session, envoye via AJAX sur les endpoints qui modifient l'etat (creation, edition, suppression, partage).
 - **Erreurs PHP** : `display_errors = Off` en prod, log serveur. Jamais de stack trace dans la reponse JSON.
+
+## 7 bis. Simplicite du code — regle d'or
+
+Le projet est realise par des **etudiants en M1 MIAGE** et corrige par un enseignant. **Le code doit etre simple, lisible et explicable**, pas un exercice de virtuosite. Si tu hesites entre une solution courte et "elegante" vs une solution longue mais limpide, choisis la limpide.
+
+### Regles concretes a respecter
+
+- **Fonctions courtes** : max 30 lignes par fonction. Si plus long, decoupe.
+- **Noms explicites** : `valider_email($email)` plutot que `vEm($e)`. `id_proprietaire` plutot que `idP`. Pas d'abreviation cryptique.
+- **Pas de chainage > 2 niveaux** : `$paquet_repo->trouver_par_id($id)->getQuestions()->filter()->...` est interdit. Decompose en variables intermediaires.
+- **Pas de callbacks imbriques en JS** : si tu as 3 niveaux d'imbrication, refactorise en fonctions nommees.
+- **Pas de ternaires imbriques** : `$a ? ($b ? $c : $d) : $e` est illisible. Utilise `if/else`.
+- **Une responsabilite par fonction** : une fonction qui valide ET sauvegarde ET notifie, ca n'existe pas. Trois fonctions.
+- **Commentaires de docblock** sur chaque classe et chaque methode publique, en francais, qui expliquent le QUOI et le POURQUOI (pas le COMMENT - le code le montre).
+- **Pas de magie** : pas de meta-programmation, pas de reflection, pas de `eval`, pas de generation dynamique de noms de methodes. Le code doit etre lisible ligne par ligne.
+- **Pas d'optimisation prematuree** : pas de cache custom, pas de lazy-loading complexe. Si c'est lent, on verra apres.
+- **Variables locales explicites** : `$nb_paquets = count($paquets);` puis `if ($nb_paquets > 0)` plutot que `if (count($paquets) > 0)` en ligne (lisibilite + un seul appel).
+- **Pas de design pattern hors des 3 retenus** (cf. section 3). Pas de Builder, pas de Strategy, pas d'Observer, pas de Decorator. Si un truc te tente, ecris-le en code direct.
+
+### Anti-exemples (a refuser)
+
+```php
+// MAUVAIS : chainage, ternaire imbrique, abreviation
+$r = ($u = $repo->u($id)) ? ($u->a() ? $u->n() : '?') : null;
+
+// BON : explicite, lisible
+$utilisateur = $repo->trouver_par_id($id);
+if ($utilisateur === null) {
+    $r = null;
+} else if ($utilisateur->est_actif()) {
+    $r = $utilisateur->getNom();
+} else {
+    $r = '?';
+}
+```
+
+```javascript
+// MAUVAIS : callbacks imbriques
+$.get('/api/a', function(a){ $.get('/api/b/' + a.id, function(b){ $.post('/api/c', b, function(c){ ... }); }); });
+
+// BON : fonctions nommees
+function charger_a(callback) { $.get('/api/a', callback); }
+function charger_b(id, callback) { $.get('/api/b/' + id, callback); }
+function envoyer_c(donnees, callback) { $.post('/api/c', donnees, callback); }
+// puis enchainer pas-a-pas dans le handler
+```
+
+### Test mental
+
+Si tu n'arrives pas a expliquer ta ligne de code en une phrase a un etudiant qui debute en PHP/JS, **c'est trop complexe**. Reecris plus simple.
 
 ## 8. Conventions de code
 
@@ -514,4 +575,4 @@ Si une **micro**-id est mentionnee (ex : `BACK-1.3`), Claude ne lance pas toute 
 
 ---
 
-**TL;DR** — Stack imposee (HTML/CSS2/jQuery/PHP/SQLite), **APIs limitees strictement aux PDFs de cours**, MVC + SPA, patrons (Singleton + Repository + Factory min), validation client+serveur partout avec **rouge dynamique** + **message en bas**, BCRYPT, PDO prepare, W3C valide, indentation 4 espaces, francais coherent, **interface project-files/interface/ a respecter** (dashboard en 2 colonnes cote-a-cote, paquets cliquables partout, ecran de visualisation avec destinataires de partage), **mode automatique** (Claude invoque agents/commands proactivement selon matrice section 13), **workflow Git** (branche principale `develop`, branche `feature/<X>` par tache principale, commit par sous-tache avec confirmation explicite avant chaque action git), **workflow macro/micro taches** (le dev tape `/tache <macro-id>` ex `BACK-1`, Claude execute toutes les micro-taches du CSV `project-files/repartition_taches_detaillee.csv` en mode auto avec commits individuels, demande confirmation pour push+PR a la fin - cf. §17), justification ecrite de chaque choix d'archi, ne jamais sortir de la stack ou du perimetre, toujours consulter les docs avant une decision technique, plan avant code.
+**TL;DR** — Stack imposee (HTML/CSS2/jQuery/PHP/SQLite), **APIs limitees strictement aux PDFs de cours**, MVC + SPA, **3 patrons fixes** (Singleton pour configs/PDO, Repository pour BD, Factory pour creer paquets/questions — pas d'autre patron), **code SIMPLE lisible par un etudiant M1** (fonctions courtes, noms explicites, pas de chainage > 2 niveaux, pas de meta-programmation, pas de pattern hors des 3), validation client+serveur partout avec **rouge dynamique** + **message en bas**, BCRYPT, PDO prepare, W3C valide, indentation 4 espaces, francais coherent, **interface project-files/interface/ a respecter** (dashboard en 2 colonnes cote-a-cote, paquets cliquables partout, ecran de visualisation avec destinataires de partage), **mode automatique** (Claude invoque agents/commands proactivement selon matrice section 13), **workflow Git** (branche principale `develop`, branche `feature/<X>` par tache principale, commit par sous-tache avec confirmation explicite avant chaque action git), **workflow macro/micro taches** (le dev tape `/tache <macro-id>` ex `BACK-1`, Claude execute toutes les micro-taches du CSV `project-files/repartition_taches_detaillee.csv` en mode auto avec commits individuels, demande confirmation pour push+PR a la fin - cf. §17), justification ecrite de chaque choix d'archi, ne jamais sortir de la stack ou du perimetre, toujours consulter les docs avant une decision technique, plan avant code.
