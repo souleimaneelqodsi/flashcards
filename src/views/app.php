@@ -158,33 +158,7 @@
                                 <span class="dashboard-col-count" id="compteur-mes-paquets">0</span>
                             </div>
                             <div class="dashboard-col-body" id="liste-mes-paquets">
-
-                                <!-- Carte-paquet : composant defini en DASH-1.2.
-                                     Exemple statique pour valider le visuel.
-                                     Sera remplacee par un rendu JS dynamique
-                                     a partir de donnees stub en DASH-1.3. -->
-                                <article class="paquet-card">
-                                    <div class="paquet-card-head">
-                                        <div>
-                                            <h4 class="paquet-titre">Bases de donnees relationnelles</h4>
-                                            <p class="paquet-theme">SQL et modelisation</p>
-                                        </div>
-                                        <span class="badge badge-p">24 cartes</span>
-                                    </div>
-                                    <div class="paquet-progress">
-                                        <div class="paquet-progress-fill" style="width: 92%"></div>
-                                    </div>
-                                    <div class="paquet-scores">
-                                        <span>Record : <strong>92%</strong></span>
-                                        <span>Dernier : <strong>78%</strong></span>
-                                        <span>Mise a jour : <strong>il y a 2 jours</strong></span>
-                                    </div>
-                                    <div class="paquet-actions">
-                                        <button type="button" class="btn btn-primary btn-sm">Reviser</button>
-                                        <button type="button" class="btn btn-secondary btn-sm">Editer</button>
-                                    </div>
-                                </article>
-
+                                <!-- Cartes injectees par js/dashboard.js (DASH-1.3). -->
                             </div>
                         </section>
 
@@ -195,7 +169,7 @@
                                 <span class="dashboard-col-count" id="compteur-partages">0</span>
                             </div>
                             <div class="dashboard-col-body" id="liste-partages">
-                                <p class="dashboard-col-empty">Aucun paquet partage.</p>
+                                <!-- Cartes injectees par js/dashboard.js (DASH-1.3). -->
                             </div>
                         </section>
 
@@ -209,5 +183,6 @@
     <script src="js/lib/jquery-3.7.1.min.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>
