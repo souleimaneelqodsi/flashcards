@@ -236,6 +236,83 @@ case "$file_path" in
         ;;
 esac
 
+
+# ============ SIMPLICITE (regle d'or : code lisible par etudiants M1) ============
+
+# 26. Ternaire imbrique
+if printf '%s' "$content" | grep -qE '\?\s*[^:?]{1,40}\?\s*[^:]{1,40}:'; then
+    warnings="${warnings}\n  [SIMPLICITE] Ternaire imbrique detecte (a ? b ? c : d : e). Illisible - utilise if/else explicite."
+fi
+
+# 27. Chainage long en PHP (-> -> ->)
+case "$file_path" in
+    *.php)
+        if printf '%s' "$content" | grep -qE -- '->[a-zA-Z_]+\([^)]*\)->[a-zA-Z_]+\([^)]*\)->[a-zA-Z_]+\('; then
+            warnings="${warnings}\n  [SIMPLICITE] Chainage de plus de 2 appels en PHP (->x()->y()->z()). Decompose en variables intermediaires."
+        fi
+        ;;
+esac
+
+# 28. Chainage long en JS (jQuery)
+case "$file_path" in
+    *.js)
+        if printf '%s' "$content" | grep -qE '\.[a-zA-Z_]+\([^)]{0,40}\)\.[a-zA-Z_]+\([^)]{0,40}\)\.[a-zA-Z_]+\([^)]{0,40}\)\.[a-zA-Z_]'; then
+            warnings="${warnings}\n  [SIMPLICITE] Chainage jQuery de plus de 3 appels detecte. Decompose pour lisibilite."
+        fi
+        ;;
+esac
+
+# 29. Callback imbrique JS (3 niveaux)
+case "$file_path" in
+    *.js)
+        if printf '%s' "$content" | grep -qzE 'function[[:space:]]*\([^)]*\)[[:space:]]*\{[^}]*function[[:space:]]*\([^)]*\)[[:space:]]*\{[^}]*function[[:space:]]*\([^)]*\)[[:space:]]*\{'; then
+            warnings="${warnings}\n  [SIMPLICITE] Callbacks imbriques (>= 3 niveaux) detectes. Refactorise en fonctions nommees au niveau racine."
+        fi
+        ;;
+esac
+
+# 30. Reflection PHP
+if printf '%s' "$content" | grep -qE '\bnew\s+Reflection|\bReflectionClass\b|\bReflectionMethod\b'; then
+    warnings="${warnings}\n  [SIMPLICITE] Reflection PHP detectee. Hors perimetre cours et trop avance - le correcteur ne veut pas voir ca."
+fi
+
+# 31. eval / dynamic call PHP
+if printf '%s' "$content" | grep -qE 'call_user_func|create_function|\$\$[a-zA-Z_]'; then
+    warnings="${warnings}\n  [SIMPLICITE] call_user_func/create_function/variables variables detectees. Trop dynamique - prefere un appel direct."
+fi
+
+# 32. Fonction trop longue (heuristique : > 80 lignes entre function X { et } final)
+case "$file_path" in
+    *.php|*.js)
+        long_func_count=$(printf '%s' "$content" | awk '/^[[:space:]]*(function|public function|private function|protected function|static function)[[:space:]]/ {start=NR} /^}[[:space:]]*$/ && start {if (NR-start > 80) count++; start=0} END {print count+0}')
+        if [ "${long_func_count:-0}" -gt 0 ]; then
+            warnings="${warnings}\n  [SIMPLICITE] Fonction de plus de 80 lignes detectee. Decoupe en fonctions plus courtes (regle CLAUDE.md : max 30 lignes)."
+        fi
+        ;;
+esac
+
+# 33. Pattern hors des 3 retenus
+case "$file_path" in
+    *.php)
+        if printf '%s' "$content" | grep -qiE 'class\s+\w+Observer|class\s+\w+Strategy|class\s+\w+Decorator|class\s+\w+State|class\s+\w+Builder|implements\s+(Observer|Strategy|Decorator|Iterator|Builder)'; then
+            warnings="${warnings}\n  [SIMPLICITE] Pattern hors des 3 retenus detecte (Observer/Strategy/Decorator/State/Builder/Iterator). Les seuls patterns autorises sont Singleton + Repository + Factory."
+        fi
+        ;;
+esac
+
+# 34. Noms cryptiques (heuristique : variable < 3 chars en PHP/JS hors patterns connus)
+case "$file_path" in
+    *.php|*.js)
+        # Detecter \$x = ou \$y = (sauf indices de boucle)
+        if printf '%s' "$content" | grep -qE '^\s*(var|let|const|\$)[a-z]\s*=' | head -1 > /dev/null 2>&1; then
+            cryptic_vars=$(printf '%s' "$content" | grep -oE '^\s*(var|let|const)?\s*\$?[a-z]\s*=' | head -3 || true)
+            if [ -n "$cryptic_vars" ]; then
+                warnings="${warnings}\n  [SIMPLICITE] Variables avec noms trop courts detectees (1 caractere). Utilise des noms explicites en francais (\$id_paquet pas \$p)."
+            fi
+        fi
+        ;;
+esac
+
 # Sortie
 if [ -n "$warnings" ]; then
     msg="[Avertissements TER]$(printf '%b' "$warnings")\n\nMode avertissement non bloquant. Corrige avant ecriture ou justifie au binome."
