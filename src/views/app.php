@@ -147,6 +147,15 @@
                             <h2 class="page-title">Tableau de bord</h2>
                             <p class="page-sub">Vos paquets et ceux qui vous ont ete partages.</p>
                         </div>
+                        <!-- Entree principale vers la creation d'un paquet
+                             (vue dediee a venir : route SPA #nouveau-paquet). -->
+                        <a href="#nouveau-paquet" class="btn btn-primary" id="btn-nouveau-paquet">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Nouveau paquet</span>
+                        </a>
                     </div>
 
                     <div class="dashboard-columns">
