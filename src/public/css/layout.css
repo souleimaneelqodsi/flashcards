@@ -10,7 +10,7 @@
 .app-wrap {
     display: flex;
     min-height: 100vh;
-    background: var(--bg);
+    background: var(--fond);
 }
 
 .app-main {
@@ -24,8 +24,8 @@
 .app-sidebar {
     width: 240px;
     flex-shrink: 0;
-    background: var(--surf);
-    border-right: 1px solid var(--brd);
+    background: var(--surface);
+    border-right: 1px solid var(--bordure);
     display: flex;
     flex-direction: column;
     position: sticky;
@@ -36,7 +36,7 @@
 
 .app-sidebar-logo {
     padding: 22px 20px 18px;
-    border-bottom: 1px solid var(--brd);
+    border-bottom: 1px solid var(--bordure);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -47,19 +47,19 @@
     height: 36px;
     flex-shrink: 0;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--p), var(--acc));
+    background: linear-gradient(135deg, var(--primaire), var(--accent));
 }
 
 .brand {
     font-size: 17px;
     font-weight: 800;
-    color: var(--p);
+    color: var(--primaire);
     line-height: 1;
 }
 
 .brand-sub {
     font-size: 10px;
-    color: var(--t4);
+    color: var(--texte-discret);
     margin-top: 2px;
     letter-spacing: .08em;
 }
@@ -73,7 +73,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .08em;
-    color: var(--t4);
+    color: var(--texte-discret);
     padding: 0 8px 8px;
 }
 
@@ -82,29 +82,29 @@
     align-items: center;
     gap: 10px;
     padding: 9px 10px;
-    border-radius: var(--r);
+    border-radius: var(--radius);
     font-size: 13px;
     font-weight: 500;
-    color: var(--t2);
+    color: var(--texte-secondaire);
     transition: background .15s;
     margin-bottom: 2px;
 }
 
 .nav-link:hover {
-    background: var(--surf2);
+    background: var(--surface-2);
 }
 
 .nav-link.active {
-    background: var(--p-l);
-    color: var(--p);
+    background: var(--primaire-clair);
+    color: var(--primaire);
     font-weight: 600;
 }
 
 .nav-link .nl-icon {
     width: 32px;
     height: 32px;
-    border-radius: var(--r);
-    background: var(--surf2);
+    border-radius: var(--radius);
+    background: var(--surface-2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -124,7 +124,7 @@
 .app-sidebar-footer {
     margin-top: auto;
     padding: 16px 12px;
-    border-top: 1px solid var(--brd);
+    border-top: 1px solid var(--bordure);
 }
 
 .theme-row {
@@ -132,24 +132,24 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 10px;
-    border-radius: var(--r);
+    border-radius: var(--radius);
     font-size: 13px;
     font-weight: 500;
-    color: var(--t2);
+    color: var(--texte-secondaire);
 }
 
 .theme-switch {
     width: 42px;
     height: 24px;
-    background: var(--brd);
-    border-radius: var(--r-f);
+    background: var(--bordure);
+    border-radius: var(--radius-plein);
     position: relative;
     transition: background .2s;
     flex-shrink: 0;
 }
 
 .theme-switch.on {
-    background: var(--p);
+    background: var(--primaire);
 }
 
 .theme-switch::after {
@@ -162,7 +162,7 @@
     top: 3px;
     left: 3px;
     transition: transform .2s;
-    box-shadow: var(--sh-sm);
+    box-shadow: var(--ombre-petite);
 }
 
 .theme-switch.on::after {
@@ -173,8 +173,8 @@
 .app-topbar {
     height: 56px;
     flex-shrink: 0;
-    background: var(--surf);
-    border-bottom: 1px solid var(--brd);
+    background: var(--surface);
+    border-bottom: 1px solid var(--bordure);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -187,24 +187,24 @@
 .menu-btn {
     width: 36px;
     height: 36px;
-    border-radius: var(--r);
-    background: var(--surf2);
-    border: 1px solid var(--brd);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    border: 1px solid var(--bordure);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--t2);
+    color: var(--texte-secondaire);
     transition: background .15s;
 }
 
 .menu-btn:hover {
-    background: var(--brd);
+    background: var(--bordure);
 }
 
 .topbar-title {
     font-size: 17px;
     font-weight: 700;
-    color: var(--t1);
+    color: var(--texte-primaire);
     flex: 1;
 }
 
@@ -212,15 +212,15 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: var(--surf2);
-    border: 1px solid var(--brd);
-    border-radius: var(--r-f);
+    background: var(--surface-2);
+    border: 1px solid var(--bordure);
+    border-radius: var(--radius-plein);
     padding: 7px 14px;
     width: 260px;
 }
 
 .search-bar .search-ic {
-    color: var(--t4);
+    color: var(--texte-discret);
     flex-shrink: 0;
 }
 
@@ -228,12 +228,12 @@
     background: none;
     border: none;
     outline: none;
-    color: var(--t1);
+    color: var(--texte-primaire);
     width: 100%;
 }
 
 .search-bar input::placeholder {
-    color: var(--t4);
+    color: var(--texte-discret);
 }
 
 .topbar-actions {
@@ -245,45 +245,45 @@
 .icon-btn {
     width: 36px;
     height: 36px;
-    border-radius: var(--r);
-    background: var(--surf2);
-    border: 1px solid var(--brd);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    border: 1px solid var(--bordure);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--t2);
+    color: var(--texte-secondaire);
     position: relative;
     transition: background .15s;
 }
 
 .icon-btn:hover {
-    background: var(--brd);
+    background: var(--bordure);
 }
 
 .notif-dot {
     width: 8px;
     height: 8px;
-    background: var(--acc);
+    background: var(--accent);
     border-radius: 50%;
     position: absolute;
     top: -2px;
     right: -2px;
-    border: 2px solid var(--surf);
+    border: 2px solid var(--surface);
 }
 
 .topbar-av {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--p), var(--acc));
+    background: linear-gradient(135deg, var(--primaire), var(--accent));
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     font-size: 13px;
     font-weight: 800;
-    border: 2px solid var(--surf);
-    box-shadow: var(--sh);
+    border: 2px solid var(--surface);
+    box-shadow: var(--ombre);
 }
 
 /* ── Zone de contenu (vue courante) ────────────── */

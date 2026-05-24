@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Stop hook : rappelle a Claude en fin de tour les points de vigilance avant fin de tache.
-# Mode : informatif. S'execute quand Claude termine sa reponse.
+# Mode : informatif via systemMessage (Stop ne supporte pas hookSpecificOutput.additionalContext).
 
 set -euo pipefail
 
@@ -27,7 +27,6 @@ if ! git diff --quiet -- src/ 2>/dev/null || ! git diff --cached --quiet -- src/
         bloc_staged="\nFichiers stages (pret a commit) :\n$(printf '%s\n' "$staged_files" | sed 's/^/  - /')"
     fi
 
-    # Avertissement si on est sur develop ou main directement
     branche_warn=""
     case "$branche" in
         main|master|develop)
@@ -35,11 +34,12 @@ if ! git diff --quiet -- src/ 2>/dev/null || ! git diff --cached --quiet -- src/
             ;;
     esac
 
-    msg="[Checklist fin de tour - branche : $branche]${bloc_changed}${bloc_staged}${branche_warn}\n\nAvant de cloturer le tour, verifie / propose :\n  1. Indentation 4 espaces (lance /preparer-livraison ou l'agent indentation-fixer si doute)\n  2. Si formulaire touche : agent validation-checker (parite client/serveur + rouge dynamique + recap)\n  3. Si controleur PHP touche : agents repository-enforcer + php-securite-auditor\n  4. Si HTML/CSS touche : interface-compliance-checker + w3c-validator\n  5. Aucune techno hors stack ni API hors PDFs de cours (commande /verifier-stack + agent cours-api-checker)\n  6. **Si la sous-tache est terminee : propose /commit (demande confirmation explicite avant git commit)**\n  7. **Si la tache principale entiere est terminee : propose le merge feature -> develop (en demandant confirmation)**"
+    msg="[Checklist fin de tour - branche : $branche]${bloc_changed}${bloc_staged}${branche_warn}\n\nAvant de cloturer le tour, verifie / propose :\n  1. Indentation 4 espaces (lance /preparer-livraison ou l'agent indentation-fixer si doute)\n  2. Si formulaire touche : agent validation-checker (parite client/serveur + rouge dynamique + recap)\n  3. Si controleur PHP touche : agents repository-enforcer + php-securite-auditor\n  4. Si HTML/CSS touche : interface-compliance-checker + w3c-validator\n  5. Aucune techno hors stack ni API hors PDFs de cours (commande /verifier-stack + agent cours-api-checker)\n  6. Si la sous-tache est terminee : propose /commit (demande confirmation explicite avant git commit)\n  7. Si la tache principale entiere est terminee : propose le merge feature -> develop (en demandant confirmation)"
 
+    # Stop hook utilise systemMessage au niveau racine (PAS hookSpecificOutput).
     python3 -c "
 import json
-print(json.dumps({'hookSpecificOutput': {'hookEventName': 'Stop', 'additionalContext': '''$msg'''}}))
+print(json.dumps({'systemMessage': '''$msg'''}))
 " 2>/dev/null || printf '%b' "$msg" >&2
 fi
 
