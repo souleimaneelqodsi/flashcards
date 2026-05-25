@@ -185,3 +185,100 @@
     align-items: center;
     gap: 12px;
 }
+
+/* ── Loader AJAX global (BACK-2.6) ────────────── */
+/* Overlay positionne en fixed, masque par defaut. Devient visible quand
+   js/ajax.js ajoute la classe ".visible" sur l'element (au moins une
+   requete en cours). Le spinner est purement CSS (rotation d'une bordure
+   partielle, technique standard). */
+.ajax-loader {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.35);
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+}
+
+.ajax-loader.visible {
+    display: flex;
+}
+
+.ajax-loader-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(255, 255, 255, 0.35);
+    border-top-color: var(--primaire);
+    border-radius: 50%;
+    animation: ajax-loader-rotate 0.9s linear infinite;
+}
+
+@keyframes ajax-loader-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Toasts (BACK-2.9) ─────────────────────────── */
+/* Conteneur fixe en bas a droite : empile les toasts verticalement. Le
+   conteneur lui-meme est cree a la volee par js/toast.js si absent. */
+.toasts-conteneur {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9100;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 320px;
+}
+
+.toast {
+    position: relative;
+    padding: 14px 38px 14px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.4;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+    background: var(--surface);
+    color: var(--texte-primaire);
+    border: 1px solid var(--bordure);
+}
+
+.toast-succes {
+    background: var(--succes-clair);
+    border-color: #86EFAC;
+    color: #166534;
+}
+
+.toast-erreur {
+    background: var(--erreur-clair);
+    border-color: #FCA5A5;
+    color: #991B1B;
+}
+
+.toast-info {
+    background: var(--primaire-clair);
+    border-color: #C4B5FD;
+    color: #5B21B6;
+}
+
+.toast-fermer {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: transparent;
+    border: 0;
+    font-size: 20px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px 6px;
+}
