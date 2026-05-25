@@ -96,9 +96,12 @@ $pdo->exec('CREATE INDEX IF NOT EXISTS idx_questions_difficulte ON questions(id_
 $pdo->exec('CREATE INDEX IF NOT EXISTS idx_partages_destinataire ON partages(id_destinataire)');
 
 // Seed des trois difficultes (idempotent grace a INSERT OR IGNORE + UNIQUE
-// sur nom_difficulte).
-$pdo->exec("INSERT OR IGNORE INTO difficultes (nom_difficulte) VALUES ('Facile')");
-$pdo->exec("INSERT OR IGNORE INTO difficultes (nom_difficulte) VALUES ('Moyen')");
-$pdo->exec("INSERT OR IGNORE INTO difficultes (nom_difficulte) VALUES ('Difficile')");
+// sur nom_difficulte). Requete preparee + boucle pour rester sur la regle
+// "100 % requetes preparees" du sujet, meme si les valeurs sont fixes.
+$inserer_difficulte = $pdo->prepare('INSERT OR IGNORE INTO difficultes (nom_difficulte) VALUES (?)');
+$niveaux = array('Facile', 'Moyen', 'Difficile');
+foreach ($niveaux as $niveau) {
+    $inserer_difficulte->execute(array($niveau));
+}
 
 echo "Installation terminee : 5 tables creees, difficultes seedees.\n";
