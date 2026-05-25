@@ -282,3 +282,74 @@
     cursor: pointer;
     padding: 4px 6px;
 }
+
+/* ── Vues d'authentification (AUTH-2.7, AUTH-2.8) ── */
+/* Carte centree contenant le formulaire de login ou d'inscription. La
+   fidelite complete au mockup (panneau violet a gauche + formulaire a
+   droite, login.png / signup.png) viendra dans une feuille de style
+   dediee ; ici on pose la structure fonctionnelle. */
+.auth-fond {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 16px;
+}
+
+.auth-carte {
+    width: 100%;
+    max-width: 460px;
+    background: var(--surface);
+    border-radius: var(--radius-moyen);
+    padding: 32px;
+    box-shadow: var(--ombre-carte);
+}
+
+.auth-titre {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--texte-primaire);
+    margin-bottom: 6px;
+}
+
+.auth-sous-titre {
+    color: var(--texte-secondaire);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Ligne de deux champs cote-a-cote (prenom + nom dans l'inscription) */
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.auth-bascule {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 14px;
+    color: var(--texte-secondaire);
+}
+
+.auth-bascule a {
+    color: var(--primaire);
+    font-weight: 600;
+}
+
+/* Compteur sous les champs (longueur, nb caracteres) — partage avec
+   l'edition de paquet, defini ici pour rester reutilisable. */
+.form-counter {
+    color: var(--texte-tertiaire);
+    font-size: 12px;
+    margin-top: 4px;
+    text-align: right;
+}
