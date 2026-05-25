@@ -33,6 +33,10 @@ var compteur_nouvelles_questions = 1000;
 var modale_mode = "ajout";
 var modale_id_question_courante = null;
 
+// Identifiant de la question dont on attend la confirmation de
+// suppression (cible de la modale #modale-confirmation-suppression).
+var id_question_a_supprimer = null;
+
 // ── Selection visuelle d'une difficulte dans la modale ────────
 function selectionner_difficulte_modale(niveau) {
     $("#" + ID_FORM + " .badge-diff").removeClass("active").attr("aria-checked", "false");
@@ -321,11 +325,56 @@ $(function () {
         $(this).addClass("active").attr("aria-checked", "true");
     });
 
-    // La croix de suppression dans la liste : pour FRONT-2.3 on stop la
-    // propagation pour eviter l'ouverture de la modale d'edition. La
-    // logique de suppression viendra en FRONT-2.4.
+    // ── Suppression d'une question (FRONT-2.4) ──
+    // Clic sur la croix : on memorise l'ID et on ouvre la modale de
+    // confirmation. stopPropagation empeche l'ouverture parallele de la
+    // modale d'edition.
     $("#questions-liste").on("click", ".btn-supprimer-question", function (evenement) {
         evenement.stopPropagation();
+        var item = $(this).parent();
+        id_question_a_supprimer = item.attr("data-id-question");
+        $("#modale-confirmation-suppression").removeAttr("hidden");
+    });
+
+    function fermer_modale_suppression() {
+        $("#modale-confirmation-suppression").attr("hidden", "hidden");
+        id_question_a_supprimer = null;
+    }
+
+    $("#btn-fermer-modale-suppression").on("click", function () {
+        fermer_modale_suppression();
+    });
+    $("#btn-annuler-suppression").on("click", function () {
+        fermer_modale_suppression();
+    });
+    $("#modale-confirmation-suppression").on("click", function (evenement) {
+        if (evenement.target === this) {
+            fermer_modale_suppression();
+        }
+    });
+
+    // Confirmation : retire la question du DOM, met a jour le compteur,
+    // re-numerote les questions restantes pour conserver la sequence
+    // 1, 2, 3, ... visible dans le mockup.
+    $("#btn-confirmer-suppression").on("click", function () {
+        if (id_question_a_supprimer === null) {
+            fermer_modale_suppression();
+            return;
+        }
+        $("#questions-liste .question-item[data-id-question='" + id_question_a_supprimer + "']").remove();
+        // Renumerotation visuelle des questions restantes.
+        $("#questions-liste .question-item").each(function (index) {
+            var nouveau_numero = index + 1;
+            $(this).find(".question-numero")
+                .text(nouveau_numero)
+                .attr("aria-label", "Question " + nouveau_numero);
+            $(this).find(".btn-supprimer-question")
+                .attr("aria-label", "Supprimer la question " + nouveau_numero);
+            $(this).find(".question-difficulte")
+                .attr("aria-label", "Difficulte de la question " + nouveau_numero);
+        });
+        mettre_a_jour_compteur_questions();
+        fermer_modale_suppression();
     });
 
 });

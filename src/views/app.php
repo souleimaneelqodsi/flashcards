@@ -372,6 +372,32 @@
         </div>
     </div>
 
+    <!-- ════════════════════════════════════════════════
+         Modale de confirmation de suppression (FRONT-2.4).
+         Affichee avant toute suppression destructrice d'une question
+         pour eviter les clics accidentels.
+    ════════════════════════════════════════════════ -->
+    <div class="modale-overlay" id="modale-confirmation-suppression" role="dialog" aria-modal="true" aria-labelledby="titre-modale-suppression" hidden>
+        <div class="modale-boite">
+            <div class="modale-titre-row">
+                <h3 class="modale-titre" id="titre-modale-suppression">Supprimer la question ?</h3>
+                <button type="button" class="btn-fermer-modale" id="btn-fermer-modale-suppression" aria-label="Fermer la modale">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modale-corps">
+                <p>Cette action est definitive. La question sera retiree du paquet et ne pourra pas etre restauree.</p>
+            </div>
+            <div class="modale-actions">
+                <button type="button" class="btn btn-secondary" id="btn-annuler-suppression">Annuler</button>
+                <button type="button" class="btn btn-danger" id="btn-confirmer-suppression">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/lib/jquery-3.7.1.min.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/app.js"></script>
