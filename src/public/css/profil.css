@@ -1,0 +1,237 @@
+/* src/public/css/profil.css
+   Vue "Mon profil" (complement AUTH-2).
+   Reference visuelle : project-files/interface/my_profile.png.
+   Layout en deux colonnes via flexbox (pas de grid CSS, hors cours) :
+   carte violette d'identite a gauche, infos + reglages + actions a droite.
+   Couleurs issues des jetons du theme (theme.css) pour rester coherent
+   avec le reste de l'application et le mode sombre. */
+
+/* Titre masque visuellement mais lu par les lecteurs d'ecran : le titre
+   visible est dans le topbar ("Mon profil"). */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.profil-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+/* ── Colonne gauche : carte violette ───────────────────────────── */
+.profil-carte {
+    width: 340px;
+    flex-shrink: 0;
+    background: linear-gradient(160deg, var(--primaire), var(--primaire-hover));
+    border-radius: var(--radius-moyen);
+    padding: 28px 24px;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(124, 77, 255, 0.25);
+}
+
+.profil-avatar-grand {
+    width: 88px;
+    height: 88px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 3px solid rgba(255, 255, 255, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.profil-nom {
+    margin-top: 14px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.profil-email {
+    margin-top: 4px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.profil-stats {
+    display: flex;
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.profil-stat {
+    flex: 1;
+    padding: 12px 6px;
+    text-align: center;
+}
+
+.profil-stat + .profil-stat {
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.profil-stat-valeur {
+    display: block;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.profil-stat-label {
+    display: block;
+    margin-top: 2px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.profil-lien-avatar {
+    margin-top: 16px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: underline;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* ── Colonne droite : infos, reglages, actions ─────────────────── */
+.profil-droite {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.profil-info-card,
+.profil-reglages-card {
+    padding: 0;
+}
+
+.profil-info-row,
+.profil-reglage-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+}
+
+.profil-info-row + .profil-info-row,
+.profil-reglage-row + .profil-reglage-row {
+    border-top: 1px solid var(--bordure);
+}
+
+.profil-info-ic {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: var(--radius);
+    background: var(--primaire-clair);
+    color: var(--primaire);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profil-info-txt {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.profil-info-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--texte-tertiaire);
+}
+
+.profil-info-valeur {
+    margin-top: 2px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--texte-primaire);
+}
+
+/* Ligne de reglage : titre + sous-titre a gauche, controle a droite. */
+.profil-reglage-row {
+    justify-content: space-between;
+}
+
+.profil-reglage-txt {
+    display: flex;
+    flex-direction: column;
+}
+
+.profil-reglage-titre {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--texte-primaire);
+}
+
+.profil-reglage-sous {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--texte-tertiaire);
+}
+
+/* La ligne "Mot de passe" est un bouton pleine largeur (cliquable). */
+.profil-reglage-bouton {
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+}
+
+.profil-reglage-bouton:hover {
+    background: var(--surface-2);
+}
+
+.profil-chevron {
+    color: var(--texte-tertiaire);
+    display: flex;
+    align-items: center;
+}
+
+/* ── Actions du bas ────────────────────────────────────────────── */
+.profil-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.profil-btn-supprimer {
+    background: none;
+    border: 1px solid var(--erreur);
+    color: var(--erreur);
+}
+
+.profil-btn-supprimer:hover {
+    background: var(--erreur-clair);
+}
+
+/* ── Responsive : passage en colonne sur petit ecran ───────────── */
+@media screen and (max-width: 900px) {
+    .profil-layout {
+        flex-direction: column;
+    }
+
+    .profil-carte {
+        width: 100%;
+    }
+}

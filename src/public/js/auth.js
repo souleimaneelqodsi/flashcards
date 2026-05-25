@@ -119,6 +119,30 @@ function rafraichir_affichage_erreurs_login(erreurs) {
     afficher_recap_erreurs("recap-erreurs-login", "liste-erreurs-login", erreurs);
 }
 
+// Valide UN champ du login au BLUR (quand l'utilisateur quitte le champ) :
+// rouge si invalide, normal sinon. C'est le moment ou l'on signale une
+// erreur, pas pendant la frappe (sinon un email a moitie tape rougirait).
+function valider_et_afficher_champ_login(nom_champ, id_input, id_message) {
+    var valeur = $("#" + id_input).val();
+    var message = valider_champ_login(nom_champ, valeur);
+    if (message !== "") {
+        marquer_champ_invalide(id_input, id_message, message);
+    } else {
+        marquer_champ_valide(id_input, id_message);
+    }
+}
+
+// Au KEYUP (pendant la frappe) on ne fait que LEVER l'erreur d'un champ
+// du login s'il est devenu valide. On n'ajoute jamais d'erreur pendant la
+// saisie pour ne pas rougir un champ qu'on est en train de remplir.
+function nettoyer_champ_login(nom_champ, id_input, id_message) {
+    var valeur = $("#" + id_input).val();
+    var message = valider_champ_login(nom_champ, valeur);
+    if (message === "") {
+        marquer_champ_valide(id_input, id_message);
+    }
+}
+
 // ── Validation Register (AUTH-2.9, AUTH-2.10) ───────────────────
 // Verifie un champ du formulaire d'inscription.
 
@@ -229,6 +253,31 @@ function rafraichir_affichage_erreurs_register(erreurs) {
     afficher_recap_erreurs("recap-erreurs-register", "liste-erreurs-register", erreurs);
 }
 
+// Valide UN champ de l'inscription au BLUR : rouge si invalide, normal
+// sinon. Pour la confirmation du mot de passe, on relit le mot de passe
+// principal afin de comparer les deux saisies.
+function valider_et_afficher_champ_register(nom_champ, id_input, id_message) {
+    var valeur = $("#" + id_input).val();
+    var valeur_mdp = $("#reg-mot-de-passe").val();
+    var message = valider_champ_register(nom_champ, valeur, valeur_mdp);
+    if (message !== "") {
+        marquer_champ_invalide(id_input, id_message, message);
+    } else {
+        marquer_champ_valide(id_input, id_message);
+    }
+}
+
+// Au KEYUP on ne fait que LEVER l'erreur d'un champ de l'inscription s'il
+// est devenu valide ; on n'ajoute jamais d'erreur pendant la frappe.
+function nettoyer_champ_register(nom_champ, id_input, id_message) {
+    var valeur = $("#" + id_input).val();
+    var valeur_mdp = $("#reg-mot-de-passe").val();
+    var message = valider_champ_register(nom_champ, valeur, valeur_mdp);
+    if (message === "") {
+        marquer_champ_valide(id_input, id_message);
+    }
+}
+
 // ── Soumission Login (AUTH-2.11) ────────────────────────────────
 // Envoi vers POST /api/auth/connexion via AjaxService. En cas de succes,
 // redirection vers le dashboard. En cas d'erreur, message via Toast et
@@ -262,6 +311,12 @@ function soumettre_login(evenement) {
             // le bon token (la SPA ne recharge pas la page).
             if (reponse && typeof reponse.csrf_token === "string") {
                 $("meta[name='csrf-token']").attr("content", reponse.csrf_token);
+            }
+            // Memorise l'utilisateur connecte et affiche son identite dans
+            // le chrome (la SPA ne rechargeant pas la page, le garde de
+            // demarrage n'est pas rejoue).
+            if (reponse && reponse.utilisateur) {
+                Session.connecter(reponse.utilisateur);
             }
             Toast.succes("Connexion reussie.");
             window.location.hash = "#dashboard";
@@ -336,33 +391,55 @@ function soumettre_register(evenement) {
 
 $(function () {
 
-    // ── Login ──
-    $("#login-email").on("keyup blur", function () {
-        var erreurs = valider_login_complet();
-        rafraichir_affichage_erreurs_login(erreurs);
+    // ── Login : validation par champ ──
+    // blur  : on signale l'erreur du champ qu'on vient de quitter (rouge).
+    // keyup : on ne fait que lever l'erreur quand la saisie devient valide.
+    // Ainsi un champ ne rougit pas pendant qu'on le remplit, et taper dans
+    // l'email ne touche pas le mot de passe. Le controle complet (tous les
+    // champs + recap) se fait au submit (soumettre_login).
+    $("#login-email").on("blur", function () {
+        valider_et_afficher_champ_login("email", "login-email", "erreur-login-email");
     });
-    $("#login-mot-de-passe").on("keyup blur", function () {
-        var erreurs = valider_login_complet();
-        rafraichir_affichage_erreurs_login(erreurs);
+    $("#login-email").on("keyup", function () {
+        nettoyer_champ_login("email", "login-email", "erreur-login-email");
+    });
+    $("#login-mot-de-passe").on("blur", function () {
+        valider_et_afficher_champ_login("mot_de_passe", "login-mot-de-passe", "erreur-login-mot-de-passe");
+    });
+    $("#login-mot-de-passe").on("keyup", function () {
+        nettoyer_champ_login("mot_de_passe", "login-mot-de-passe", "erreur-login-mot-de-passe");
     });
     $("#form-login").on("submit", soumettre_login);
 
-    // ── Register ──
+    // ── Register : validation par champ au keyup / blur ──
+    // Table (nom logique du champ, id de l'input, id du message d'erreur).
     var champs_register = [
-        "#reg-prenom",
-        "#reg-nom",
-        "#reg-email",
-        "#reg-date-naissance",
-        "#reg-mot-de-passe",
-        "#reg-mot-de-passe-confirme"
+        ["prenom",                "reg-prenom",                "erreur-reg-prenom"],
+        ["nom",                   "reg-nom",                   "erreur-reg-nom"],
+        ["email",                 "reg-email",                 "erreur-reg-email"],
+        ["date_naissance",        "reg-date-naissance",        "erreur-reg-date-naissance"],
+        ["mot_de_passe",          "reg-mot-de-passe",          "erreur-reg-mot-de-passe"],
+        ["mot_de_passe_confirme", "reg-mot-de-passe-confirme", "erreur-reg-mot-de-passe-confirme"]
     ];
     var i;
     for (i = 0; i < champs_register.length; i = i + 1) {
-        $(champs_register[i]).on("keyup blur", function () {
-            var erreurs = valider_register_complet();
-            rafraichir_affichage_erreurs_register(erreurs);
-        });
+        // Capture des valeurs dans une fonction nommee pour eviter le piege
+        // classique de la cloture sur la variable de boucle.
+        brancher_champ_register(champs_register[i][0], champs_register[i][1], champs_register[i][2]);
     }
     $("#form-register").on("submit", soumettre_register);
 
 });
+
+// Pose les ecouteurs sur un champ d'inscription donne. Sortie de la boucle
+// pour que chaque ecouteur garde ses propres identifiants.
+//   blur  : signale l'erreur du champ quitte (rouge si invalide).
+//   keyup : leve seulement l'erreur quand la saisie devient valide.
+function brancher_champ_register(nom_champ, id_input, id_message) {
+    $("#" + id_input).on("blur", function () {
+        valider_et_afficher_champ_register(nom_champ, id_input, id_message);
+    });
+    $("#" + id_input).on("keyup", function () {
+        nettoyer_champ_register(nom_champ, id_input, id_message);
+    });
+}
