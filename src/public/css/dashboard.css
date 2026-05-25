@@ -1,0 +1,206 @@
+/* src/public/css/dashboard.css */
+/* Styles de l'ecran tableau de bord. Reference visuelle :
+   project-files/interface/dashboard.png. Exception explicite au mockup :
+   les deux listes "Mes paquets" et "Partages avec moi" sont affichees en
+   DEUX COLONNES cote a cote (et non en onglets), conformement au sujet TER
+   qui demande "l'ecran est separe en deux zones" (CLAUDE.md section 5). */
+
+/* ── En-tete de page (salutation + bouton principal) ── */
+.page-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--texte-primaire);
+    line-height: 1.2;
+}
+
+.page-sub {
+    font-size: 13px;
+    color: var(--texte-tertiaire);
+    margin-top: 4px;
+}
+
+/* ── Conteneur des deux colonnes (Mes / Partages) ── */
+/* Flexbox plutot que CSS Grid : Grid n'est pas couvert par les PDFs
+   de cours, flexbox suffit pour deux colonnes egales. */
+.dashboard-columns {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.dashboard-col {
+    flex: 1;
+    background: var(--surface);
+    border-radius: var(--radius-moyen);
+    box-shadow: var(--ombre-carte);
+    /* min-width: 0 empeche le debordement des cartes filles
+       dans un conteneur flex (titre tres long, etc.). */
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-col-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--bordure);
+}
+
+.dashboard-col-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--texte-primaire);
+}
+
+.dashboard-col-count {
+    display: inline-block;
+    padding: 1px 9px;
+    background: var(--primaire-clair);
+    color: var(--primaire);
+    border-radius: var(--radius-plein);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.dashboard-col-body {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Etat vide d'une colonne (aucun paquet a afficher). */
+.dashboard-col-empty {
+    padding: 36px 16px;
+    text-align: center;
+    color: var(--texte-tertiaire);
+    font-size: 13px;
+}
+
+/* ── Carte-paquet (composant reutilise dans les deux colonnes) ── */
+/* Reference visuelle : project-files/interface/dashboard.png.
+   La carte affiche le titre, le theme, un badge nombre de cartes, une
+   barre de progression (best_score), une ligne avec record / dernier
+   score / date, et une zone d'actions (boutons Reviser / Editer / ...). */
+.paquet-card {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--bordure);
+    border-radius: var(--radius-moyen);
+    padding: 16px 16px 14px 22px;
+    box-shadow: var(--ombre-carte);
+    /* Carte cliquable (DASH-1.6) : un clic ouvre la visualisation. */
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s, border-color .15s;
+}
+
+/* Focus visible au clavier (accessibilite). */
+.paquet-card:focus {
+    outline: 2px solid var(--primaire);
+    outline-offset: 2px;
+}
+
+/* Liseré violet/rose vertical a gauche, pour l'identite visuelle. */
+.paquet-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(180deg, var(--primaire), var(--accent));
+}
+
+.paquet-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ombre-moyenne);
+    border-color: var(--primaire-clair);
+}
+
+.paquet-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.paquet-titre {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--texte-primaire);
+    line-height: 1.35;
+}
+
+.paquet-theme {
+    font-size: 12px;
+    color: var(--texte-tertiaire);
+    font-weight: 500;
+    margin-top: 3px;
+}
+
+.paquet-card .badge {
+    flex-shrink: 0;
+}
+
+/* Barre de progression (basee sur le best_score du paquet). */
+.paquet-progress {
+    height: 5px;
+    background: var(--surface-2);
+    border-radius: var(--radius-plein);
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.paquet-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primaire), var(--accent));
+    border-radius: var(--radius-plein);
+}
+
+/* Ligne de scores (record / dernier / date). */
+.paquet-scores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--texte-tertiaire);
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.paquet-scores strong {
+    color: var(--texte-primaire);
+    font-weight: 700;
+}
+
+/* Zone d'actions en pied de carte (Reviser / Editer / ...). */
+.paquet-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid var(--bordure);
+}
+
+.paquet-actions .btn-suppr {
+    margin-left: auto;
+}
+
+/* Sur petit ecran : passage a une seule colonne (empilement vertical). */
+@media (max-width: 900px) {
+    .dashboard-columns {
+        flex-direction: column;
+    }
+}

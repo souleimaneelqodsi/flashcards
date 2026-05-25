@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
     <div id="app">
@@ -93,6 +94,16 @@
                 </nav>
 
                 <div class="app-sidebar-footer">
+                    <!-- Bandeau utilisateur : avatar + identite, cliquable
+                         pour acceder au profil (DASH-1.5). Les libelles sont
+                         des stubs en attendant l'auth (AUTH-2). -->
+                    <a href="#profil" class="user-chip" aria-label="Acceder a mon profil">
+                        <span class="user-av">JD</span>
+                        <span class="user-chip-info">
+                            <span class="user-chip-name">Jean Dupont</span>
+                            <span class="user-chip-role">M1 MIAGE</span>
+                        </span>
+                    </a>
                     <div class="theme-row">
                         <span>Theme sombre</span>
                         <button type="button" class="theme-switch" id="theme-switch" aria-label="Basculer le theme sombre ou clair"></button>
@@ -130,53 +141,57 @@
                             </svg>
                             <span class="notif-dot"></span>
                         </button>
-                        <span class="topbar-av">JD</span>
+                        <a href="#profil" class="topbar-av" aria-label="Mon profil">JD</a>
                     </div>
                 </header>
 
                 <!-- Zone de contenu : la vue courante sera injectee ici.
-                     Contenu temporaire : galerie de composants (UI-1.6),
-                     remplacee par les vraies vues lors des taches suivantes. -->
+                     Vue par defaut : tableau de bord (DASH-1). Le sujet TER
+                     impose deux zones distinctes (Mes paquets / Partages avec
+                     moi) : on les affiche en deux colonnes cote a cote, plutot
+                     qu'en onglets comme dans le mockup. Les cartes seront
+                     ajoutees en DASH-1.2 et 1.3. -->
                 <div class="page-body" id="view">
-                    <div class="gallery">
-                        <div class="card">
-                            <div class="card-title">Boutons</div>
-                            <div class="gallery-row">
-                                <button type="button" class="btn btn-primary">Primaire</button>
-                                <button type="button" class="btn btn-secondary">Secondaire</button>
-                                <button type="button" class="btn btn-ghost">Ghost</button>
-                                <button type="button" class="btn btn-danger">Supprimer</button>
-                            </div>
-                            <div class="gallery-row">
-                                <button type="button" class="btn btn-primary btn-sm">Petit</button>
-                                <button type="button" class="btn btn-secondary btn-sm">Petit sec.</button>
-                                <button type="button" class="btn btn-primary btn-lg">Grand</button>
-                            </div>
+                    <div class="page-title-row">
+                        <div>
+                            <h2 class="page-title">Tableau de bord</h2>
+                            <p class="page-sub">Vos paquets et ceux qui vous ont ete partages.</p>
                         </div>
+                        <!-- Entree principale vers la creation d'un paquet
+                             (vue dediee a venir : route SPA #nouveau-paquet). -->
+                        <a href="#nouveau-paquet" class="btn btn-primary" id="btn-nouveau-paquet">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Nouveau paquet</span>
+                        </a>
+                    </div>
 
-                        <div class="card">
-                            <div class="card-title">Champs de formulaire</div>
-                            <div class="form-group">
-                                <label class="form-label" for="demo-titre">Titre du paquet<span class="req">*</span></label>
-                                <input type="text" id="demo-titre" class="form-control" placeholder="Bases de donnees relationnelles">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="demo-invalide">Champ invalide</label>
-                                <input type="text" id="demo-invalide" class="form-control champ-invalide" value="entree incorrecte">
-                                <p class="message-erreur">Ce champ contient une erreur.</p>
-                            </div>
-                            <div class="recap-erreurs">Le formulaire contient des erreurs a corriger.</div>
-                        </div>
+                    <div class="dashboard-columns">
 
-                        <div class="card">
-                            <div class="card-title">Badges</div>
-                            <div class="gallery-row">
-                                <span class="badge badge-p">24 cartes</span>
-                                <span class="badge badge-ok">Facile</span>
-                                <span class="badge badge-warn">Moyen</span>
-                                <span class="badge badge-err">Difficile</span>
+                        <!-- Colonne gauche : paquets dont l'utilisateur est proprietaire -->
+                        <section class="dashboard-col" id="col-mes-paquets" aria-labelledby="titre-mes-paquets">
+                            <div class="dashboard-col-head">
+                                <h3 class="dashboard-col-title" id="titre-mes-paquets">Mes paquets</h3>
+                                <span class="dashboard-col-count" id="compteur-mes-paquets">0</span>
                             </div>
-                        </div>
+                            <div class="dashboard-col-body" id="liste-mes-paquets">
+                                <!-- Cartes injectees par js/dashboard.js (DASH-1.3). -->
+                            </div>
+                        </section>
+
+                        <!-- Colonne droite : paquets recus en partage -->
+                        <section class="dashboard-col" id="col-partages" aria-labelledby="titre-partages">
+                            <div class="dashboard-col-head">
+                                <h3 class="dashboard-col-title" id="titre-partages">Partages avec moi</h3>
+                                <span class="dashboard-col-count" id="compteur-partages">0</span>
+                            </div>
+                            <div class="dashboard-col-body" id="liste-partages">
+                                <!-- Cartes injectees par js/dashboard.js (DASH-1.3). -->
+                            </div>
+                        </section>
+
                     </div>
                 </div>
 
@@ -187,5 +202,6 @@
     <script src="js/lib/jquery-3.7.1.min.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>
