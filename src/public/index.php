@@ -33,17 +33,19 @@ $est_appel_api = (substr($chemin, 0, strlen($prefixe_api)) === $prefixe_api);
 if ($est_appel_api) {
     require_once __DIR__ . '/../core/Response.php';
     require_once __DIR__ . '/../core/Router.php';
+    require_once __DIR__ . '/../controllers/AuthController.php';
 
     // Methode HTTP de la requete (GET, POST, ...).
     $methode = $_SERVER['REQUEST_METHOD'];
 
-    // Construction du routeur et enregistrement des routes (stubs pour l'instant :
-    // ils renvoient un JSON fictif, en attendant les vrais controleurs en BACK-2).
+    // Construction du routeur et enregistrement des routes. Les routes d'auth
+    // (AUTH-1) delegüent a AuthController : ce sont encore des mocks (pas de
+    // BD ni de BCRYPT), ils respectent juste le contrat d'API attendu par le
+    // front. Les autres routes restent des stubs inline pour l'instant.
     $routeur = new Router();
+    $auth_controleur = new AuthController();
 
-    $routeur->ajouter('POST', '/api/auth/inscription', function () {
-        Response::json(array('message' => 'stub inscription'), 200);
-    });
+    $routeur->ajouter('POST', '/api/auth/inscription', array($auth_controleur, 'inscription'));
     $routeur->ajouter('POST', '/api/auth/connexion', function () {
         Response::json(array('message' => 'stub connexion'), 200);
     });
