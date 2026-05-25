@@ -13,6 +13,20 @@
 require_once __DIR__ . '/../core/ErrorHandler.php';
 ErrorHandler::enregistrer();
 
+// Session PHP demarree pour toute requete (API et page HTML). Necessaire
+// pour AUTH-2 : authentification, CSRF token, identite de l'utilisateur.
+// `session_start` est idempotent quand on guarde via !isset($_SESSION),
+// mais ici on est en debut de requete donc l'appel direct est sur.
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+// Token CSRF disponible des le premier rendu HTML (AUTH-2.12). Le token
+// est expose au front via la balise <meta name="csrf-token"> dans app.php,
+// et verifie par AuthController sur chaque action sensible.
+require_once __DIR__ . '/../core/Csrf.php';
+Csrf::generer_si_absent();
+
 // Chemin demande, sans la chaine de requete (?cle=valeur).
 $chemin = $_SERVER['REQUEST_URI'];
 $position_query = strpos($chemin, '?');

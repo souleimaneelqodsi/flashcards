@@ -3,12 +3,21 @@
 // Coquille HTML de la SPA FlashCards MIAGE (couche Vue du MVC).
 // Servie par le front-controller pour toute requete non-API.
 // La navigation entre ecrans se fait cote client (jQuery), sans rechargement.
+//
+// Le front-controller (src/public/index.php) demarre la session PHP et
+// initialise le token CSRF (AUTH-2.12) avant d'inclure ce fichier. On
+// peut donc lire `$_SESSION['csrf_token']` ici pour l'exposer au front
+// via la balise <meta name="csrf-token">.
+
+require_once __DIR__ . '/../core/Csrf.php';
+$csrf_token = Csrf::obtenir();
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?php echo htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8'); ?>">
     <title>FlashCards MIAGE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -379,6 +388,124 @@
                 </section>
 
                 <!-- ════════════════════════════════════════════════
+                     VUE : Connexion (AUTH-2.7)
+                     Reference visuelle : project-files/interface/login.png.
+                     Masquee par defaut, activee par la route #login. Le
+                     mockup propose un layout 2 colonnes (panneau violet
+                     a gauche + formulaire a droite) ; la structure
+                     fonctionnelle (formulaire + validation + soumission
+                     ajax) est ici, la fidelite visuelle complete
+                     viendra avec une feuille de style dediee.
+                ════════════════════════════════════════════════ -->
+                <section class="page-body view-screen" id="vue-login" aria-labelledby="titre-login" hidden>
+                    <div class="auth-fond">
+                        <div class="auth-carte">
+                            <h2 class="auth-titre" id="titre-login">Connexion</h2>
+                            <p class="auth-sous-titre">Accedez a vos paquets de revisions.</p>
+
+                            <!-- Le formulaire est soumis via js/auth.js en AJAX. L'attribut
+                                 novalidate desactive la validation HTML5 du navigateur :
+                                 toutes les verifications passent par notre validation JS
+                                 (regex, longueur, presence) pour rester coherent avec la
+                                 validation cote serveur (AuthController). -->
+                            <form id="form-login" class="auth-form" novalidate>
+                                <div class="form-group">
+                                    <label class="form-label" for="login-email">Email <span class="req">*</span></label>
+                                    <input type="email" id="login-email" name="email" class="form-control" autocomplete="email" required>
+                                    <p class="message-erreur" id="erreur-login-email" hidden></p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="login-mot-de-passe">Mot de passe <span class="req">*</span></label>
+                                    <input type="password" id="login-mot-de-passe" name="mot_de_passe" class="form-control" autocomplete="current-password" required>
+                                    <p class="message-erreur" id="erreur-login-mot-de-passe" hidden></p>
+                                </div>
+
+                                <div class="recap-erreurs" id="recap-erreurs-login" hidden>
+                                    <p>Veuillez corriger les erreurs avant de continuer :</p>
+                                    <ul id="liste-erreurs-login"></ul>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-full" id="btn-soumettre-login">Se connecter</button>
+                            </form>
+
+                            <p class="auth-bascule">
+                                Pas encore de compte ?
+                                <a href="#register" id="lien-vers-register">Creer un compte</a>
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ════════════════════════════════════════════════
+                     VUE : Inscription (AUTH-2.8)
+                     Reference visuelle : project-files/interface/signup.png.
+                     Double saisie du mot de passe (CLAUDE.md §6). La
+                     validation dynamique (rouge au keyup/blur, message
+                     sous champ, recap en bas, submit bloque) est en
+                     auth.js (AUTH-2.10).
+                ════════════════════════════════════════════════ -->
+                <section class="page-body view-screen" id="vue-register" aria-labelledby="titre-register" hidden>
+                    <div class="auth-fond">
+                        <div class="auth-carte">
+                            <h2 class="auth-titre" id="titre-register">Inscription</h2>
+                            <p class="auth-sous-titre">Creez votre compte FlashCards MIAGE.</p>
+
+                            <form id="form-register" class="auth-form" novalidate>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label" for="reg-prenom">Prenom <span class="req">*</span></label>
+                                        <input type="text" id="reg-prenom" name="prenom" class="form-control" maxlength="100" autocomplete="given-name" required>
+                                        <p class="message-erreur" id="erreur-reg-prenom" hidden></p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="reg-nom">Nom <span class="req">*</span></label>
+                                        <input type="text" id="reg-nom" name="nom" class="form-control" maxlength="100" autocomplete="family-name" required>
+                                        <p class="message-erreur" id="erreur-reg-nom" hidden></p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="reg-email">Email <span class="req">*</span></label>
+                                    <input type="email" id="reg-email" name="email" class="form-control" maxlength="150" autocomplete="email" required>
+                                    <p class="message-erreur" id="erreur-reg-email" hidden></p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="reg-date-naissance">Date de naissance (AAAAMMJJ) <span class="req">*</span></label>
+                                    <input type="text" id="reg-date-naissance" name="date_naissance" class="form-control" maxlength="8" pattern="[0-9]{8}" placeholder="19990315" inputmode="numeric" required>
+                                    <p class="message-erreur" id="erreur-reg-date-naissance" hidden></p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="reg-mot-de-passe">Mot de passe <span class="req">*</span></label>
+                                    <input type="password" id="reg-mot-de-passe" name="mot_de_passe" class="form-control" autocomplete="new-password" required>
+                                    <p class="message-erreur" id="erreur-reg-mot-de-passe" hidden></p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="reg-mot-de-passe-confirme">Confirmer le mot de passe <span class="req">*</span></label>
+                                    <input type="password" id="reg-mot-de-passe-confirme" name="mot_de_passe_confirme" class="form-control" autocomplete="new-password" required>
+                                    <p class="message-erreur" id="erreur-reg-mot-de-passe-confirme" hidden></p>
+                                </div>
+
+                                <div class="recap-erreurs" id="recap-erreurs-register" hidden>
+                                    <p>Veuillez corriger les erreurs avant de creer votre compte :</p>
+                                    <ul id="liste-erreurs-register"></ul>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-full" id="btn-soumettre-register">Creer mon compte</button>
+                            </form>
+
+                            <p class="auth-bascule">
+                                Deja un compte ?
+                                <a href="#login" id="lien-vers-login">Se connecter</a>
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ════════════════════════════════════════════════
                      VUE : Recapitulatif de fin de session (FRONT-2.10)
                      Reference visuelle : end_of_session.png. Affichee
                      quand toutes les questions ont ete evaluees (route
@@ -513,6 +640,7 @@
     <script src="js/dashboard.js"></script>
     <script src="js/edition-paquet.js"></script>
     <script src="js/study.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

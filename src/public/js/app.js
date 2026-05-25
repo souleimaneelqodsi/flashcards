@@ -15,7 +15,16 @@ var VUE_DASHBOARD = "view";
 var VUE_EDITION_PAQUET = "vue-edition-paquet";
 var VUE_STUDY = "vue-study";
 var VUE_FIN_SESSION = "vue-fin-session";
-var TOUTES_LES_VUES = [VUE_DASHBOARD, VUE_EDITION_PAQUET, VUE_STUDY, VUE_FIN_SESSION];
+var VUE_LOGIN = "vue-login";
+var VUE_REGISTER = "vue-register";
+var TOUTES_LES_VUES = [
+    VUE_DASHBOARD,
+    VUE_EDITION_PAQUET,
+    VUE_STUDY,
+    VUE_FIN_SESSION,
+    VUE_LOGIN,
+    VUE_REGISTER
+];
 
 // Affiche une vue (section) et masque toutes les autres.
 function afficher_vue(id_vue) {
@@ -183,13 +192,14 @@ function enregistrer_routes() {
         afficher_vue(VUE_DASHBOARD);
         afficher_vue_placeholder("Parametres", "Preferences de l'application.");
     });
+    // Vues d'authentification : routes vers les vraies sections HTML
+    // de app.php (AUTH-2.7, AUTH-2.8). La validation et la soumission
+    // sont gerees par js/auth.js.
     Router.ajouter("#login", function () {
-        afficher_vue(VUE_DASHBOARD);
-        afficher_vue_placeholder("Connexion", "Se connecter a son compte.");
+        afficher_vue(VUE_LOGIN);
     });
     Router.ajouter("#register", function () {
-        afficher_vue(VUE_DASHBOARD);
-        afficher_vue_placeholder("Inscription", "Creer un nouveau compte.");
+        afficher_vue(VUE_REGISTER);
     });
 
     // Handler 404 (BACK-2.3) : affiche la vue "page introuvable" dans #view.
