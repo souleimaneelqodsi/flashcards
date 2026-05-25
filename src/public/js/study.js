@@ -15,21 +15,44 @@
 //   - FRONT-2.12 : appel AJAX de fin de session
 //   - FRONT-2.14 : machine d'etats (Q_affichee / R_revelee / Session_finie)
 
+// ── Etat de la session d'etude (prepare la machine FRONT-2.14) ─
+// Compteurs simples partages entre les micro-taches : le pourcentage
+// de score (FRONT-2.11) sera derivé de ces deux compteurs.
+var nb_correctes = 6;
+var nb_mauvaises = 2;
+
 // ── Bascule de la face recto <-> verso ────────────────────────
-// Utilise jQuery .toggle() qui alterne entre display:none et display:''
+// Utilise jQuery .show()/.hide() qui modifient l'attribut display
 // sur les deux faces. L'attribut HTML5 hidden est synchronise pour
 // rester semantiquement coherent (CLAUDE.md §6 sur l'accessibilite).
-function basculer_face_carte() {
-    var recto = $("#study-carte-recto");
-    var verso = $("#study-carte-verso");
+// La zone d'evaluation (boutons Check/Bad) n'apparait qu'apres flip
+// vers la face verso (FRONT-2.8).
+function afficher_face_recto() {
+    $("#study-carte-recto").show().removeAttr("hidden");
+    $("#study-carte-verso").hide().attr("hidden", "hidden");
+    $("#study-evaluation").hide().attr("hidden", "hidden");
+}
 
-    if (recto.is(":visible")) {
-        recto.hide().attr("hidden", "hidden");
-        verso.show().removeAttr("hidden");
+function afficher_face_verso() {
+    $("#study-carte-recto").hide().attr("hidden", "hidden");
+    $("#study-carte-verso").show().removeAttr("hidden");
+    $("#study-evaluation").show().removeAttr("hidden");
+}
+
+function basculer_face_carte() {
+    if ($("#study-carte-recto").is(":visible")) {
+        afficher_face_verso();
     } else {
-        verso.hide().attr("hidden", "hidden");
-        recto.show().removeAttr("hidden");
+        afficher_face_recto();
     }
+}
+
+// ── Mise a jour de l'affichage du score ──────────────────────
+// Synchronise les compteurs visuels (pastilles correctes/mauvaises)
+// avec l'etat courant. Le pourcentage live sera ajoute en FRONT-2.11.
+function rafraichir_pastilles_score() {
+    $("#study-correctes").text(nb_correctes);
+    $("#study-mauvaises").text(nb_mauvaises);
 }
 
 // ── Initialisation au chargement du DOM ──────────────────────
@@ -51,6 +74,30 @@ $(function () {
             evenement.preventDefault();
             basculer_face_carte();
         }
+    });
+
+    // ── Boutons d'evaluation (FRONT-2.8) ──
+    // "Je savais !" : la reponse a ete trouvee -> incrementer le
+    // compteur de bonnes reponses, marquer la question en cours dans
+    // la liste laterale, et revenir a la face question (la suite,
+    // navigation vers la question suivante, viendra en FRONT-2.9).
+    $("#btn-savais").on("click", function () {
+        nb_correctes = nb_correctes + 1;
+        $("#study-liste-questions .study-liste-item.active")
+            .addClass("savais")
+            .removeClass("revoir");
+        rafraichir_pastilles_score();
+        afficher_face_recto();
+    });
+
+    // "A revoir" : symetrique pour les mauvaises reponses.
+    $("#btn-revoir").on("click", function () {
+        nb_mauvaises = nb_mauvaises + 1;
+        $("#study-liste-questions .study-liste-item.active")
+            .addClass("revoir")
+            .removeClass("savais");
+        rafraichir_pastilles_score();
+        afficher_face_recto();
     });
 
 });
