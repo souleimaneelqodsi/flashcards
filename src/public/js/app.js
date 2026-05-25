@@ -17,13 +17,15 @@ var VUE_STUDY = "vue-study";
 var VUE_FIN_SESSION = "vue-fin-session";
 var VUE_LOGIN = "vue-login";
 var VUE_REGISTER = "vue-register";
+var VUE_PROFIL = "vue-profil";
 var TOUTES_LES_VUES = [
     VUE_DASHBOARD,
     VUE_EDITION_PAQUET,
     VUE_STUDY,
     VUE_FIN_SESSION,
     VUE_LOGIN,
-    VUE_REGISTER
+    VUE_REGISTER,
+    VUE_PROFIL
 ];
 
 // Affiche une vue (section) et masque toutes les autres.
@@ -165,57 +167,6 @@ function afficher_vue_404(hash_demande) {
     vue.append(carte);
 }
 
-// ── Vue profil (complement AUTH-2) ──────────────────────────────
-// Affiche les informations du compte connecte, en lecture seule. Les
-// donnees proviennent de la session cliente (Session.utilisateur()),
-// renseignee au demarrage par le garde d'authentification. L'edition
-// du profil et l'avatar viendront dans une tache ulterieure.
-function afficher_profil() {
-    var vue = $("#view");
-    vue.empty();
-
-    var entete = $("<div></div>").addClass("page-title-row");
-    var bloc_titre = $("<div></div>");
-    bloc_titre.append($("<h2></h2>").addClass("page-title").text("Mon profil"));
-    bloc_titre.append($("<p></p>").addClass("page-sub").text("Informations de votre compte."));
-    entete.append(bloc_titre);
-    vue.append(entete);
-
-    var carte = $("<div></div>").addClass("card");
-    var utilisateur = Session.utilisateur();
-    if (!utilisateur) {
-        carte.append($("<p></p>").text("Vos informations ne sont pas disponibles. Veuillez vous reconnecter."));
-        vue.append(carte);
-        return;
-    }
-    carte.append(ligne_profil("Prenom", utilisateur.prenom));
-    carte.append(ligne_profil("Nom", utilisateur.nom));
-    carte.append(ligne_profil("Email", utilisateur.email));
-    carte.append(ligne_profil("Date de naissance", utilisateur.date_naissance));
-
-    // Bouton de deconnexion (conforme a my_profile.png : la deconnexion
-    // est portee par la vue profil). Branche sur Session.deconnexion().
-    var bouton_deconnexion = $("<button></button>")
-        .attr("type", "button")
-        .addClass("btn btn-secondary")
-        .text("Se deconnecter");
-    bouton_deconnexion.on("click", function () {
-        Session.deconnexion();
-    });
-    carte.append(bouton_deconnexion);
-
-    vue.append(carte);
-}
-
-// Construit une ligne "libelle : valeur" pour la vue profil. On utilise
-// .text() (et non .html()) pour neutraliser tout risque XSS.
-function ligne_profil(libelle, valeur) {
-    var ligne = $("<p></p>").addClass("profil-ligne");
-    ligne.append($("<strong></strong>").text(libelle + " : "));
-    ligne.append($("<span></span>").text(valeur));
-    return ligne;
-}
-
 // ── Enregistrement des routes du SPA ────────────────────────────
 // Une fonction par route : chaque vue est explicitement rattachee a un
 // handler. Les vues reelles (dashboard, edition, study, fin de session)
@@ -264,8 +215,8 @@ function enregistrer_routes() {
         afficher_vue_placeholder("Partages avec moi", "Paquets qui vous ont ete partages.");
     });
     Router.ajouter("#profil", function () {
-        afficher_vue(VUE_DASHBOARD);
-        afficher_profil();
+        afficher_vue(VUE_PROFIL);
+        remplir_profil();
     });
     Router.ajouter("#parametres", function () {
         afficher_vue(VUE_DASHBOARD);

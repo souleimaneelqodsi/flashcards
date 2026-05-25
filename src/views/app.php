@@ -29,6 +29,7 @@ $csrf_token = Csrf::obtenir();
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/edition-paquet.css">
     <link rel="stylesheet" href="css/study.css">
+    <link rel="stylesheet" href="css/profil.css">
 </head>
 <body>
     <div id="app">
@@ -546,6 +547,126 @@ $csrf_token = Csrf::obtenir();
                     </div>
                 </section>
 
+                <!-- ════════════════════════════════════════════════
+                     VUE : Mon profil (complement AUTH-2)
+                     Reference visuelle : project-files/interface/my_profile.png.
+                     Structure statique ; les valeurs (nom, email, ...) sont
+                     remplies par js/profil.js a partir de la session client.
+                     Les compteurs (paquets / record / sessions) afficheront
+                     les vraies stats quand FULL-2 / le mode etude les
+                     fourniront ; pour un compte neuf ils valent 0.
+                ════════════════════════════════════════════════ -->
+                <section class="page-body view-screen" id="vue-profil" aria-labelledby="titre-profil" hidden>
+                    <h2 class="sr-only" id="titre-profil">Mon profil</h2>
+                    <div class="profil-layout">
+
+                        <!-- Colonne gauche : carte violette identite + stats -->
+                        <aside class="profil-carte">
+                            <div class="profil-avatar-grand" id="profil-initiales" aria-hidden="true"></div>
+                            <h3 class="profil-nom" id="profil-nom"></h3>
+                            <p class="profil-email" id="profil-email"></p>
+                            <div class="profil-stats">
+                                <div class="profil-stat">
+                                    <span class="profil-stat-valeur" id="profil-nb-paquets">0</span>
+                                    <span class="profil-stat-label">Paquets</span>
+                                </div>
+                                <div class="profil-stat">
+                                    <span class="profil-stat-valeur" id="profil-record">0%</span>
+                                    <span class="profil-stat-label">Record</span>
+                                </div>
+                                <div class="profil-stat">
+                                    <span class="profil-stat-valeur" id="profil-nb-sessions">0</span>
+                                    <span class="profil-stat-label">Sessions</span>
+                                </div>
+                            </div>
+                            <button type="button" class="profil-lien-avatar" id="btn-modifier-avatar">Modifier l'avatar</button>
+                        </aside>
+
+                        <!-- Colonne droite : infos du compte + reglages + actions -->
+                        <div class="profil-droite">
+
+                            <div class="card profil-info-card">
+                                <div class="profil-info-row">
+                                    <span class="profil-info-ic">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <circle cx="12" cy="8" r="4"></circle>
+                                            <path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="profil-info-txt">
+                                        <span class="profil-info-label">Prenom</span>
+                                        <span class="profil-info-valeur" id="profil-val-prenom"></span>
+                                    </span>
+                                </div>
+                                <div class="profil-info-row">
+                                    <span class="profil-info-ic">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2"></path>
+                                            <line x1="4" y1="12" x2="14" y2="12"></line>
+                                        </svg>
+                                    </span>
+                                    <span class="profil-info-txt">
+                                        <span class="profil-info-label">Nom</span>
+                                        <span class="profil-info-valeur" id="profil-val-nom"></span>
+                                    </span>
+                                </div>
+                                <div class="profil-info-row">
+                                    <span class="profil-info-ic">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        </svg>
+                                    </span>
+                                    <span class="profil-info-txt">
+                                        <span class="profil-info-label">Date de naissance</span>
+                                        <span class="profil-info-valeur" id="profil-val-date"></span>
+                                    </span>
+                                </div>
+                                <div class="profil-info-row">
+                                    <span class="profil-info-ic">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                                            <polyline points="3 7 12 13 21 7"></polyline>
+                                        </svg>
+                                    </span>
+                                    <span class="profil-info-txt">
+                                        <span class="profil-info-label">Email</span>
+                                        <span class="profil-info-valeur" id="profil-val-email"></span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="card profil-reglages-card">
+                                <div class="profil-reglage-row">
+                                    <span class="profil-reglage-txt">
+                                        <span class="profil-reglage-titre">Mode sombre</span>
+                                        <span class="profil-reglage-sous">Changer l'apparence de l'application</span>
+                                    </span>
+                                    <button type="button" class="theme-switch" id="theme-switch-profil" aria-label="Basculer le theme sombre ou clair"></button>
+                                </div>
+                                <button type="button" class="profil-reglage-row profil-reglage-bouton" id="btn-changer-mdp">
+                                    <span class="profil-reglage-txt">
+                                        <span class="profil-reglage-titre">Mot de passe</span>
+                                        <span class="profil-reglage-sous">Changer votre mot de passe</span>
+                                    </span>
+                                    <span class="profil-chevron">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <polyline points="9 6 15 12 9 18"></polyline>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div class="profil-actions">
+                                <button type="button" class="btn btn-secondary" id="btn-deconnexion-profil">Se deconnecter</button>
+                                <button type="button" class="btn profil-btn-supprimer" id="btn-supprimer-compte">Supprimer le compte</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </main>
         </div>
     </div>
@@ -642,6 +763,7 @@ $csrf_token = Csrf::obtenir();
     <script src="js/study.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/session.js"></script>
+    <script src="js/profil.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
