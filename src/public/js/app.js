@@ -92,6 +92,34 @@ function mettre_a_jour_sidebar(hash) {
     $(".nav-link[data-screen='" + nom_ecran + "']").addClass("active");
 }
 
+// ── Normalisation du hash ───────────────────────────────────────
+// Un hash vide ("" ou "#") correspond a la route par defaut (#dashboard).
+function normaliser_hash(hash) {
+    if (hash === "" || hash === "#") {
+        return "#dashboard";
+    }
+    return hash;
+}
+
+// ── Mode authentification (complement AUTH-2) ───────────────────
+// Sur les pages de connexion / inscription, on masque la sidebar et le
+// topbar (via la classe .app-mode-auth, definie dans layout.css) pour
+// presenter ces ecrans en plein cadre.
+function appliquer_mode_auth(hash) {
+    if (route_authentification(hash)) {
+        $("#app").addClass("app-mode-auth");
+    } else {
+        $("#app").removeClass("app-mode-auth");
+    }
+}
+
+// Vrai si le hash correspond a une page d'authentification (connexion ou
+// inscription), seules pages accessibles sans etre connecte.
+function route_authentification(hash) {
+    var prefixe = prefixe_de_route(hash);
+    return prefixe === "#login" || prefixe === "#register";
+}
+
 // ── Placeholder pour les vues non encore implementees ───────────
 // Affiche un encart simple dans #view (la zone du dashboard) avec le titre
 // de la vue et un message d'integration a venir.
@@ -135,6 +163,57 @@ function afficher_vue_404(hash_demande) {
         .text("Retour au tableau de bord");
     carte.append(lien_retour);
     vue.append(carte);
+}
+
+// ── Vue profil (complement AUTH-2) ──────────────────────────────
+// Affiche les informations du compte connecte, en lecture seule. Les
+// donnees proviennent de la session cliente (Session.utilisateur()),
+// renseignee au demarrage par le garde d'authentification. L'edition
+// du profil et l'avatar viendront dans une tache ulterieure.
+function afficher_profil() {
+    var vue = $("#view");
+    vue.empty();
+
+    var entete = $("<div></div>").addClass("page-title-row");
+    var bloc_titre = $("<div></div>");
+    bloc_titre.append($("<h2></h2>").addClass("page-title").text("Mon profil"));
+    bloc_titre.append($("<p></p>").addClass("page-sub").text("Informations de votre compte."));
+    entete.append(bloc_titre);
+    vue.append(entete);
+
+    var carte = $("<div></div>").addClass("card");
+    var utilisateur = Session.utilisateur();
+    if (!utilisateur) {
+        carte.append($("<p></p>").text("Vos informations ne sont pas disponibles. Veuillez vous reconnecter."));
+        vue.append(carte);
+        return;
+    }
+    carte.append(ligne_profil("Prenom", utilisateur.prenom));
+    carte.append(ligne_profil("Nom", utilisateur.nom));
+    carte.append(ligne_profil("Email", utilisateur.email));
+    carte.append(ligne_profil("Date de naissance", utilisateur.date_naissance));
+
+    // Bouton de deconnexion (conforme a my_profile.png : la deconnexion
+    // est portee par la vue profil). Branche sur Session.deconnexion().
+    var bouton_deconnexion = $("<button></button>")
+        .attr("type", "button")
+        .addClass("btn btn-secondary")
+        .text("Se deconnecter");
+    bouton_deconnexion.on("click", function () {
+        Session.deconnexion();
+    });
+    carte.append(bouton_deconnexion);
+
+    vue.append(carte);
+}
+
+// Construit une ligne "libelle : valeur" pour la vue profil. On utilise
+// .text() (et non .html()) pour neutraliser tout risque XSS.
+function ligne_profil(libelle, valeur) {
+    var ligne = $("<p></p>").addClass("profil-ligne");
+    ligne.append($("<strong></strong>").text(libelle + " : "));
+    ligne.append($("<span></span>").text(valeur));
+    return ligne;
 }
 
 // ── Enregistrement des routes du SPA ────────────────────────────
@@ -186,7 +265,7 @@ function enregistrer_routes() {
     });
     Router.ajouter("#profil", function () {
         afficher_vue(VUE_DASHBOARD);
-        afficher_vue_placeholder("Mon profil", "Informations de votre compte et avatar.");
+        afficher_profil();
     });
     Router.ajouter("#parametres", function () {
         afficher_vue(VUE_DASHBOARD);
@@ -219,25 +298,52 @@ $(function () {
     // Enregistre toutes les routes avant de demarrer le router.
     enregistrer_routes();
 
-    // Au changement de route : mise a jour du titre du topbar et du lien
-    // actif de la sidebar. Le rendu de la vue est fait par le handler.
+    // Au changement de route : titre du topbar, lien actif de la sidebar
+    // et mode authentification. Le rendu de la vue est fait par le router.
     $(window).on("hashchange", function () {
-        var hash_courant = window.location.hash;
-        if (hash_courant === "" || hash_courant === "#") {
-            hash_courant = "#dashboard";
+        var hash_courant = normaliser_hash(window.location.hash);
+        // Garde de navigation : un visiteur non connecte qui tente une
+        // route protegee (en tapant un hash directement) est renvoye vers
+        // la connexion. Session.utilisateur() vaut null tant qu'on n'est
+        // pas authentifie (la sonde de demarrage l'a renseigne).
+        if (Session.utilisateur() === null && !route_authentification(hash_courant)) {
+            window.location.hash = "#login";
+            return;
         }
         mettre_a_jour_titre(hash_courant);
         mettre_a_jour_sidebar(hash_courant);
+        appliquer_mode_auth(hash_courant);
     });
 
-    // Mise a jour initiale (premier chargement) avant le demarrage du router.
-    var hash_initial = window.location.hash;
-    if (hash_initial === "" || hash_initial === "#") {
-        hash_initial = "#dashboard";
-    }
-    mettre_a_jour_titre(hash_initial);
-    mettre_a_jour_sidebar(hash_initial);
+    // Garde d'authentification (complement AUTH-2). Avant tout affichage,
+    // on demande au serveur qui est connecte (GET /api/auth/moi) :
+    //   - connecte : on affiche son identite dans le chrome et, si on
+    //     arrive sur une page d'auth, on bascule vers le tableau de bord ;
+    //   - non connecte : seules les pages de connexion / inscription sont
+    //     accessibles ; toute autre route est redirigee vers #login.
+    // Le router n'est demarre qu'apres cette resolution pour eviter
+    // d'afficher brievement le tableau de bord a un visiteur non connecte.
+    Session.demarrer(function (est_connecte, utilisateur) {
+        var hash = normaliser_hash(window.location.hash);
+        var prefixe = prefixe_de_route(hash);
 
-    // Demarre le router (1er rendu de la vue active).
-    Router.demarrer();
+        if (est_connecte) {
+            Session.afficher_utilisateur(utilisateur);
+            if (prefixe === "#login" || prefixe === "#register") {
+                window.location.hash = "#dashboard";
+            }
+        } else {
+            if (prefixe !== "#login" && prefixe !== "#register") {
+                window.location.hash = "#login";
+            }
+        }
+
+        var hash_actif = normaliser_hash(window.location.hash);
+        mettre_a_jour_titre(hash_actif);
+        mettre_a_jour_sidebar(hash_actif);
+        appliquer_mode_auth(hash_actif);
+
+        // Demarre le router (1er rendu de la vue active).
+        Router.demarrer();
+    });
 });
