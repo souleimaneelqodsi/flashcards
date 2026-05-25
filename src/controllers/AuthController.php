@@ -66,7 +66,7 @@ class AuthController extends BaseController
             return;
         }
 
-        if (session_status() === PHP_SESSION_NONE) {
+        if (!isset($_SESSION)) {
             session_start();
         }
         $_SESSION['id_user'] = 1;
@@ -98,7 +98,7 @@ class AuthController extends BaseController
      */
     public function moi()
     {
-        if (session_status() === PHP_SESSION_NONE) {
+        if (!isset($_SESSION)) {
             session_start();
         }
         $non_connecte = !isset($_SESSION['id_user']);
@@ -128,7 +128,7 @@ class AuthController extends BaseController
      */
     public function deconnexion()
     {
-        if (session_status() === PHP_SESSION_NONE) {
+        if (!isset($_SESSION)) {
             session_start();
         }
         $_SESSION = array();
