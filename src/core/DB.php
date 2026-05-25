@@ -68,6 +68,49 @@ class DB
     }
 
     /**
+     * Prepare une requete SQL, lie les parametres et l'execute (BD-2.4).
+     *
+     * Wrapper unique utilise par tous les Repositories : centralise le couple
+     * prepare/execute, garantit que toutes les requetes sont preparees (donc
+     * pas de concatenation SQL), et capture les PDOException pour eviter
+     * qu'une stack trace ne soit renvoyee au client.
+     *
+     * Les parametres sont passes via un tableau associatif ou indexe ; PDO
+     * les bind automatiquement, ce qui empeche les injections SQL.
+     *
+     * @param string $sql    Requete SQL avec marqueurs (?, ou :nom).
+     * @param array  $params Tableau de parametres a lier (vide par defaut).
+     * @return PDOStatement  Statement execute, pret pour fetch / fetchAll.
+     * @throws RuntimeException Si la requete echoue (message generique cote
+     *                          client, detail dans le log serveur).
+     */
+    public function executer($sql, $params = array())
+    {
+        try {
+            $statement = $this->pdo()->prepare($sql);
+            $statement->execute($params);
+            return $statement;
+        } catch (PDOException $exception) {
+            // Trace detaillee dans le log serveur (jamais expose au client).
+            error_log('Erreur SQL : ' . $exception->getMessage() . ' (SQL : ' . $sql . ')');
+            throw new RuntimeException('Erreur lors de l acces aux donnees');
+        }
+    }
+
+    /**
+     * Retourne l'identifiant auto-incremente de la derniere ligne inseree.
+     *
+     * Utilitaire pratique pour les Repositories qui font un INSERT puis
+     * doivent renvoyer l'id genere par SQLite.
+     *
+     * @return string Identifiant (chaine, conformement a PDO).
+     */
+    public function dernier_id_insere()
+    {
+        return $this->pdo()->lastInsertId();
+    }
+
+    /**
      * Interdit le clonage de l'instance unique.
      */
     private function __clone()
