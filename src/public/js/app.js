@@ -14,10 +14,11 @@
 var VUE_DASHBOARD = "view";
 var VUE_EDITION_PAQUET = "vue-edition-paquet";
 var VUE_STUDY = "vue-study";
+var VUE_FIN_SESSION = "vue-fin-session";
 
 // Toutes les vues geree par le dispatcher (utile pour les masquer toutes
 // avant d'afficher la bonne).
-var TOUTES_LES_VUES = [VUE_DASHBOARD, VUE_EDITION_PAQUET, VUE_STUDY];
+var TOUTES_LES_VUES = [VUE_DASHBOARD, VUE_EDITION_PAQUET, VUE_STUDY, VUE_FIN_SESSION];
 
 // ── Determination de la vue cible depuis un hash ───────────────
 // Centralise la logique de mapping pour pouvoir l'etendre simplement
@@ -33,6 +34,10 @@ function vue_pour_hash(hash) {
     // Ex : #study-3 -> session d'etude pour le paquet d'id 3.
     if (/^#study-\d+$/.test(hash)) {
         return VUE_STUDY;
+    }
+    // Ex : #fin-session-3 -> recapitulatif post-revision pour le paquet d'id 3.
+    if (/^#fin-session-\d+$/.test(hash)) {
+        return VUE_FIN_SESSION;
     }
     // Toute autre route inconnue retombe sur le dashboard.
     return VUE_DASHBOARD;

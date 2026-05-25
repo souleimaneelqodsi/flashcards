@@ -349,6 +349,107 @@
     font-weight: 600;
 }
 
+/* ══════════════════════════════════════════════════
+   Ecran recapitulatif de fin de session (FRONT-2.10)
+   Reference : project-files/interface/end_of_session.png
+   ══════════════════════════════════════════════════ */
+
+/* Fond degrade violet plein ecran, carte blanche centree. */
+.fin-session-fond {
+    min-height: calc(100vh - 56px);
+    margin: -28px;
+    padding: 28px;
+    background: linear-gradient(135deg, var(--primaire), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fin-session-carte {
+    background: var(--surface);
+    border-radius: var(--radius-tres-grand);
+    box-shadow: var(--ombre-tres-grande);
+    padding: 40px 48px;
+    max-width: 460px;
+    width: 100%;
+    text-align: center;
+}
+
+.fin-session-icone {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 12px;
+    color: var(--primaire);
+}
+
+.fin-session-titre {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--texte-primaire);
+    margin-bottom: 6px;
+}
+
+.fin-session-sous-titre {
+    font-size: 12px;
+    color: var(--texte-tertiaire);
+    margin-bottom: 22px;
+}
+
+.fin-session-score {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--primaire);
+    line-height: 1;
+}
+
+.fin-session-detail {
+    font-size: 13px;
+    color: var(--texte-tertiaire);
+    margin-top: 6px;
+    margin-bottom: 24px;
+}
+
+.fin-session-stats {
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+    margin-bottom: 30px;
+}
+
+.fin-session-stat {
+    text-align: center;
+}
+
+.fin-session-stat-valeur {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.fin-session-stat-label {
+    font-size: 11px;
+    color: var(--texte-tertiaire);
+    margin-top: 4px;
+}
+
+.fin-session-stat-correctes .fin-session-stat-valeur {
+    color: var(--succes);
+}
+
+.fin-session-stat-mauvaises .fin-session-stat-valeur {
+    color: var(--erreur);
+}
+
+.fin-session-stat-best .fin-session-stat-valeur {
+    color: var(--attention);
+}
+
+.fin-session-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1000px) {
     .study-layout {

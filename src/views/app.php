@@ -411,6 +411,47 @@
                     </div>
                 </section>
 
+                <!-- ════════════════════════════════════════════════
+                     VUE : Recapitulatif de fin de session (FRONT-2.10)
+                     Reference visuelle : end_of_session.png. Affichee
+                     quand toutes les questions ont ete evaluees (route
+                     #fin-session-<id>).
+                ════════════════════════════════════════════════ -->
+                <section class="page-body view-screen" id="vue-fin-session" aria-labelledby="fin-session-titre" hidden>
+                    <div class="fin-session-fond">
+                        <div class="fin-session-carte">
+                            <svg class="fin-session-icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 2l2.39 4.84L19.78 8l-3.89 3.79.92 5.36L12 14.77l-4.81 2.38.92-5.36L4.22 8l5.39-1.16L12 2z"></path>
+                            </svg>
+                            <h2 class="fin-session-titre" id="fin-session-titre">Session terminee !</h2>
+                            <p class="fin-session-sous-titre" id="fin-session-paquet">Bases de donnees relationnelles - 24 cartes</p>
+
+                            <div class="fin-session-score"><span id="fin-session-score-pct">75</span>%</div>
+                            <p class="fin-session-detail"><span id="fin-session-reussies">18</span> sur <span id="fin-session-total">24</span> cartes reussies</p>
+
+                            <div class="fin-session-stats">
+                                <div class="fin-session-stat fin-session-stat-correctes">
+                                    <div class="fin-session-stat-valeur" id="fin-session-correctes">18</div>
+                                    <div class="fin-session-stat-label">Correctes</div>
+                                </div>
+                                <div class="fin-session-stat fin-session-stat-mauvaises">
+                                    <div class="fin-session-stat-valeur" id="fin-session-mauvaises">6</div>
+                                    <div class="fin-session-stat-label">A revoir</div>
+                                </div>
+                                <div class="fin-session-stat fin-session-stat-best">
+                                    <div class="fin-session-stat-valeur"><span id="fin-session-best">92</span>%</div>
+                                    <div class="fin-session-stat-label">Meilleur score</div>
+                                </div>
+                            </div>
+
+                            <div class="fin-session-actions">
+                                <a href="#study-1" class="btn btn-primary" id="btn-recommencer-session">Recommencer</a>
+                                <a href="#dashboard" class="btn btn-secondary" id="btn-retour-dashboard">Tableau de bord</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </main>
         </div>
     </div>
