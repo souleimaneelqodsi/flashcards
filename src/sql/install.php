@@ -85,6 +85,16 @@ $pdo->exec(
     )'
 );
 
+// Index sur les colonnes les plus filtrees / jointes (BD-2.2).
+// `email` est deja UNIQUE donc indexe automatiquement par SQLite ; on
+// ajoute explicitement les index sur les colonnes FK pour accelerer les
+// recherches de paquets par proprietaire, de questions par paquet, et
+// de partages par destinataire (cas frequents : dashboard, mode revision).
+$pdo->exec('CREATE INDEX IF NOT EXISTS idx_paquets_proprietaire ON paquets(id_proprietaire)');
+$pdo->exec('CREATE INDEX IF NOT EXISTS idx_questions_paquet ON questions(id_paquet)');
+$pdo->exec('CREATE INDEX IF NOT EXISTS idx_questions_difficulte ON questions(id_difficulte)');
+$pdo->exec('CREATE INDEX IF NOT EXISTS idx_partages_destinataire ON partages(id_destinataire)');
+
 // Seed des trois difficultes (idempotent grace a INSERT OR IGNORE + UNIQUE
 // sur nom_difficulte).
 $pdo->exec("INSERT OR IGNORE INTO difficultes (nom_difficulte) VALUES ('Facile')");
