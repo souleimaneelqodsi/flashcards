@@ -13,10 +13,11 @@
 // semantique). La vue par defaut est le dashboard ("view").
 var VUE_DASHBOARD = "view";
 var VUE_EDITION_PAQUET = "vue-edition-paquet";
+var VUE_STUDY = "vue-study";
 
 // Toutes les vues geree par le dispatcher (utile pour les masquer toutes
 // avant d'afficher la bonne).
-var TOUTES_LES_VUES = [VUE_DASHBOARD, VUE_EDITION_PAQUET];
+var TOUTES_LES_VUES = [VUE_DASHBOARD, VUE_EDITION_PAQUET, VUE_STUDY];
 
 // ── Determination de la vue cible depuis un hash ───────────────
 // Centralise la logique de mapping pour pouvoir l'etendre simplement
@@ -28,6 +29,10 @@ function vue_pour_hash(hash) {
     // Ex : #paquet-3/edition -> vue d'edition d'un paquet existant.
     if (/^#paquet-\d+\/edition$/.test(hash)) {
         return VUE_EDITION_PAQUET;
+    }
+    // Ex : #study-3 -> session d'etude pour le paquet d'id 3.
+    if (/^#study-\d+$/.test(hash)) {
+        return VUE_STUDY;
     }
     // Toute autre route inconnue retombe sur le dashboard.
     return VUE_DASHBOARD;

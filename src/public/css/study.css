@@ -1,0 +1,362 @@
+/* src/public/css/study.css */
+/* Styles de la vue de session d'etude (mode revision Anki).
+   Reference visuelle : project-files/interface/question_give_response.png,
+   current_revision.png et end_of_session.png. La vue se compose d'un
+   en-tete (titre paquet + progression), d'une zone carte centrale et
+   d'un panneau lateral droit (score live, liste des questions). */
+
+/* ── En-tete de session ── */
+.study-header {
+    background: var(--surface);
+    border-radius: var(--radius-moyen);
+    box-shadow: var(--ombre-petite);
+    padding: 16px 22px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.study-header-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.study-header-titre {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--texte-primaire);
+    line-height: 1.2;
+}
+
+.study-header-sous-titre {
+    font-size: 12px;
+    color: var(--texte-tertiaire);
+    margin-top: 3px;
+}
+
+.study-header-compteur {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--primaire);
+    flex-shrink: 0;
+}
+
+.study-progress {
+    flex: 1 1 200px;
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: var(--radius-plein);
+    overflow: hidden;
+    max-width: 280px;
+}
+
+.study-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primaire), var(--accent));
+    border-radius: var(--radius-plein);
+    transition: width .25s;
+}
+
+/* ── Layout deux colonnes : carte au centre, session a droite ── */
+.study-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.study-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0 0;
+}
+
+.study-side {
+    flex: 0 0 300px;
+    background: var(--surface);
+    border-radius: var(--radius-moyen);
+    box-shadow: var(--ombre-carte);
+    padding: 18px 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ── Badge difficulte au-dessus de la carte ── */
+.study-difficulte-row {
+    margin-bottom: 14px;
+}
+
+/* ── Carte d'etude (grande carte au centre) ── */
+/* Le retournement (flip) est gere en FRONT-2.7 : on bascule entre la
+   face recto (.study-carte-recto) et la face verso (.study-carte-verso)
+   via .hide()/.show() jQuery. Pas de transform 3D : technique simple
+   compatible avec le perimetre du cours. */
+.study-carte {
+    width: 100%;
+    max-width: 560px;
+    min-height: 280px;
+    border-radius: var(--radius-grand);
+    box-shadow: var(--ombre-tres-grande);
+    padding: 36px 42px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: transform .15s, box-shadow .15s;
+}
+
+.study-carte:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 48px rgba(124, 77, 255, .35);
+}
+
+.study-carte-recto {
+    background: linear-gradient(135deg, var(--primaire), var(--primaire-moyen));
+}
+
+.study-carte-verso {
+    background: linear-gradient(135deg, #10B981, var(--succes));
+}
+
+.study-carte-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    opacity: .85;
+    margin-bottom: 16px;
+}
+
+.study-carte-contenu {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.45;
+    max-width: 100%;
+}
+
+.study-carte-aide {
+    font-size: 12px;
+    opacity: .8;
+    margin-top: 18px;
+}
+
+/* ── Boutons d'evaluation (Check / Bad) ── */
+.study-evaluation {
+    display: flex;
+    gap: 18px;
+    margin-top: 24px;
+    width: 100%;
+    max-width: 560px;
+}
+
+.btn-evaluation {
+    flex: 1;
+    padding: 22px;
+    border-radius: var(--radius-moyen);
+    font-size: 15px;
+    font-weight: 700;
+    transition: transform .15s, box-shadow .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-evaluation:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ombre-moyenne);
+}
+
+.btn-evaluation-savais {
+    background: var(--succes-clair);
+    color: #15803D;
+    border: 1px solid var(--succes);
+}
+
+.btn-evaluation-revoir {
+    background: var(--erreur-clair);
+    color: #B91C1C;
+    border: 1px solid var(--erreur);
+}
+
+/* ── Indicateurs clavier sous la carte ── */
+.study-indicateurs-clavier {
+    margin-top: 22px;
+    font-size: 11px;
+    color: var(--texte-tertiaire);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.touche {
+    display: inline-block;
+    padding: 3px 9px;
+    background: var(--surface-2);
+    border: 1px solid var(--bordure);
+    border-radius: var(--radius-petit);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--texte-secondaire);
+    margin-right: 6px;
+    font-family: var(--police);
+}
+
+/* ── Panneau lateral droit : score + liste questions ── */
+.study-side-titre {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--texte-primaire);
+}
+
+.study-score-card {
+    background: var(--primaire-clair);
+    border-radius: var(--radius-moyen);
+    padding: 18px;
+    text-align: center;
+}
+
+.study-score-grand {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--primaire);
+    line-height: 1;
+}
+
+.study-score-label {
+    font-size: 11px;
+    color: var(--texte-tertiaire);
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+.study-score-stats {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.score-pastille {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--radius-plein);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.score-pastille-ok {
+    background: var(--succes-clair);
+    color: #15803D;
+}
+
+.score-pastille-bad {
+    background: var(--erreur-clair);
+    color: #B91C1C;
+}
+
+.score-pastille-best {
+    background: var(--attention-clair);
+    color: #C2410C;
+}
+
+/* ── Liste des questions de la session ── */
+.study-liste-titre {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--texte-tertiaire);
+    margin-bottom: 8px;
+}
+
+.study-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.study-liste-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.study-liste-item:hover {
+    background: var(--surface-2);
+}
+
+.study-liste-item.active {
+    background: var(--primaire-clair);
+}
+
+.study-liste-numero {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--texte-tertiaire);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.study-liste-item.active .study-liste-numero {
+    background: var(--primaire);
+    color: #fff;
+}
+
+.study-liste-item.savais .study-liste-numero {
+    background: var(--succes-clair);
+    color: #15803D;
+}
+
+.study-liste-item.revoir .study-liste-numero {
+    background: var(--erreur-clair);
+    color: #B91C1C;
+}
+
+.study-liste-titre-question {
+    font-size: 12px;
+    color: var(--texte-secondaire);
+    line-height: 1.3;
+    min-width: 0;
+    flex: 1;
+}
+
+.study-liste-item.active .study-liste-titre-question {
+    color: var(--primaire);
+    font-weight: 600;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1000px) {
+    .study-layout {
+        flex-direction: column;
+    }
+
+    .study-side {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+}
