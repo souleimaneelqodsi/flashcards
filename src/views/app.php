@@ -25,6 +25,12 @@
     <div id="app">
         <noscript>Cette application necessite JavaScript pour fonctionner.</noscript>
 
+        <!-- Loader global affiche pendant les requetes AJAX (BACK-2.6).
+             Pilote par js/ajax.js : ajout/retrait de la classe ".visible". -->
+        <div id="ajax-loader" class="ajax-loader" role="status" aria-live="polite" aria-label="Chargement en cours">
+            <div class="ajax-loader-spinner"></div>
+        </div>
+
         <div class="app-wrap">
 
             <!-- Sidebar gauche : logo, navigation, compte, toggle de theme -->
@@ -147,55 +153,11 @@
                     </div>
                 </header>
 
-                <!-- Zone de contenu : la vue courante sera injectee ici.
-                     Vue par defaut : tableau de bord (DASH-1). Le sujet TER
-                     impose deux zones distinctes (Mes paquets / Partages avec
-                     moi) : on les affiche en deux colonnes cote a cote, plutot
-                     qu'en onglets comme dans le mockup. Les cartes seront
-                     ajoutees en DASH-1.2 et 1.3. -->
-                <div class="page-body" id="view">
-                    <div class="page-title-row">
-                        <div>
-                            <h2 class="page-title">Tableau de bord</h2>
-                            <p class="page-sub">Vos paquets et ceux qui vous ont ete partages.</p>
-                        </div>
-                        <!-- Entree principale vers la creation d'un paquet
-                             (vue dediee a venir : route SPA #nouveau-paquet). -->
-                        <a href="#nouveau-paquet" class="btn btn-primary" id="btn-nouveau-paquet">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            <span>Nouveau paquet</span>
-                        </a>
-                    </div>
-
-                    <div class="dashboard-columns">
-
-                        <!-- Colonne gauche : paquets dont l'utilisateur est proprietaire -->
-                        <section class="dashboard-col" id="col-mes-paquets" aria-labelledby="titre-mes-paquets">
-                            <div class="dashboard-col-head">
-                                <h3 class="dashboard-col-title" id="titre-mes-paquets">Mes paquets</h3>
-                                <span class="dashboard-col-count" id="compteur-mes-paquets">0</span>
-                            </div>
-                            <div class="dashboard-col-body" id="liste-mes-paquets">
-                                <!-- Cartes injectees par js/dashboard.js (DASH-1.3). -->
-                            </div>
-                        </section>
-
-                        <!-- Colonne droite : paquets recus en partage -->
-                        <section class="dashboard-col" id="col-partages" aria-labelledby="titre-partages">
-                            <div class="dashboard-col-head">
-                                <h3 class="dashboard-col-title" id="titre-partages">Partages avec moi</h3>
-                                <span class="dashboard-col-count" id="compteur-partages">0</span>
-                            </div>
-                            <div class="dashboard-col-body" id="liste-partages">
-                                <!-- Cartes injectees par js/dashboard.js (DASH-1.3). -->
-                            </div>
-                        </section>
-
-                    </div>
-                </div>
+                <!-- Zone de contenu : la vue courante est injectee ici par
+                     le router cote client (BACK-2.2). Le contenu inline a ete
+                     deplace dans js/dashboard.js (afficher_dashboard) pour
+                     pouvoir etre rejoue a chaque navigation. -->
+                <div class="page-body" id="view"></div>
 
                 <!-- ════════════════════════════════════════════════
                      VUE : Edition d'un paquet (FRONT-2.1 - 2.5)
@@ -545,9 +507,12 @@
 
     <script src="js/lib/jquery-3.7.1.min.js"></script>
     <script src="js/theme.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/ajax.js"></script>
+    <script src="js/router.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/edition-paquet.js"></script>
     <script src="js/study.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

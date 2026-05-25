@@ -8,6 +8,11 @@
 //   - reste : coquille HTML de la SPA (couche Vue), qui prend ensuite le relais
 //     cote client en jQuery (navigation sans rechargement).
 
+// Gestionnaire global d'erreurs / exceptions (BACK-2.7). Installe avant
+// toute autre operation pour rattraper aussi les erreurs des `require`.
+require_once __DIR__ . '/../core/ErrorHandler.php';
+ErrorHandler::enregistrer();
+
 // Chemin demande, sans la chaine de requete (?cle=valeur).
 $chemin = $_SERVER['REQUEST_URI'];
 $position_query = strpos($chemin, '?');

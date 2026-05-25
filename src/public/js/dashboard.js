@@ -1,10 +1,14 @@
 // src/public/js/dashboard.js
-// Rendu cote client du tableau de bord (DASH-1.3).
+// Rendu cote client du tableau de bord (DASH-1.3, BACK-2.2).
 //
 // Tant que les vrais endpoints (BACK-2 / FULL-2) ne sont pas branches, les
 // donnees affichees sont des stubs locaux (tableaux JavaScript en dur). Le
 // tri par date decroissante simule deja le comportement final : "mises a
 // jour les plus recentes en haut".
+//
+// Depuis BACK-2.2, le rendu n'est plus automatique au DOM ready : il est
+// declenche par le router (`afficher_dashboard()`), de maniere a etre
+// rejoue chaque fois que l'utilisateur revient sur #dashboard.
 
 // ── Donnees stub ────────────────────────────────────────────────
 // Chaque paquet expose les champs cibles du modele de donnees :
@@ -130,7 +134,7 @@ function formater_date_maj(date_iso) {
 // la route SPA en BACK-2.2. Pour l'instant on positionne l'ancre, le
 // routeur cote client la prendra en charge plus tard.
 function naviguer_vers_paquet(id_paquet) {
-    window.location.hash = "paquet-" + id_paquet;
+    window.location.hash = "visualisation-paquet-" + id_paquet;
 }
 
 // ── Rendu d'une carte-paquet ───────────────────────────────────
@@ -250,8 +254,64 @@ function afficher_paquets(paquets, id_conteneur, id_compteur, texte_vide) {
     }
 }
 
-// ── Initialisation au chargement du DOM ────────────────────────
-$(function () {
+// ── Construit le squelette HTML du tableau de bord ─────────────
+// Cette fonction injecte la structure (titre + 2 colonnes) dans #view.
+// Auparavant ce HTML etait inline dans app.php ; il a ete deplace ici
+// (BACK-2.2) pour que le router puisse recreer la vue chaque fois que
+// l'utilisateur revient sur #dashboard.
+function construire_squelette_dashboard() {
+    var vue = $("#view");
+    vue.empty();
+
+    // En-tete : titre + bouton "Nouveau paquet".
+    var entete = $("<div></div>").addClass("page-title-row");
+    var bloc_titre = $("<div></div>");
+    bloc_titre.append($("<h2></h2>").addClass("page-title").text("Tableau de bord"));
+    bloc_titre.append($("<p></p>").addClass("page-sub").text("Vos paquets et ceux qui vous ont ete partages."));
+    entete.append(bloc_titre);
+    var bouton_nouveau = $("<a></a>")
+        .attr("href", "#nouveau-paquet")
+        .attr("id", "btn-nouveau-paquet")
+        .addClass("btn btn-primary")
+        .text("Nouveau paquet");
+    entete.append(bouton_nouveau);
+    vue.append(entete);
+
+    // Deux colonnes : mes paquets / partages avec moi.
+    var colonnes = $("<div></div>").addClass("dashboard-columns");
+
+    var col_mes = $("<section></section>")
+        .addClass("dashboard-col")
+        .attr("id", "col-mes-paquets")
+        .attr("aria-labelledby", "titre-mes-paquets");
+    var head_mes = $("<div></div>").addClass("dashboard-col-head");
+    head_mes.append($("<h3></h3>").addClass("dashboard-col-title").attr("id", "titre-mes-paquets").text("Mes paquets"));
+    head_mes.append($("<span></span>").addClass("dashboard-col-count").attr("id", "compteur-mes-paquets").text("0"));
+    col_mes.append(head_mes);
+    col_mes.append($("<div></div>").addClass("dashboard-col-body").attr("id", "liste-mes-paquets"));
+    colonnes.append(col_mes);
+
+    var col_par = $("<section></section>")
+        .addClass("dashboard-col")
+        .attr("id", "col-partages")
+        .attr("aria-labelledby", "titre-partages");
+    var head_par = $("<div></div>").addClass("dashboard-col-head");
+    head_par.append($("<h3></h3>").addClass("dashboard-col-title").attr("id", "titre-partages").text("Partages avec moi"));
+    head_par.append($("<span></span>").addClass("dashboard-col-count").attr("id", "compteur-partages").text("0"));
+    col_par.append(head_par);
+    col_par.append($("<div></div>").addClass("dashboard-col-body").attr("id", "liste-partages"));
+    colonnes.append(col_par);
+
+    vue.append(colonnes);
+}
+
+// ── Point d'entree du tableau de bord (appele par le router) ───
+// Reconstruit la vue puis remplit les colonnes avec les stubs (en
+// attendant les vrais endpoints $.ajax de FULL-2). Expose en global
+// pour que app.js puisse l'enregistrer comme handler de la route.
+function afficher_dashboard() {
+    construire_squelette_dashboard();
+
     var mes_paquets_tries = trier_par_date_desc(paquets_stub);
     var partages_tries = trier_par_date_desc(partages_stub);
 
@@ -267,4 +327,7 @@ $(function () {
         "compteur-partages",
         "Aucun paquet partage."
     );
-});
+}
+
+// Expose l'entree au router.
+window.afficher_dashboard = afficher_dashboard;
