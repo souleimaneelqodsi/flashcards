@@ -89,6 +89,36 @@ class AuthController extends BaseController
     }
 
     /**
+     * GET /api/auth/moi
+     *
+     * Renvoie l'utilisateur actuellement connecte (MOCK).
+     * Lit `$_SESSION['id_user']` ; si la session ne contient pas d'utilisateur,
+     * repond 401. Sinon repond avec un utilisateur fictif coherent avec celui
+     * pose en session par `connexion()`.
+     */
+    public function moi()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $non_connecte = !isset($_SESSION['id_user']);
+        if ($non_connecte) {
+            $this->repondre(array('erreur' => 'Non authentifie'), 401);
+            return;
+        }
+
+        $email_session = isset($_SESSION['email']) ? $_SESSION['email'] : 'inconnu@exemple.com';
+        $utilisateur_fictif = array(
+            'id_user' => $_SESSION['id_user'],
+            'email'   => $email_session,
+            'nom'     => 'Doe',
+            'prenom'  => 'John',
+            'avatar'  => null
+        );
+        $this->repondre(array('utilisateur' => $utilisateur_fictif), 200);
+    }
+
+    /**
      * POST /api/auth/deconnexion
      *
      * Deconnexion de l'utilisateur courant.

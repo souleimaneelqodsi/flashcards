@@ -48,6 +48,7 @@ if ($est_appel_api) {
     $routeur->ajouter('POST', '/api/auth/inscription', array($auth_controleur, 'inscription'));
     $routeur->ajouter('POST', '/api/auth/connexion', array($auth_controleur, 'connexion'));
     $routeur->ajouter('POST', '/api/auth/deconnexion', array($auth_controleur, 'deconnexion'));
+    $routeur->ajouter('GET', '/api/auth/moi', array($auth_controleur, 'moi'));
     $routeur->ajouter('GET', '/api/paquets', function () {
         Response::json(array('message' => 'stub liste des paquets', 'paquets' => array()), 200);
     });
