@@ -49,6 +49,46 @@ class AuthController extends BaseController
     }
 
     /**
+     * POST /api/auth/connexion
+     *
+     * Connexion d'un utilisateur existant (MOCK).
+     * Lit l'email et le mot de passe dans $_POST, controle leur presence,
+     * puis ouvre une session PHP fictive et renvoie un utilisateur fictif.
+     * Aucune verification de mot de passe a ce stade (sera ajoutee en AUTH-2
+     * avec password_verify et session_regenerate_id).
+     */
+    public function connexion()
+    {
+        $champs_obligatoires = array('email', 'mot_de_passe');
+        $erreurs = $this->verifier_champs_presents($_POST, $champs_obligatoires);
+        if (count($erreurs) > 0) {
+            $this->repondre(array('erreurs' => $erreurs), 400);
+            return;
+        }
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['id_user'] = 1;
+        $_SESSION['email']   = $_POST['email'];
+
+        $utilisateur_fictif = array(
+            'id_user' => 1,
+            'email'   => $_POST['email'],
+            'nom'     => 'Doe',
+            'prenom'  => 'John',
+            'avatar'  => null
+        );
+        $this->repondre(
+            array(
+                'message'     => 'Connexion reussie (mock)',
+                'utilisateur' => $utilisateur_fictif
+            ),
+            200
+        );
+    }
+
+    /**
      * Verifie que chacun des champs attendus est present et non vide dans
      * le tableau fourni. Renvoie un tableau associatif "champ => message".
      *

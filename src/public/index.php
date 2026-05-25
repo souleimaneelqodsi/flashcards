@@ -46,9 +46,7 @@ if ($est_appel_api) {
     $auth_controleur = new AuthController();
 
     $routeur->ajouter('POST', '/api/auth/inscription', array($auth_controleur, 'inscription'));
-    $routeur->ajouter('POST', '/api/auth/connexion', function () {
-        Response::json(array('message' => 'stub connexion'), 200);
-    });
+    $routeur->ajouter('POST', '/api/auth/connexion', array($auth_controleur, 'connexion'));
     $routeur->ajouter('POST', '/api/auth/deconnexion', function () {
         Response::json(array('message' => 'stub deconnexion'), 200);
     });
