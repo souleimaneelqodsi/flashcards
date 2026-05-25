@@ -26,6 +26,17 @@ var nb_mauvaises = 2;
 // les items DOM .study-liste-item dans l'ordre.
 var index_question_courante = 3;
 
+// Identifiant du paquet en cours d'etude. Sera renseigne par la route
+// SPA (ex : #study-3 -> id_paquet_session = 3). Pour FRONT-2.12 on
+// stocke une valeur par defaut servant au stub.
+var id_paquet_session = 1;
+
+// Indique si l'utilisateur est proprietaire du paquet en cours. Le
+// sujet TER precise que last_score / best_score ne sont mis a jour
+// que pour le proprietaire (et pas pour les destinataires d'un
+// partage) - cf. CLAUDE.md §4 et FULL-2.12.
+var utilisateur_est_proprietaire = true;
+
 // ── Bascule de la face recto <-> verso ────────────────────────
 // Utilise jQuery .show()/.hide() qui modifient l'attribut display
 // sur les deux faces. L'attribut HTML5 hidden est synchronise pour
@@ -117,6 +128,50 @@ function aller_question_suivante() {
     aller_a_question(index_question_courante + 1);
 }
 
+// ── Appel API de fin de session (FRONT-2.12) ─────────────────
+// Envoie le score calcule au serveur pour mise a jour de last_score
+// (et de best_score si meilleur). L'endpoint cible (FULL-2.12) :
+//   POST /api/paquets/<id>/session
+//   { correctes: N, mauvaises: N, score: pct }
+// Cote serveur, last_score et best_score sont mis a jour seulement si
+// l'utilisateur connecte est le proprietaire du paquet (regle metier
+// CLAUDE.md §4). Cote client on appelle aussi cet endpoint pour les
+// destinataires : le serveur ignorera silencieusement leur score.
+function envoyer_resultat_session() {
+    var total_evaluees = nb_correctes + nb_mauvaises;
+    var pourcentage = 0;
+    if (total_evaluees > 0) {
+        pourcentage = Math.round((nb_correctes / total_evaluees) * 100);
+    }
+
+    // Pour la phase frontend (FRONT-2), l'endpoint reel n'est pas encore
+    // disponible : on log la requete et on bascule directement sur la
+    // vue de fin de session. Le branchement AJAX sera complete quand le
+    // backend exposera la route (cf. FULL-2.12). Le bloc $.ajax ci-
+    // dessous est cable pret a l'emploi.
+    $.ajax({
+        url: "/api/paquets/" + id_paquet_session + "/session",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({
+            correctes: nb_correctes,
+            mauvaises: nb_mauvaises,
+            score: pourcentage
+        }),
+        dataType: "json",
+        success: function () {
+            // Le serveur a accepte : on navigue vers la fin de session.
+            window.location.hash = "fin-session-" + id_paquet_session;
+        },
+        error: function () {
+            // En attendant que le backend existe, on bascule quand meme
+            // pour permettre les tests UI. Quand FULL-2.12 sera fait,
+            // remplacer ce fallback par un message d'erreur explicite.
+            window.location.hash = "fin-session-" + id_paquet_session;
+        }
+    });
+}
+
 // ── Initialisation au chargement du DOM ──────────────────────
 $(function () {
 
@@ -143,17 +198,31 @@ $(function () {
     });
 
     // ── Boutons d'evaluation (FRONT-2.8) ──
+    // Helper interne : apres evaluation, avance d'une question OU
+    // bascule vers la fin de session si on etait sur la derniere.
+    function avancer_apres_evaluation() {
+        var total = $("#study-liste-questions .study-liste-item").length;
+        if (index_question_courante >= total - 1) {
+            // Derniere question evaluee : on envoie le score au serveur
+            // (FRONT-2.12) puis on bascule vers la vue de fin (la
+            // navigation est faite dans le callback success/error).
+            envoyer_resultat_session();
+        } else {
+            aller_question_suivante();
+        }
+    }
+
     // "Je savais !" : la reponse a ete trouvee -> incrementer le
     // compteur de bonnes reponses, marquer la question en cours dans
-    // la liste laterale, et revenir a la face question (la suite,
-    // navigation vers la question suivante, viendra en FRONT-2.9).
+    // la liste laterale, puis passer a la question suivante (ou
+    // terminer la session si c'etait la derniere).
     $("#btn-savais").on("click", function () {
         nb_correctes = nb_correctes + 1;
         $("#study-liste-questions .study-liste-item.active")
             .addClass("savais")
             .removeClass("revoir");
         rafraichir_pastilles_score();
-        afficher_face_recto();
+        avancer_apres_evaluation();
     });
 
     // "A revoir" : symetrique pour les mauvaises reponses.
@@ -163,7 +232,7 @@ $(function () {
             .addClass("revoir")
             .removeClass("savais");
         rafraichir_pastilles_score();
-        afficher_face_recto();
+        avancer_apres_evaluation();
     });
 
     // ── Navigation (FRONT-2.9) ──
