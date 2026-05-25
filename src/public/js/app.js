@@ -1,23 +1,46 @@
 // src/public/js/app.js
 // Bootstrap de la SPA FlashCards MIAGE.
-// Point d'entree JavaScript : initialise les composants persistants (header,
-// sidebar, theme) une fois le DOM pret, declare la table de routes du SPA
-// puis demarre le router (cf. src/public/js/router.js, BACK-2.1 a 2.3).
 //
-// Mapping route -> vue (BACK-2.2). Les vraies vues seront implementees par
-// les phases FRONT/AUTH/FULL : ici on n'ecrit que des placeholders quand la
-// vue n'existe pas encore. La vue par defaut est #dashboard (deja livree en
-// DASH-1). Le router se base sur `window.location.hash` (perimetre cours,
+// Point d'entree JavaScript : initialise les composants persistants, declare
+// la table de routes du SPA puis demarre le router (src/public/js/router.js,
+// BACK-2.1 a 2.3). Chaque route affiche une des vraies vues (sections de
+// app.php) via afficher_vue(), ou un placeholder pour les vues pas encore
+// construites. Le router se base sur window.location.hash (perimetre cours,
 // pas de History API).
+
+// ── Vues principales (sections de app.php) ──────────────────────
+// Chaque vue est une <section> de app.php. afficher_vue() montre la bonne
+// section et masque les autres. La vue par defaut est le dashboard (#view).
+var VUE_DASHBOARD = "view";
+var VUE_EDITION_PAQUET = "vue-edition-paquet";
+var VUE_STUDY = "vue-study";
+var VUE_FIN_SESSION = "vue-fin-session";
+var TOUTES_LES_VUES = [VUE_DASHBOARD, VUE_EDITION_PAQUET, VUE_STUDY, VUE_FIN_SESSION];
+
+// Affiche une vue (section) et masque toutes les autres.
+function afficher_vue(id_vue) {
+    var i;
+    for (i = 0; i < TOUTES_LES_VUES.length; i = i + 1) {
+        var id = TOUTES_LES_VUES[i];
+        var element = $("#" + id);
+        if (id === id_vue) {
+            element.show();
+            element.removeAttr("hidden");
+        } else {
+            element.hide();
+            element.attr("hidden", "hidden");
+        }
+    }
+}
 
 // ── Titres affiches dans le topbar ──────────────────────────────
 // Table de correspondance route -> libelle a afficher dans le topbar.
-// Centralise pour eviter les "if" en cascade dans les handlers.
 var titres_routes = {
     "#dashboard": "Tableau de bord",
     "#nouveau-paquet": "Nouveau paquet",
     "#edit-paquet": "Editer un paquet",
     "#study": "Mode revision",
+    "#fin-session": "Fin de session",
     "#visualisation-paquet": "Visualisation du paquet",
     "#partages": "Partages avec moi",
     "#profil": "Mon profil",
@@ -26,48 +49,43 @@ var titres_routes = {
     "#register": "Inscription"
 };
 
-// ── Mise a jour de l'etat actif dans la sidebar ─────────────────
-// Met la classe `.active` sur le bon lien (`data-screen`) et l'enleve
-// sur tous les autres. Le `data-screen` correspond au hash sans le `#`.
-function mettre_a_jour_sidebar(hash) {
-    var nom_ecran = hash.substring(1);
-    // Si la route a un suffixe (ex : #visualisation-paquet-3), on prend
-    // juste le prefixe pour matcher le data-screen ("visualisation-paquet").
-    var position_tiret_id = nom_ecran.indexOf("-");
-    var ecran_de_base = nom_ecran;
-    if (nom_ecran.indexOf("visualisation-paquet-") === 0) {
-        ecran_de_base = "visualisation-paquet";
+// Routes qui acceptent un id en suffixe (ex : "#study-3"). On ramene le hash
+// a son prefixe ("#study") pour retrouver son libelle et son lien de sidebar.
+var prefixes_avec_id = ["#study", "#fin-session", "#visualisation-paquet", "#edit-paquet"];
+
+// Renvoie le prefixe d'une route a id, ou le hash tel quel sinon.
+function prefixe_de_route(hash) {
+    var i;
+    for (i = 0; i < prefixes_avec_id.length; i = i + 1) {
+        var prefixe = prefixes_avec_id[i];
+        if (hash === prefixe || hash.indexOf(prefixe + "-") === 0) {
+            return prefixe;
+        }
     }
-    // Note : on garde le test simple pour les autres routes (pas de
-    // suffixe attendu).
-    if (position_tiret_id !== -1 && ecran_de_base === nom_ecran) {
-        // Cas general : pas de modification, on garde le nom complet.
-    }
-    $(".nav-link").removeClass("active");
-    $(".nav-link[data-screen='" + ecran_de_base + "']").addClass("active");
+    return hash;
 }
 
 // ── Mise a jour du titre du topbar ──────────────────────────────
 function mettre_a_jour_titre(hash) {
-    var titre = titres_routes[hash];
-    if (typeof titre !== "string") {
-        // Routes avec suffixe (ex : #visualisation-paquet-3) : on retombe
-        // sur le titre du prefixe connu.
-        if (hash.indexOf("#visualisation-paquet-") === 0) {
-            titre = titres_routes["#visualisation-paquet"];
-        }
-    }
+    var titre = titres_routes[prefixe_de_route(hash)];
     if (typeof titre !== "string") {
         titre = "FlashCards MIAGE";
     }
     $("#topbar-title").text(titre);
 }
 
+// ── Mise a jour de l'etat actif dans la sidebar ─────────────────
+// Met la classe `.active` sur le lien (`data-screen`) correspondant au
+// prefixe de la route, et l'enleve des autres.
+function mettre_a_jour_sidebar(hash) {
+    var nom_ecran = prefixe_de_route(hash).substring(1);
+    $(".nav-link").removeClass("active");
+    $(".nav-link[data-screen='" + nom_ecran + "']").addClass("active");
+}
+
 // ── Placeholder pour les vues non encore implementees ───────────
-// Affiche un encart simple dans #view avec le titre de la vue et un
-// message indiquant que la vraie vue est en cours d'integration. Les
-// vraies vues remplaceront ces placeholders dans les phases FRONT /
-// AUTH / FULL.
+// Affiche un encart simple dans #view (la zone du dashboard) avec le titre
+// de la vue et un message d'integration a venir.
 function afficher_vue_placeholder(libelle_ecran, sous_titre) {
     var vue = $("#view");
     vue.empty();
@@ -85,8 +103,8 @@ function afficher_vue_placeholder(libelle_ecran, sous_titre) {
 }
 
 // ── Vue 404 (BACK-2.3) ──────────────────────────────────────────
-// Affichee quand l'utilisateur saisit un hash inconnu dans la barre
-// d'adresse. Propose un retour explicite au tableau de bord.
+// Affichee quand l'utilisateur saisit un hash inconnu. Propose un retour
+// explicite au tableau de bord.
 function afficher_vue_404(hash_demande) {
     var vue = $("#view");
     vue.empty();
@@ -111,78 +129,88 @@ function afficher_vue_404(hash_demande) {
 }
 
 // ── Enregistrement des routes du SPA ────────────────────────────
-// Une fonction par route : on s'assure que chaque vue est explicitement
-// rattachee a un handler, plutot que de generer dynamiquement. Plus
-// verbeux, mais plus lisible et facile a parcourir lors de la review.
+// Une fonction par route : chaque vue est explicitement rattachee a un
+// handler. Les vues reelles (dashboard, edition, study, fin de session)
+// sont affichees via afficher_vue() ; les autres affichent un placeholder.
 function enregistrer_routes() {
     Router.definir_defaut("#dashboard");
 
     Router.ajouter("#dashboard", function () {
+        afficher_vue(VUE_DASHBOARD);
         afficher_dashboard();
     });
 
+    // Creation d'un nouveau paquet et edition d'un paquet existant partagent
+    // la meme vue d'edition. #edit-paquet accepte un id en suffixe.
     Router.ajouter("#nouveau-paquet", function () {
-        afficher_vue_placeholder("Nouveau paquet", "Creer un nouveau paquet de revisions.");
+        afficher_vue(VUE_EDITION_PAQUET);
     });
-
     Router.ajouter("#edit-paquet", function () {
-        afficher_vue_placeholder("Editer un paquet", "Modifier le titre, le theme et les questions du paquet.");
+        afficher_vue(VUE_EDITION_PAQUET);
     });
+    Router.ajouter_avec_id("#edit-paquet");
 
+    // Mode revision : #study-<id> (l'id du paquet est lu par study.js).
     Router.ajouter("#study", function () {
-        afficher_vue_placeholder("Mode revision", "Lancer une session de revision style Anki.");
+        afficher_vue(VUE_STUDY);
     });
+    Router.ajouter_avec_id("#study");
 
+    // Recapitulatif de fin de session : #fin-session-<id>.
+    Router.ajouter("#fin-session", function () {
+        afficher_vue(VUE_FIN_SESSION);
+    });
+    Router.ajouter_avec_id("#fin-session");
+
+    // Visualisation d'un paquet (#visualisation-paquet-<id>) : la vraie vue
+    // n'est pas encore construite, on affiche un placeholder dans #view.
     Router.ajouter("#visualisation-paquet", function () {
+        afficher_vue(VUE_DASHBOARD);
         afficher_vue_placeholder("Visualisation du paquet", "Detail du paquet et liste des destinataires de partage.");
     });
-    // Cette route accepte un id en suffixe (#visualisation-paquet-3) : on
-    // declare le prefixe au router pour qu'il route les variantes vers le
-    // meme handler. Le handler lira l'id sur `window.location.hash`.
     Router.ajouter_avec_id("#visualisation-paquet");
 
+    // Vues non encore construites : placeholders rendus dans #view.
     Router.ajouter("#partages", function () {
+        afficher_vue(VUE_DASHBOARD);
         afficher_vue_placeholder("Partages avec moi", "Paquets qui vous ont ete partages.");
     });
-
     Router.ajouter("#profil", function () {
+        afficher_vue(VUE_DASHBOARD);
         afficher_vue_placeholder("Mon profil", "Informations de votre compte et avatar.");
     });
-
     Router.ajouter("#parametres", function () {
+        afficher_vue(VUE_DASHBOARD);
         afficher_vue_placeholder("Parametres", "Preferences de l'application.");
     });
-
     Router.ajouter("#login", function () {
+        afficher_vue(VUE_DASHBOARD);
         afficher_vue_placeholder("Connexion", "Se connecter a son compte.");
     });
-
     Router.ajouter("#register", function () {
+        afficher_vue(VUE_DASHBOARD);
         afficher_vue_placeholder("Inscription", "Creer un nouveau compte.");
     });
 
-    // Handler 404 (BACK-2.3) : affiche la vue "page introuvable" plutot
-    // que de rediriger silencieusement. L'utilisateur peut ainsi revenir
-    // au dashboard via le bouton dedie.
+    // Handler 404 (BACK-2.3) : affiche la vue "page introuvable" dans #view.
     Router.definir_404(function (hash_demande) {
         $("#topbar-title").text("Page introuvable");
         $(".nav-link").removeClass("active");
+        afficher_vue(VUE_DASHBOARD);
         afficher_vue_404(hash_demande);
     });
 }
 
+// ── Bootstrap au chargement du DOM ─────────────────────────────
 $(function () {
-    // Conteneur racine de l'application.
     var app = $("#app");
-
-    // Marque l'application comme initialisee (utile pour le CSS et les tests).
     app.addClass("app-pret");
 
-    // Enregistre toutes les routes puis demarre le router (1er rendu).
+    // Enregistre toutes les routes avant de demarrer le router.
     enregistrer_routes();
 
-    // Au changement de route : on met aussi a jour le titre du topbar et
-    // la sidebar active. Le rendu de la vue est fait par le handler.
+    // Au changement de route : mise a jour du titre du topbar et du lien
+    // actif de la sidebar. Le rendu de la vue est fait par le handler.
     $(window).on("hashchange", function () {
         var hash_courant = window.location.hash;
         if (hash_courant === "" || hash_courant === "#") {

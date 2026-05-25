@@ -193,10 +193,17 @@ function rendre_carte_paquet(paquet) {
     barre.append(rempli);
     carte.append(barre);
 
+    // Affichage Dernier / Record / Date (FRONT-2.13). Quand aucun score
+    // n'est encore enregistre, on remplace la ligne par "Jamais revise"
+    // pour rester aligne avec le mockup dashboard.png (carte 3).
     var scores = $("<div></div>").addClass("paquet-scores");
-    scores.append($("<span></span>").text("Record : ").append($("<strong></strong>").text(score_record)));
-    scores.append($("<span></span>").text("Dernier : ").append($("<strong></strong>").text(score_dernier)));
-    scores.append($("<span></span>").text("Mise a jour : ").append($("<strong></strong>").text(formater_date_maj(paquet.date_maj))));
+    if (paquet.best_score === null && paquet.last_score === null) {
+        scores.append($("<span></span>").text("Jamais revise"));
+    } else {
+        scores.append($("<span></span>").text("Record : ").append($("<strong></strong>").text(score_record)));
+        scores.append($("<span></span>").text("Dernier : ").append($("<strong></strong>").text(score_dernier)));
+        scores.append($("<span></span>").text("Mise a jour : ").append($("<strong></strong>").text(formater_date_maj(paquet.date_maj))));
+    }
     carte.append(scores);
 
     var actions = $("<div></div>").addClass("paquet-actions");
