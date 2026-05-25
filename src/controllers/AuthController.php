@@ -89,6 +89,24 @@ class AuthController extends BaseController
     }
 
     /**
+     * POST /api/auth/deconnexion
+     *
+     * Deconnexion de l'utilisateur courant.
+     * Vide le tableau de session puis detruit la session PHP. Renvoie
+     * toujours un succes (200) : meme si aucun utilisateur n'etait
+     * connecte, le resultat fonctionnel est le meme.
+     */
+    public function deconnexion()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION = array();
+        session_destroy();
+        $this->repondre(array('message' => 'Deconnexion reussie'), 200);
+    }
+
+    /**
      * Verifie que chacun des champs attendus est present et non vide dans
      * le tableau fourni. Renvoie un tableau associatif "champ => message".
      *
