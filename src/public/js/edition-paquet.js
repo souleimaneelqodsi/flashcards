@@ -242,8 +242,72 @@ function construire_element_question(numero, contenu_question, contenu_reponse, 
     return item;
 }
 
+// ── Validation dynamique du titre du paquet (FRONT-2.5) ──────
+// Le titre est requis (cf. mockup new_bag.png : "TITRE *") et limite
+// a 150 caracteres (CLAUDE.md §6). Cette fonction met aussi a jour le
+// compteur de caracteres affiche sous le champ et bascule la classe
+// .champ-invalide selon le contenu.
+function valider_titre_paquet() {
+    var champ = $("#paquet-titre");
+    var valeur = champ.val();
+    if (typeof valeur !== "string") {
+        valeur = "";
+    }
+    var valeur_nettoyee = valeur.replace(/^\s+|\s+$/g, "");
+    var longueur = valeur.length;
+    $("#paquet-titre-counter").text(longueur);
+
+    if (valeur_nettoyee.length === 0 || longueur > 150) {
+        champ.addClass("champ-invalide");
+        $("#erreur-paquet-titre").removeAttr("hidden");
+        return false;
+    }
+    champ.removeClass("champ-invalide");
+    $("#erreur-paquet-titre").attr("hidden", "hidden");
+    return true;
+}
+
+// ── Synchronisation de la carte d'apercu (FRONT-2.5) ──────────
+// La preview violette (titre + theme + nombre de cartes) reflete en
+// temps reel ce que l'utilisateur saisit. .text() est utilise pour
+// echapper le contenu (protection XSS).
+function synchroniser_apercu() {
+    var titre = $("#paquet-titre").val();
+    var theme = $("#paquet-theme").val();
+    if (typeof titre !== "string" || titre.replace(/^\s+|\s+$/g, "").length === 0) {
+        titre = "Sans titre";
+    }
+    if (typeof theme !== "string" || theme.replace(/^\s+|\s+$/g, "").length === 0) {
+        theme = "";
+    }
+    $("#apercu-titre").text(titre);
+    $("#apercu-theme").text(theme);
+}
+
 // ── Initialisation au chargement du DOM ───────────────────────
 $(function () {
+
+    // Validation dynamique du titre du paquet et mise a jour du compteur
+    // et de l'apercu en temps reel (FRONT-2.5).
+    $("#paquet-titre").on("keyup blur", function () {
+        valider_titre_paquet();
+        synchroniser_apercu();
+    });
+    $("#paquet-theme").on("keyup blur", function () {
+        synchroniser_apercu();
+    });
+
+    // Clic sur "Enregistrer le paquet" : on valide au moins le titre
+    // avant tout envoi reseau. La persistance reelle (POST/PUT /api/
+    // paquets) viendra en FULL-2.5 / FULL-2.6 avec branchement AJAX.
+    $("#btn-enregistrer-paquet").on("click", function () {
+        var titre_ok = valider_titre_paquet();
+        if (!titre_ok) {
+            $("#paquet-titre").focus();
+            return;
+        }
+        // TODO FULL-2.5 / FULL-2.6 : envoi AJAX (POST ou PUT).
+    });
 
     // Ouverture de la modale au clic sur "+ Ajouter une question".
     $("#btn-ajouter-question").on("click", function () {

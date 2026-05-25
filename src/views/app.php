@@ -235,6 +235,7 @@
                                 <div class="form-group">
                                     <label class="form-label" for="paquet-titre">Titre <span class="req">*</span></label>
                                     <input type="text" id="paquet-titre" class="form-control" maxlength="150" value="Bases de donnees relationnelles" placeholder="Bases de donnees relationnelles">
+                                    <p class="message-erreur" id="erreur-paquet-titre" hidden>Le titre est obligatoire (150 caracteres maximum).</p>
                                     <p class="form-counter"><span id="paquet-titre-counter">33</span> / 150 caracteres</p>
                                 </div>
                                 <div class="form-group">
