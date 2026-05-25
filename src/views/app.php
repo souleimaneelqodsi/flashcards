@@ -253,10 +253,15 @@
                                     <div class="apercu-card-count"><span id="apercu-count">2</span> cartes</div>
                                 </div>
                             </div>
+
+                            <div class="recap-erreurs" id="recap-erreurs-paquet" hidden>
+                                <p>Veuillez corriger les erreurs avant d'enregistrer le paquet :</p>
+                                <ul id="liste-erreurs-paquet"></ul>
+                            </div>
                         </aside>
 
                         <!-- Colonne droite : liste des questions du paquet -->
-                        <main class="edition-questions">
+                        <div class="edition-questions">
                             <div class="edition-questions-head">
                                 <h3 class="edition-section-titre">Questions (<span id="nb-questions">2</span>)</h3>
                             </div>
@@ -267,7 +272,7 @@
                                      interactions (ajout, edition, suppression, validation)
                                      viennent en FRONT-2.2 a 2.5. -->
                                 <article class="question-item" data-id-question="1">
-                                    <span class="question-numero" aria-label="Question 1">1</span>
+                                    <span class="question-numero">1</span>
                                     <div class="question-corps">
                                         <p class="question-titre">Qu'est-ce que la normalisation 3NF ?</p>
                                         <p class="question-reponse-preview">Un schema est en 3NF si toute dependance fonctionnelle non triviale implique une cle.</p>
@@ -286,7 +291,7 @@
                                 </article>
 
                                 <article class="question-item" data-id-question="2">
-                                    <span class="question-numero" aria-label="Question 2">2</span>
+                                    <span class="question-numero">2</span>
                                     <div class="question-corps">
                                         <p class="question-titre">Qu'est-ce qu'une jointure INNER JOIN ?</p>
                                         <p class="question-reponse-preview">Retourne les lignes communes aux deux tables selon une condition de jointure.</p>
@@ -309,7 +314,7 @@
                             <button type="button" class="btn-ajouter-question" id="btn-ajouter-question">
                                 + Ajouter une question
                             </button>
-                        </main>
+                        </div>
 
                     </div>
                 </section>
@@ -328,7 +333,7 @@
                             <div class="study-header-titre" id="study-titre">Bases de donnees relationnelles</div>
                             <div class="study-header-sous-titre" id="study-sous-titre">SQL et modelisation - 24 cartes</div>
                         </div>
-                        <div class="study-progress" aria-label="Progression de la session">
+                        <div class="study-progress" role="progressbar" aria-label="Progression de la session">
                             <div class="study-progress-fill" id="study-progress-fill" style="width: 37%"></div>
                         </div>
                         <div class="study-header-compteur"><span id="study-numero-courant">9</span> / <span id="study-total">24</span></div>
@@ -344,18 +349,18 @@
                             </div>
 
                             <!-- Face recto (question) : visible par defaut. -->
-                            <article class="study-carte study-carte-recto" id="study-carte-recto" tabindex="0" role="button" aria-label="Carte question - cliquer pour reveler la reponse">
+                            <div class="study-carte study-carte-recto" id="study-carte-recto" tabindex="0" role="button" aria-label="Carte question - cliquer pour reveler la reponse">
                                 <div class="study-carte-label">Question</div>
                                 <p class="study-carte-contenu" id="study-question">Qu'est-ce que la normalisation 3NF et dans quels cas l'utiliser ?</p>
                                 <p class="study-carte-aide">Cliquer pour reveler la reponse</p>
-                            </article>
+                            </div>
 
                             <!-- Face verso (reponse) : masquee par defaut, FRONT-2.7. -->
-                            <article class="study-carte study-carte-verso" id="study-carte-verso" tabindex="0" role="button" aria-label="Carte reponse - cliquer pour revoir la question" hidden>
+                            <div class="study-carte study-carte-verso" id="study-carte-verso" tabindex="0" role="button" aria-label="Carte reponse - cliquer pour revoir la question" hidden>
                                 <div class="study-carte-label">Reponse</div>
                                 <p class="study-carte-contenu" id="study-reponse">Un schema est en 3NF si toute dependance fonctionnelle non triviale implique une cle ou depend d'une cle.</p>
                                 <p class="study-carte-aide">Cliquer pour revoir la question</p>
-                            </article>
+                            </div>
 
                             <!-- Boutons d'evaluation : visibles uniquement face verso (FRONT-2.8) -->
                             <div class="study-evaluation" id="study-evaluation" hidden>

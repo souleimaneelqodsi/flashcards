@@ -201,7 +201,7 @@ function construire_element_question(numero, contenu_question, contenu_reponse, 
     var item = $("<article></article>").addClass("question-item");
     item.attr("data-id-question", id_local);
 
-    item.append($("<span></span>").addClass("question-numero").text(numero).attr("aria-label", "Question " + numero));
+    item.append($("<span></span>").addClass("question-numero").text(numero));
 
     var corps = $("<div></div>").addClass("question-corps");
     corps.append($("<p></p>").addClass("question-titre").text(contenu_question));
@@ -302,10 +302,15 @@ $(function () {
     // paquets) viendra en FULL-2.5 / FULL-2.6 avec branchement AJAX.
     $("#btn-enregistrer-paquet").on("click", function () {
         var titre_ok = valider_titre_paquet();
+        var liste_erreurs = $("#liste-erreurs-paquet");
+        liste_erreurs.empty();
         if (!titre_ok) {
+            liste_erreurs.append($("<li></li>").text("Le titre est obligatoire (150 caracteres maximum)."));
+            $("#recap-erreurs-paquet").removeAttr("hidden");
             $("#paquet-titre").focus();
             return;
         }
+        $("#recap-erreurs-paquet").attr("hidden", "hidden");
         // TODO FULL-2.5 / FULL-2.6 : envoi AJAX (POST ou PUT).
     });
 

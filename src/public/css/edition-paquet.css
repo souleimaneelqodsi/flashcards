@@ -369,7 +369,7 @@
 }
 
 /* ── Responsive : empilement en mobile ── */
-@media (max-width: 900px) {
+@media screen and (max-width: 900px) {
     .edition-layout {
         flex-direction: column;
     }
