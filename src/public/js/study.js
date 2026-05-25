@@ -15,9 +15,32 @@
 //   - FRONT-2.12 : appel AJAX de fin de session
 //   - FRONT-2.14 : machine d'etats (Q_affichee / R_revelee / Session_finie)
 
-// ── Etat de la session d'etude (prepare la machine FRONT-2.14) ─
-// Compteurs simples partages entre les micro-taches : le pourcentage
-// de score (FRONT-2.11) sera derivé de ces deux compteurs.
+// ── Machine d'etats simple (FRONT-2.14) ──────────────────────
+// Reflete directement le diagramme etats-transitions DESIGN-0.4 du
+// dossier de conception. Pas d'implementation du pattern State (hors
+// des 3 patrons retenus, CLAUDE.md §3) : flags JavaScript simples.
+//
+//   ┌──────────────┐  flip   ┌──────────────┐
+//   │  Q_affichee  │────────>│  R_revelee   │
+//   │  (question)  │<────────│  (reponse)   │
+//   └──────────────┘  flip   └──────┬───────┘
+//                                   │ savais | revoir + plus de question
+//                                   v
+//                            ┌──────────────┐
+//                            │ Session_finie│
+//                            └──────────────┘
+//
+// Les fonctions afficher_face_recto() / afficher_face_verso() mettent
+// a jour la variable etat_session ET la presentation. Les handlers
+// d'evenement consultent etat_session avant d'agir, ce qui constitue
+// la garde du diagramme d'etats-transitions.
+
+var ETAT_QUESTION = "Q_affichee";
+var ETAT_REPONSE = "R_revelee";
+var ETAT_FINIE = "Session_finie";
+var etat_session = ETAT_QUESTION;
+
+// Compteurs de score partages entre les micro-taches.
 var nb_correctes = 6;
 var nb_mauvaises = 2;
 
@@ -47,16 +70,24 @@ function afficher_face_recto() {
     $("#study-carte-recto").show().removeAttr("hidden");
     $("#study-carte-verso").hide().attr("hidden", "hidden");
     $("#study-evaluation").hide().attr("hidden", "hidden");
+    etat_session = ETAT_QUESTION;
 }
 
 function afficher_face_verso() {
     $("#study-carte-recto").hide().attr("hidden", "hidden");
     $("#study-carte-verso").show().removeAttr("hidden");
     $("#study-evaluation").show().removeAttr("hidden");
+    etat_session = ETAT_REPONSE;
 }
 
 function basculer_face_carte() {
-    if ($("#study-carte-recto").is(":visible")) {
+    // La transition flip n'est possible que si on n'est pas en
+    // Session_finie : protection contre les clics tardifs apres la
+    // bascule vers la vue de fin.
+    if (etat_session === ETAT_FINIE) {
+        return;
+    }
+    if (etat_session === ETAT_QUESTION) {
         afficher_face_verso();
     } else {
         afficher_face_recto();
@@ -200,23 +231,28 @@ $(function () {
     // ── Boutons d'evaluation (FRONT-2.8) ──
     // Helper interne : apres evaluation, avance d'une question OU
     // bascule vers la fin de session si on etait sur la derniere.
+    // Transition R_revelee -> Q_affichee (suivante) OU -> Session_finie.
     function avancer_apres_evaluation() {
         var total = $("#study-liste-questions .study-liste-item").length;
         if (index_question_courante >= total - 1) {
-            // Derniere question evaluee : on envoie le score au serveur
-            // (FRONT-2.12) puis on bascule vers la vue de fin (la
-            // navigation est faite dans le callback success/error).
+            // Derniere question : transition vers Session_finie. On
+            // envoie le score au serveur (FRONT-2.12) avant la bascule
+            // de vue (faite dans le callback success/error).
+            etat_session = ETAT_FINIE;
             envoyer_resultat_session();
         } else {
             aller_question_suivante();
         }
     }
 
-    // "Je savais !" : la reponse a ete trouvee -> incrementer le
-    // compteur de bonnes reponses, marquer la question en cours dans
-    // la liste laterale, puis passer a la question suivante (ou
-    // terminer la session si c'etait la derniere).
+    // "Je savais !" : valide uniquement depuis l'etat R_revelee
+    // (cf. machine d'etats FRONT-2.14). Incrementation du compteur,
+    // marquage de la question en liste, transition vers la suivante
+    // (ou Session_finie si derniere).
     $("#btn-savais").on("click", function () {
+        if (etat_session !== ETAT_REPONSE) {
+            return;
+        }
         nb_correctes = nb_correctes + 1;
         $("#study-liste-questions .study-liste-item.active")
             .addClass("savais")
@@ -225,8 +261,11 @@ $(function () {
         avancer_apres_evaluation();
     });
 
-    // "A revoir" : symetrique pour les mauvaises reponses.
+    // "A revoir" : symetrique. Meme garde sur l'etat.
     $("#btn-revoir").on("click", function () {
+        if (etat_session !== ETAT_REPONSE) {
+            return;
+        }
         nb_mauvaises = nb_mauvaises + 1;
         $("#study-liste-questions .study-liste-item.active")
             .addClass("revoir")
@@ -283,8 +322,8 @@ $(function () {
             return;
         }
         if (evenement.keyCode === 49) {
-            // Touche "1" : seulement si la reponse est revelee.
-            if ($("#study-carte-verso").is(":visible")) {
+            // Touche "1" : autorisee uniquement depuis l'etat R_revelee.
+            if (etat_session === ETAT_REPONSE) {
                 evenement.preventDefault();
                 $("#btn-savais").click();
             }
@@ -292,7 +331,7 @@ $(function () {
         }
         if (evenement.keyCode === 50) {
             // Touche "2" : symetrique.
-            if ($("#study-carte-verso").is(":visible")) {
+            if (etat_session === ETAT_REPONSE) {
                 evenement.preventDefault();
                 $("#btn-revoir").click();
             }
