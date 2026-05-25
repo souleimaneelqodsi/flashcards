@@ -256,7 +256,13 @@ function soumettre_login(evenement) {
     };
 
     AjaxService.post("auth/connexion", donnees, {
-        succes: function () {
+        succes: function (reponse) {
+            // Le serveur a regenere le token CSRF a la connexion : on met a
+            // jour la balise <meta> pour que les requetes suivantes envoient
+            // le bon token (la SPA ne recharge pas la page).
+            if (reponse && typeof reponse.csrf_token === "string") {
+                $("meta[name='csrf-token']").attr("content", reponse.csrf_token);
+            }
             Toast.succes("Connexion reussie.");
             window.location.hash = "#dashboard";
         },

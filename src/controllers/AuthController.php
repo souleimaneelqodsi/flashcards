@@ -157,12 +157,17 @@ class AuthController extends BaseController
 
         // Nouveau token CSRF apres connexion (un token capture sur la
         // page de login ne doit pas rester valide une fois connecte).
+        // Le nouveau token est renvoye au client (csrf_token) pour qu'il
+        // mette a jour sa balise <meta> : la SPA ne rechargeant pas la page,
+        // sans cela les requetes mutantes suivantes enverraient l'ancien
+        // token et seraient rejetees en 403.
         Csrf::regenerer();
 
         $this->repondre(
             array(
                 'message'     => 'Connexion reussie.',
-                'utilisateur' => $utilisateur->toArray()
+                'utilisateur' => $utilisateur->toArray(),
+                'csrf_token'  => Csrf::obtenir()
             ),
             200
         );

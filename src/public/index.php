@@ -15,9 +15,16 @@ ErrorHandler::enregistrer();
 
 // Session PHP demarree pour toute requete (API et page HTML). Necessaire
 // pour AUTH-2 : authentification, CSRF token, identite de l'utilisateur.
-// `session_start` est idempotent quand on guarde via !isset($_SESSION),
-// mais ici on est en debut de requete donc l'appel direct est sur.
+// Cookie de session durci avant le demarrage : HttpOnly (le cookie n'est pas
+// lisible en JavaScript -> protege le vol de session par XSS) et SameSite Lax
+// (limite l'envoi du cookie sur les requetes cross-site -> defense CSRF).
 if (!isset($_SESSION)) {
+    session_set_cookie_params(array(
+        'lifetime' => 0,
+        'path'     => '/',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ));
     session_start();
 }
 
