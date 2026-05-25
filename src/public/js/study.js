@@ -52,12 +52,32 @@ function basculer_face_carte() {
     }
 }
 
-// ── Mise a jour de l'affichage du score ──────────────────────
-// Synchronise les compteurs visuels (pastilles correctes/mauvaises)
-// avec l'etat courant. Le pourcentage live sera ajoute en FRONT-2.11.
+// ── Mise a jour de l'affichage du score (FRONT-2.11) ──────────
+// Synchronise les compteurs visuels (pastilles, gros pourcentage,
+// barre de progression du header) avec l'etat courant. Le pourcentage
+// est calcule a partir des deux compteurs : correctes / total * 100,
+// arrondi a l'entier le plus proche pour eviter l'affichage de
+// decimales (mockup : "75%" et non "75.34%").
 function rafraichir_pastilles_score() {
     $("#study-correctes").text(nb_correctes);
     $("#study-mauvaises").text(nb_mauvaises);
+
+    var total_evaluees = nb_correctes + nb_mauvaises;
+    var pourcentage = 0;
+    if (total_evaluees > 0) {
+        pourcentage = Math.round((nb_correctes / total_evaluees) * 100);
+    }
+    $("#study-score-pct").text(pourcentage);
+
+    // Barre de progression : ratio des questions deja evaluees sur le
+    // nombre total de questions de la session (taille de la liste).
+    var nb_total_session = $("#study-liste-questions .study-liste-item").length;
+    var pourcentage_progression = 0;
+    if (nb_total_session > 0) {
+        pourcentage_progression = Math.round((total_evaluees / nb_total_session) * 100);
+    }
+    $("#study-progress-fill").attr("style", "width: " + pourcentage_progression + "%");
+    $("#study-total").text(nb_total_session);
 }
 
 // ── Navigation entre questions (FRONT-2.9) ───────────────────
@@ -99,6 +119,10 @@ function aller_question_suivante() {
 
 // ── Initialisation au chargement du DOM ──────────────────────
 $(function () {
+
+    // Synchronisation initiale du score live : permet d'afficher un
+    // pourcentage coherent avec les compteurs stub des le chargement.
+    rafraichir_pastilles_score();
 
     // Clic souris sur l'une des deux faces : flip.
     $("#study-carte-recto").on("click", function () {
