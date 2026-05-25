@@ -115,9 +115,9 @@ $csrf_token = Csrf::obtenir();
                          pour acceder au profil (DASH-1.5). Les libelles sont
                          des stubs en attendant l'auth (AUTH-2). -->
                     <a href="#profil" class="user-chip" aria-label="Acceder a mon profil">
-                        <span class="user-av">JD</span>
+                        <span class="user-av" id="chip-initiales"></span>
                         <span class="user-chip-info">
-                            <span class="user-chip-name">Jean Dupont</span>
+                            <span class="user-chip-name" id="chip-nom"></span>
                             <span class="user-chip-role">M1 MIAGE</span>
                         </span>
                     </a>
@@ -158,7 +158,7 @@ $csrf_token = Csrf::obtenir();
                             </svg>
                             <span class="notif-dot"></span>
                         </button>
-                        <a href="#profil" class="topbar-av" aria-label="Mon profil">JD</a>
+                        <a href="#profil" class="topbar-av" id="topbar-initiales" aria-label="Mon profil"></a>
                     </div>
                 </header>
 
@@ -641,6 +641,7 @@ $csrf_token = Csrf::obtenir();
     <script src="js/edition-paquet.js"></script>
     <script src="js/study.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/session.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

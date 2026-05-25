@@ -220,6 +220,16 @@
     transform: translateX(18px);
 }
 
+/* ── Mode authentification (login / register) ───────────────
+   Quand la SPA affiche la connexion ou l'inscription, l'utilisateur
+   n'est pas encore authentifie : on masque la sidebar et le topbar
+   pour presenter ces ecrans en plein cadre (le garde du demarrage,
+   dans app.js, ajoute la classe .app-mode-auth sur #app). */
+.app-mode-auth .app-sidebar,
+.app-mode-auth .app-topbar {
+    display: none;
+}
+
 /* ── Header global (topbar) ────────────────────── */
 .app-topbar {
     height: 56px;
