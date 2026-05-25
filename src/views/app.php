@@ -502,5 +502,6 @@
     <script src="js/app.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/edition-paquet.js"></script>
+    <script src="js/study.js"></script>
 </body>
 </html>
