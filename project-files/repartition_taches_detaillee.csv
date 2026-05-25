@@ -96,6 +96,26 @@ Phase 2,P5,Fullstack,FULL-2.15,Liste des utilisateurs partages (chips + retrait)
 Phase 2,P5,Fullstack,FULL-2.16,GET /api/paquets/:id (ecran visualisation - titre date proprietaire liste destinataires),2,Exigence sujet TER : ecran de visualisation doit afficher destinataires de partage
 Phase 2,P5,Fullstack,FULL-2.17,Vue Visualisation paquet (liens Editer/Supprimer si proprietaire + liste destinataires chips),3,Exigence sujet TER : ecran de visualisation complet
 Phase 2,P5,Fullstack,FULL-2.18,Pattern Strategy pour calcul de score selon difficulte (Facile Moyen Difficile) - 4eme patron optionnel,2,Ch8 - pattern Strategy - optionnel (3 patrons Singleton+Repository+Factory deja garantis)
+Phase 2,P5,Backend,FULL-3.1,POST /api/paquets/:id/questions (creer une question via QuestionRepository + Factory Question::creer),2,Hors cours - auto-formation - endpoint questions absent du decoupage FULL-2 initial
+Phase 2,P5,Backend,FULL-3.2,PUT /api/questions/:id (editer une question - controle proprietaire via le paquet parent),2,Hors cours - auto-formation
+Phase 2,P5,Backend,FULL-3.3,DELETE /api/questions/:id (supprimer une question - controle proprietaire),1,Hors cours - auto-formation
+Phase 2,P5,Backend,FULL-3.4,GET /api/paquets/:id/questions (lister les questions d'un paquet),1,Hors cours - auto-formation
+Phase 2,P5,Backend,FULL-3.5,Validation serveur question (contenu_question et contenu_reponse non vides + id_difficulte valide),1,Hors cours - parite avec la validation client FRONT-2.5
+Phase 2,P5,Frontend,FULL-3.6,Branchement front vue edition paquet + modale question sur les endpoints questions (remplace les stubs FRONT-2.1-2.4),3,Hors cours - auto-formation AJAX
+Phase 2,P5,Backend,FULL-3.7,GET /api/paquets/:id/study (charger les questions d'une session de revision via QuestionRepository::findByPaquet),2,Exigence sujet TER : mode revision Anki - endpoint backend absent du decoupage initial
+Phase 2,P5,Backend,FULL-3.8,POST /api/paquets/:id/score (calcule last_score + met a jour best_score - proprietaire uniquement),2,Exigence sujet TER : last_score/best_score strictement personnels au proprietaire
+Phase 2,P5,Frontend,FULL-3.9,Branchement front mode etude (study.js) sur les vraies questions (remplace les questions stub),3,Hors cours - auto-formation AJAX - complete FRONT-2.6 a 2.9
+Phase 2,P5,Frontend,FULL-3.10,Branchement fin de session sur POST score + mise a jour Dernier/Best des cartes-paquet,2,Hors cours - auto-formation - complete FRONT-2.12 et FRONT-2.13
+Phase 2,P5,Frontend,FULL-3.11,Branchement bouton Reviser des cartes-paquet (navigation vers #study-:id),1,Hors cours - auto-formation
+Phase 2,P5,Frontend,FULL-3.12,Branchement bouton Editer des cartes-paquet (navigation vers #edit-paquet-:id),1,Hors cours - auto-formation
+Phase 2,P5,Frontend,FULL-3.13,Comportement du bouton menu du header (afficher/masquer la sidebar),1,Complement UI-1.3 - le bouton menu existe mais reste sans comportement
+Phase 2,P5,Fullstack,FULL-3.14,Compteurs du profil (Paquets / Record / Sessions) branches sur les vraies donnees,2,Hors cours - auto-formation - complete la vue profil my_profile.png
+Phase 2,P5,Frontend,FULL-3.15,Optionnel - Recherche de paquets dans le topbar (filtrage client des colonnes du dashboard),2,Hors-sujet - non exige par le sujet TER - sinon retirer le champ de recherche
+Phase 2,P5,Frontend,FULL-3.16,Optionnel - Section Parametres OU retrait du lien Parametres de la sidebar,1,Hors-sujet - seule preference reelle = Dark/Light deja implementee
+Phase 2,P5,Backend,FULL-3.17,Optionnel - Changement de mot de passe (endpoint BCRYPT + formulaire profil avec validation),2,Hors-sujet - non exige - sinon laisser le bouton en a venir
+Phase 2,P5,Fullstack,FULL-3.18,Optionnel - Modification de l'avatar (upload $_FILES + stockage + colonne avatar du modele),3,Hors-sujet - colonne avatar prevue au modele mais upload hors perimetre
+Phase 2,P5,Backend,FULL-3.19,Optionnel - Suppression du compte (endpoint DELETE + cascade + confirmation),2,Hors-sujet - non exige - action destructrice a confirmer
+Phase 2,P5,Frontend,FULL-3.20,Optionnel - Retrait ou implementation de l'icone notifications (cloche) du header,1,Hors-sujet - pur decor de la maquette dashboard.png
 Phase 3,P1,Documentation,DOC-BD.1,Doc MCD + MLD (schema + commentaires),2,Derive Ch3-4 (modelisation) - mapping relationnel hors cours
 Phase 3,P1,Documentation,DOC-BD.2,Doc contraintes et regles metier BD,1,Documentation - autonome (OCL Ch3-4 mentionnable)
 Phase 3,P1,Documentation,DOC-BD.3,Doc scripts install / seed / reset,1,Documentation - autonome
