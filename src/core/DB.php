@@ -40,13 +40,29 @@ class DB
     /**
      * Retourne l'objet PDO, en ouvrant la connexion SQLite au premier appel.
      *
+     * Configuration appliquee (BD-2.3) :
+     *  - PDO::ERRMODE_EXCEPTION : toute erreur SQL leve une PDOException
+     *    (sinon SQLite reste silencieux et masque les bugs).
+     *  - PDO::FETCH_ASSOC : fetch retourne un tableau associatif par defaut
+     *    (plus simple a manipuler dans les Repositories).
+     *  - PRAGMA foreign_keys = ON : SQLite desactive les cles etrangeres par
+     *    defaut ; on les active a chaque connexion pour faire respecter les
+     *    contraintes definies dans install.php.
+     *
      * @return PDO
      */
     public function pdo()
     {
         if ($this->pdo === null) {
-            $chemin = __DIR__ . '/../data/flashcards.sqlite';
+            $dossier_data = __DIR__ . '/../data';
+            if (!is_dir($dossier_data)) {
+                mkdir($dossier_data, 0775, true);
+            }
+            $chemin = $dossier_data . '/flashcards.sqlite';
             $this->pdo = new PDO('sqlite:' . $chemin);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $this->pdo->exec('PRAGMA foreign_keys = ON');
         }
         return $this->pdo;
     }
