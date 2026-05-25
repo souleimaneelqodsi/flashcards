@@ -270,9 +270,9 @@
                                         <p class="question-titre">Qu'est-ce que la normalisation 3NF ?</p>
                                         <p class="question-reponse-preview">Un schema est en 3NF si toute dependance fonctionnelle non triviale implique une cle.</p>
                                         <div class="question-difficulte" role="radiogroup" aria-label="Difficulte de la question 1">
-                                            <button type="button" class="badge-diff badge-diff-facile active" role="radio" aria-checked="true">Facile</button>
-                                            <button type="button" class="badge-diff badge-diff-moyen" role="radio" aria-checked="false">Moyen</button>
-                                            <button type="button" class="badge-diff badge-diff-difficile" role="radio" aria-checked="false">Difficile</button>
+                                            <button type="button" class="badge-diff badge-diff-facile active" data-difficulte="facile" role="radio" aria-checked="true">Facile</button>
+                                            <button type="button" class="badge-diff badge-diff-moyen" data-difficulte="moyen" role="radio" aria-checked="false">Moyen</button>
+                                            <button type="button" class="badge-diff badge-diff-difficile" data-difficulte="difficile" role="radio" aria-checked="false">Difficile</button>
                                         </div>
                                     </div>
                                     <button type="button" class="btn-supprimer-question" aria-label="Supprimer la question 1">
@@ -289,9 +289,9 @@
                                         <p class="question-titre">Qu'est-ce qu'une jointure INNER JOIN ?</p>
                                         <p class="question-reponse-preview">Retourne les lignes communes aux deux tables selon une condition de jointure.</p>
                                         <div class="question-difficulte" role="radiogroup" aria-label="Difficulte de la question 2">
-                                            <button type="button" class="badge-diff badge-diff-facile" role="radio" aria-checked="false">Facile</button>
-                                            <button type="button" class="badge-diff badge-diff-moyen active" role="radio" aria-checked="true">Moyen</button>
-                                            <button type="button" class="badge-diff badge-diff-difficile" role="radio" aria-checked="false">Difficile</button>
+                                            <button type="button" class="badge-diff badge-diff-facile" data-difficulte="facile" role="radio" aria-checked="false">Facile</button>
+                                            <button type="button" class="badge-diff badge-diff-moyen active" data-difficulte="moyen" role="radio" aria-checked="true">Moyen</button>
+                                            <button type="button" class="badge-diff badge-diff-difficile" data-difficulte="difficile" role="radio" aria-checked="false">Difficile</button>
                                         </div>
                                     </div>
                                     <button type="button" class="btn-supprimer-question" aria-label="Supprimer la question 2">
@@ -326,6 +326,7 @@
     <div class="modale-overlay" id="modale-ajout-question" role="dialog" aria-modal="true" aria-labelledby="titre-modale-ajout-question" hidden>
         <div class="modale-boite">
             <div class="modale-titre-row">
+                <!-- Le libelle est ajuste en JS selon le mode (ajout vs edition). -->
                 <h3 class="modale-titre" id="titre-modale-ajout-question">Ajouter une question</h3>
                 <button type="button" class="btn-fermer-modale" id="btn-fermer-modale-ajout" aria-label="Fermer la modale">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -364,6 +365,7 @@
 
                 <div class="modale-actions">
                     <button type="button" class="btn btn-secondary" id="btn-annuler-ajout-question">Annuler</button>
+                    <!-- Le texte du bouton est ajuste en JS selon le mode. -->
                     <button type="submit" class="btn btn-primary" id="btn-valider-ajout-question">Ajouter la question</button>
                 </div>
             </form>

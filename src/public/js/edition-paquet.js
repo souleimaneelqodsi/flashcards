@@ -26,8 +26,23 @@ var ID_LISTE_ERREURS = "liste-erreurs-question";
 // cote client (a remplacer par les IDs serveur quand l'API sera branchee).
 var compteur_nouvelles_questions = 1000;
 
-// ── Ouvre la modale et reinitialise son etat ──────────────────
-function ouvrir_modale_ajout_question() {
+// Etat de la modale : "ajout" pour creer une nouvelle question, "edition"
+// pour modifier une question existante. En mode "edition" on conserve
+// l'ID de la question en cours d'edition pour pouvoir la mettre a jour
+// dans le DOM apres validation.
+var modale_mode = "ajout";
+var modale_id_question_courante = null;
+
+// ── Selection visuelle d'une difficulte dans la modale ────────
+function selectionner_difficulte_modale(niveau) {
+    $("#" + ID_FORM + " .badge-diff").removeClass("active").attr("aria-checked", "false");
+    $("#" + ID_FORM + " .badge-diff[data-difficulte='" + niveau + "']")
+        .addClass("active")
+        .attr("aria-checked", "true");
+}
+
+// ── Reset commun a chaque ouverture de la modale ──────────────
+function reinitialiser_modale() {
     $("#" + ID_CHAMP_QUESTION).val("");
     $("#" + ID_CHAMP_REPONSE).val("");
     $("#" + ID_CHAMP_QUESTION).removeClass("champ-invalide");
@@ -36,9 +51,45 @@ function ouvrir_modale_ajout_question() {
     $("#" + ID_ERREUR_REPONSE).attr("hidden", "hidden");
     $("#" + ID_RECAP).attr("hidden", "hidden");
     $("#" + ID_LISTE_ERREURS).empty();
-    // Reset du selecteur de difficulte : Facile actif par defaut.
-    $("#" + ID_FORM + " .badge-diff").removeClass("active").attr("aria-checked", "false");
-    $("#" + ID_FORM + " .badge-diff-facile").addClass("active").attr("aria-checked", "true");
+    selectionner_difficulte_modale("facile");
+}
+
+// ── Ouvre la modale en mode AJOUT ─────────────────────────────
+function ouvrir_modale_ajout_question() {
+    modale_mode = "ajout";
+    modale_id_question_courante = null;
+    reinitialiser_modale();
+    $("#titre-modale-ajout-question").text("Ajouter une question");
+    $("#btn-valider-ajout-question").text("Ajouter la question");
+    $("#" + ID_MODALE).removeAttr("hidden");
+    $("#" + ID_CHAMP_QUESTION).focus();
+}
+
+// ── Ouvre la modale en mode EDITION pour une question existante ─
+// Pre-remplit les champs avec les valeurs actuelles de la question
+// ciblee (titre, apercu reponse, difficulte active).
+function ouvrir_modale_edition_question(element_question) {
+    modale_mode = "edition";
+    modale_id_question_courante = element_question.attr("data-id-question");
+    reinitialiser_modale();
+
+    var contenu_question = element_question.find(".question-titre").text();
+    var contenu_reponse = element_question.find(".question-reponse-preview").text();
+    var difficulte_active = element_question.find(".badge-diff.active").eq(0);
+    var difficulte = "facile";
+    if (difficulte_active.length > 0) {
+        var attr_difficulte = difficulte_active.attr("data-difficulte");
+        if (attr_difficulte === "facile" || attr_difficulte === "moyen" || attr_difficulte === "difficile") {
+            difficulte = attr_difficulte;
+        }
+    }
+
+    $("#" + ID_CHAMP_QUESTION).val(contenu_question);
+    $("#" + ID_CHAMP_REPONSE).val(contenu_reponse);
+    selectionner_difficulte_modale(difficulte);
+
+    $("#titre-modale-ajout-question").text("Modifier la question");
+    $("#btn-valider-ajout-question").text("Mettre a jour");
     $("#" + ID_MODALE).removeAttr("hidden");
     $("#" + ID_CHAMP_QUESTION).focus();
 }
@@ -99,7 +150,7 @@ function valider_formulaire_ajout_question() {
 
 // ── Recuperation de la difficulte selectionnee ───────────────
 function difficulte_selectionnee() {
-    var bouton_actif = $("#" + ID_FORM + " .badge-diff.active").first();
+    var bouton_actif = $("#" + ID_FORM + " .badge-diff.active").eq(0);
     var difficulte = bouton_actif.attr("data-difficulte");
     if (typeof difficulte !== "string") {
         return "facile";
@@ -112,6 +163,26 @@ function mettre_a_jour_compteur_questions() {
     var nombre = $("#questions-liste .question-item").length;
     $("#nb-questions").text(nombre);
     $("#apercu-count").text(nombre);
+}
+
+// ── Met a jour le DOM d'une question existante (mode edition) ─
+// Modifie en place les champs visibles (titre, apercu reponse,
+// selecteur de difficulte) sans recreer l'element.
+function mettre_a_jour_question_existante(id_question, contenu_question, contenu_reponse, difficulte) {
+    var element = $("#questions-liste .question-item[data-id-question='" + id_question + "']");
+    if (element.length === 0) {
+        return;
+    }
+    element.find(".question-titre").text(contenu_question);
+    element.find(".question-reponse-preview").text(contenu_reponse);
+
+    var boutons = element.find(".badge-diff");
+    boutons.removeClass("active").attr("aria-checked", "false");
+
+    // Selection par classe CSS uniquement : toutes les questions (statiques
+    // de FRONT-2.1 et dynamiques de FRONT-2.2) portent maintenant la classe
+    // .badge-diff-<niveau>, donc plus besoin de fallback.
+    element.find(".badge-diff-" + difficulte).addClass("active").attr("aria-checked", "true");
 }
 
 // ── Construction d'un element question a inserer dans la liste ─
@@ -141,6 +212,7 @@ function construire_element_question(numero, contenu_question, contenu_reponse, 
         var bouton = $("<button></button>")
             .attr("type", "button")
             .addClass("badge-diff badge-diff-" + niveaux[j])
+            .attr("data-difficulte", niveaux[j])
             .attr("role", "radio")
             .text(libelles[j]);
         if (niveaux[j] === difficulte) {
@@ -204,8 +276,9 @@ $(function () {
         $(this).addClass("active").attr("aria-checked", "true");
     });
 
-    // Soumission du formulaire : validation complete, ajout dans la
-    // liste si tout est OK, fermeture de la modale.
+    // Soumission du formulaire : selon le mode (ajout vs edition),
+    // soit on ajoute une nouvelle question, soit on met a jour celle
+    // qui est en cours d'edition.
     $("#" + ID_FORM).on("submit", function (evenement) {
         evenement.preventDefault();
         var formulaire_ok = valider_formulaire_ajout_question();
@@ -215,11 +288,44 @@ $(function () {
         var question = $("#" + ID_CHAMP_QUESTION).val().replace(/^\s+|\s+$/g, "");
         var reponse = $("#" + ID_CHAMP_REPONSE).val().replace(/^\s+|\s+$/g, "");
         var difficulte = difficulte_selectionnee();
-        var numero = $("#questions-liste .question-item").length + 1;
-        var nouvel_element = construire_element_question(numero, question, reponse, difficulte);
-        $("#questions-liste").append(nouvel_element);
-        mettre_a_jour_compteur_questions();
+
+        if (modale_mode === "edition" && modale_id_question_courante !== null) {
+            mettre_a_jour_question_existante(modale_id_question_courante, question, reponse, difficulte);
+        } else {
+            var numero = $("#questions-liste .question-item").length + 1;
+            var nouvel_element = construire_element_question(numero, question, reponse, difficulte);
+            $("#questions-liste").append(nouvel_element);
+            mettre_a_jour_compteur_questions();
+        }
+
         fermer_modale_ajout_question();
+    });
+
+    // ── Edition inline (FRONT-2.3) ──
+    // Clic sur une question existante (n'importe ou sauf croix et badges) :
+    // ouvre la modale en mode edition. La delegation par '#questions-liste'
+    // s'applique aussi aux questions ajoutees dynamiquement.
+    $("#questions-liste").on("click", ".question-item", function () {
+        ouvrir_modale_edition_question($(this));
+    });
+
+    // Les badges de difficulte dans la liste agissent comme un toggle
+    // inline (changement direct de la difficulte sans ouvrir la modale).
+    // stopPropagation empeche d'ouvrir la modale d'edition par accident.
+    $("#questions-liste").on("click", ".question-difficulte .badge-diff", function (evenement) {
+        evenement.stopPropagation();
+        // Le badge-diff est enfant direct de .question-difficulte ;
+        // .parent() suffit (cf. CLAUDE.md §2 bis - perimetre courant).
+        var groupe = $(this).parent();
+        groupe.find(".badge-diff").removeClass("active").attr("aria-checked", "false");
+        $(this).addClass("active").attr("aria-checked", "true");
+    });
+
+    // La croix de suppression dans la liste : pour FRONT-2.3 on stop la
+    // propagation pour eviter l'ouverture de la modale d'edition. La
+    // logique de suppression viendra en FRONT-2.4.
+    $("#questions-liste").on("click", ".btn-supprimer-question", function (evenement) {
+        evenement.stopPropagation();
     });
 
 });
