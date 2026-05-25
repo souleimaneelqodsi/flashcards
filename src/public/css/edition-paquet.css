@@ -1,0 +1,273 @@
+/* src/public/css/edition-paquet.css */
+/* Styles de la vue d'edition de paquet. Reference visuelle :
+   project-files/interface/new_bag.png. La vue est decoupee en deux
+   colonnes : informations du paquet (titre, theme, apercu) a gauche,
+   liste des questions a droite. La vue est masquee par defaut et
+   activee par le dispatcher SPA (cf. app.js). */
+
+/* ── Conteneur generique des vues SPA ── */
+.view-screen {
+    /* Vues alternatives au dashboard, affichees une a la fois par
+       le dispatcher hashchange. */
+}
+
+/* ── En-tete de la vue (titre + actions) ── */
+.edition-titre-bloc {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-retour {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--bordure);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--texte-secondaire);
+    transition: background .15s;
+}
+
+.btn-retour:hover {
+    background: var(--surface-2);
+}
+
+.edition-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ── Layout deux colonnes ── */
+.edition-layout {
+    display: flex;
+    gap: 22px;
+    align-items: flex-start;
+}
+
+.edition-infos {
+    flex: 0 0 360px;
+    background: var(--surface);
+    border-radius: var(--radius-moyen);
+    box-shadow: var(--ombre-carte);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.edition-questions {
+    flex: 1;
+    background: var(--surface);
+    border-radius: var(--radius-moyen);
+    box-shadow: var(--ombre-carte);
+    padding: 22px;
+    min-width: 0;
+}
+
+/* ── Titres de section (libelles en majuscules gris) ── */
+.edition-section-titre {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--texte-tertiaire);
+    margin-bottom: 10px;
+}
+
+/* ── Champs de formulaire (titre, theme) ── */
+.form-counter {
+    font-size: 11px;
+    color: var(--texte-tertiaire);
+    margin-top: 4px;
+    text-align: right;
+}
+
+.req {
+    color: var(--erreur);
+    margin-left: 2px;
+}
+
+/* ── Carte d'apercu (preview du paquet en cours de creation) ── */
+.apercu-card {
+    background: linear-gradient(135deg, var(--primaire), var(--accent));
+    color: #fff;
+    border-radius: var(--radius-moyen);
+    padding: 26px 22px;
+    text-align: center;
+    box-shadow: var(--ombre-moyenne);
+}
+
+.apercu-card-titre {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 6px;
+}
+
+.apercu-card-theme {
+    font-size: 12px;
+    opacity: .9;
+    margin-bottom: 14px;
+}
+
+.apercu-card-count {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+/* ── En-tete de la liste des questions ── */
+.edition-questions-head {
+    margin-bottom: 14px;
+}
+
+/* ── Liste des questions ── */
+.questions-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.question-item {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--bordure);
+    border-radius: var(--radius-moyen);
+    padding: 14px 16px;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.question-item:hover {
+    border-color: var(--primaire-clair);
+    box-shadow: var(--ombre-petite);
+}
+
+.question-numero {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--primaire-clair);
+    color: var(--primaire);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.question-corps {
+    flex: 1;
+    min-width: 0;
+}
+
+.question-titre {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--texte-primaire);
+    margin-bottom: 4px;
+    line-height: 1.35;
+}
+
+.question-reponse-preview {
+    font-size: 12px;
+    color: var(--texte-tertiaire);
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+/* ── Selecteur de difficulte (boutons radio visuels) ── */
+.question-difficulte {
+    display: flex;
+    gap: 6px;
+}
+
+.badge-diff {
+    padding: 4px 12px;
+    border-radius: var(--radius-plein);
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--surface-2);
+    color: var(--texte-tertiaire);
+    border: 1px solid transparent;
+    transition: background .15s, color .15s, border-color .15s;
+}
+
+.badge-diff:hover {
+    background: var(--bordure);
+}
+
+.badge-diff-facile.active {
+    background: var(--succes-clair);
+    color: #15803D;
+    border-color: var(--succes);
+}
+
+.badge-diff-moyen.active {
+    background: var(--attention-clair);
+    color: #C2410C;
+    border-color: var(--attention);
+}
+
+.badge-diff-difficile.active {
+    background: var(--erreur-clair);
+    color: #B91C1C;
+    border-color: var(--erreur);
+}
+
+/* ── Bouton suppression d'une question ── */
+.btn-supprimer-question {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--texte-discret);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s, color .15s;
+}
+
+.btn-supprimer-question:hover {
+    background: var(--erreur-clair);
+    color: var(--erreur);
+}
+
+/* ── Bouton "+ Ajouter une question" ── */
+.btn-ajouter-question {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-moyen);
+    border: 2px dashed var(--bordure);
+    background: transparent;
+    color: var(--primaire);
+    font-size: 13px;
+    font-weight: 600;
+    transition: background .15s, border-color .15s;
+}
+
+.btn-ajouter-question:hover {
+    background: var(--primaire-clair);
+    border-color: var(--primaire);
+}
+
+/* ── Responsive : empilement en mobile ── */
+@media (max-width: 900px) {
+    .edition-layout {
+        flex-direction: column;
+    }
+
+    .edition-infos {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+}

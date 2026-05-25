@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/edition-paquet.css">
 </head>
 <body>
     <div id="app">
@@ -194,6 +195,122 @@
 
                     </div>
                 </div>
+
+                <!-- ════════════════════════════════════════════════
+                     VUE : Edition d'un paquet (FRONT-2.1 - 2.5)
+                     Masquee par defaut, activee par le dispatcher
+                     hashchange dans app.js (route #nouveau-paquet ou
+                     #paquet-<id>/edition). Le routeur SPA definitif
+                     viendra en BACK-2.1.
+                ════════════════════════════════════════════════ -->
+                <section class="page-body view-screen" id="vue-edition-paquet" aria-labelledby="titre-edition-paquet" hidden>
+                    <div class="page-title-row">
+                        <div class="edition-titre-bloc">
+                            <a href="#dashboard" class="btn-retour" aria-label="Retour au tableau de bord">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                            </a>
+                            <h2 class="page-title" id="titre-edition-paquet">Nouveau paquet</h2>
+                        </div>
+                        <div class="edition-actions">
+                            <a href="#dashboard" class="btn btn-secondary">Annuler</a>
+                            <button type="button" class="btn btn-primary" id="btn-enregistrer-paquet">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                <span>Enregistrer le paquet</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="edition-layout">
+
+                        <!-- Colonne gauche : informations + apercu -->
+                        <aside class="edition-infos">
+                            <div>
+                                <h3 class="edition-section-titre">Informations du paquet</h3>
+                                <div class="form-group">
+                                    <label class="form-label" for="paquet-titre">Titre <span class="req">*</span></label>
+                                    <input type="text" id="paquet-titre" class="form-control" maxlength="150" value="Bases de donnees relationnelles" placeholder="Bases de donnees relationnelles">
+                                    <p class="form-counter"><span id="paquet-titre-counter">33</span> / 150 caracteres</p>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="paquet-theme">Theme</label>
+                                    <input type="text" id="paquet-theme" class="form-control" value="SQL et modelisation" placeholder="SQL et modelisation">
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="edition-section-titre">Apercu</h3>
+                                <div class="apercu-card">
+                                    <div class="apercu-card-titre" id="apercu-titre">Bases de donnees relationnelles</div>
+                                    <div class="apercu-card-theme" id="apercu-theme">SQL et modelisation</div>
+                                    <div class="apercu-card-count"><span id="apercu-count">2</span> cartes</div>
+                                </div>
+                            </div>
+                        </aside>
+
+                        <!-- Colonne droite : liste des questions du paquet -->
+                        <main class="edition-questions">
+                            <div class="edition-questions-head">
+                                <h3 class="edition-section-titre">Questions (<span id="nb-questions">2</span>)</h3>
+                            </div>
+
+                            <div class="questions-liste" id="questions-liste">
+
+                                <!-- Question stub n°1 (FRONT-2.1 : structure et liste). Les
+                                     interactions (ajout, edition, suppression, validation)
+                                     viennent en FRONT-2.2 a 2.5. -->
+                                <article class="question-item" data-id-question="1">
+                                    <span class="question-numero" aria-label="Question 1">1</span>
+                                    <div class="question-corps">
+                                        <p class="question-titre">Qu'est-ce que la normalisation 3NF ?</p>
+                                        <p class="question-reponse-preview">Un schema est en 3NF si toute dependance fonctionnelle non triviale implique une cle.</p>
+                                        <div class="question-difficulte" role="radiogroup" aria-label="Difficulte de la question 1">
+                                            <button type="button" class="badge-diff badge-diff-facile active" role="radio" aria-checked="true">Facile</button>
+                                            <button type="button" class="badge-diff badge-diff-moyen" role="radio" aria-checked="false">Moyen</button>
+                                            <button type="button" class="badge-diff badge-diff-difficile" role="radio" aria-checked="false">Difficile</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-supprimer-question" aria-label="Supprimer la question 1">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                </article>
+
+                                <article class="question-item" data-id-question="2">
+                                    <span class="question-numero" aria-label="Question 2">2</span>
+                                    <div class="question-corps">
+                                        <p class="question-titre">Qu'est-ce qu'une jointure INNER JOIN ?</p>
+                                        <p class="question-reponse-preview">Retourne les lignes communes aux deux tables selon une condition de jointure.</p>
+                                        <div class="question-difficulte" role="radiogroup" aria-label="Difficulte de la question 2">
+                                            <button type="button" class="badge-diff badge-diff-facile" role="radio" aria-checked="false">Facile</button>
+                                            <button type="button" class="badge-diff badge-diff-moyen active" role="radio" aria-checked="true">Moyen</button>
+                                            <button type="button" class="badge-diff badge-diff-difficile" role="radio" aria-checked="false">Difficile</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-supprimer-question" aria-label="Supprimer la question 2">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                </article>
+
+                            </div>
+
+                            <button type="button" class="btn-ajouter-question" id="btn-ajouter-question">
+                                + Ajouter une question
+                            </button>
+                        </main>
+
+                    </div>
+                </section>
 
             </main>
         </div>
