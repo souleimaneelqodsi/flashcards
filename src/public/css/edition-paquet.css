@@ -277,6 +277,14 @@
     padding: 20px;
 }
 
+/* Important : sans cette regle, l'attribut HTML5 [hidden] est ecrase
+   par le display:flex ci-dessus (meme specificite que le selecteur
+   d'attribut du user-agent stylesheet, mais declare plus tard dans
+   la cascade). Sans ca, les modales restent visibles au chargement. */
+.modale-overlay[hidden] {
+    display: none;
+}
+
 .modale-boite {
     background: var(--surface);
     border-radius: var(--radius-grand);
