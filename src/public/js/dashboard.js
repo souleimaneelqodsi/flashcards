@@ -20,74 +20,14 @@
 //
 // Les vrais champs viendront du backend via $.ajax (FULL-2.8 / FULL-2.9).
 
-var paquets_stub = [
-    {
-        id_paquet: 1,
-        titre: "Bases de donnees relationnelles",
-        theme: "SQL et modelisation",
-        nombre_cartes: 24,
-        last_score: 78,
-        best_score: 92,
-        date_maj: "2026-05-22"
-    },
-    {
-        id_paquet: 2,
-        titre: "Architecture des systemes d'information",
-        theme: "Systemes d'information",
-        nombre_cartes: 18,
-        last_score: 85,
-        best_score: 85,
-        date_maj: "2026-05-24"
-    },
-    {
-        id_paquet: 3,
-        titre: "Gestion de projet Agile et Scrum",
-        theme: "Management et methodes",
-        nombre_cartes: 12,
-        last_score: null,
-        best_score: null,
-        date_maj: "2026-05-20"
-    },
-    {
-        id_paquet: 4,
-        titre: "Programmation Web Avancee",
-        theme: "PHP, jQuery, AJAX",
-        nombre_cartes: 30,
-        last_score: 64,
-        best_score: 71,
-        date_maj: "2026-05-18"
-    },
-    {
-        id_paquet: 5,
-        titre: "Algorithmique et complexite",
-        theme: "Tri, graphes, recursivite",
-        nombre_cartes: 22,
-        last_score: 80,
-        best_score: 88,
-        date_maj: "2026-05-15"
-    }
-];
+// Vides tant que les vrais endpoints (FULL-2.8 / FULL-2.9) ne sont pas
+// branches : un compte neuf n'a aucun paquet. Le dashboard affiche alors
+// son etat vide ("Aucun paquet pour le moment."). Quand l'API existera,
+// ces tableaux seront remplaces par le resultat de $.ajax sur
+// GET /api/paquets et GET /api/paquets/shared.
+var paquets_stub = [];
 
-var partages_stub = [
-    {
-        id_paquet: 101,
-        titre: "Statistiques pour decideurs",
-        theme: "Probabilites, tests",
-        nombre_cartes: 16,
-        last_score: null,
-        best_score: null,
-        date_maj: "2026-05-23"
-    },
-    {
-        id_paquet: 102,
-        titre: "Anglais professionnel",
-        theme: "Vocabulaire et expressions",
-        nombre_cartes: 40,
-        last_score: 90,
-        best_score: 95,
-        date_maj: "2026-05-21"
-    }
-];
+var partages_stub = [];
 
 // ── Tri par date de mise a jour decroissante ────────────────────
 // Renvoie un nouveau tableau (sans modifier la source). Le format de
