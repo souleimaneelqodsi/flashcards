@@ -260,6 +260,106 @@
     border-color: var(--primaire);
 }
 
+/* ── Modale d'ajout / d'edition de question (FRONT-2.2) ── */
+/* Overlay sombre semi-transparent qui couvre l'ensemble de la page,
+   centre la boite de dialogue avec un flexbox. */
+.modale-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(17, 24, 39, .55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+}
+
+.modale-boite {
+    background: var(--surface);
+    border-radius: var(--radius-grand);
+    box-shadow: var(--ombre-tres-grande);
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 26px 28px;
+}
+
+.modale-titre-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.modale-titre {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--texte-primaire);
+}
+
+.btn-fermer-modale {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--texte-tertiaire);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+}
+
+.btn-fermer-modale:hover {
+    background: var(--surface-2);
+    color: var(--texte-primaire);
+}
+
+.modale-corps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modale-corps textarea.form-control {
+    min-height: 88px;
+    resize: vertical;
+    font-family: var(--police);
+    line-height: 1.5;
+}
+
+.modale-difficulte-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.modale-difficulte-row .badge-diff {
+    flex: 1;
+    padding: 9px 12px;
+    cursor: pointer;
+}
+
+.modale-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--bordure);
+}
+
+/* Recap des erreurs en pied de formulaire (CLAUDE.md §6 pattern impose). */
+.modale-recap-erreurs {
+    /* Reutilise les classes .recap-erreurs / .message-erreur deja
+       definies dans components.css : on n'ajoute ici que la marge
+       specifique a la modale. */
+    margin-top: 4px;
+}
+
 /* ── Responsive : empilement en mobile ── */
 @media (max-width: 900px) {
     .edition-layout {

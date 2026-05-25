@@ -316,9 +316,64 @@
         </div>
     </div>
 
+    <!-- ════════════════════════════════════════════════
+         Modale d'ajout / d'edition d'une question (FRONT-2.2).
+         Pattern impose CLAUDE.md §6 : validation client en miroir de
+         la validation serveur, champ rouge au keyup/blur + message
+         sous champ + recap rouge en bas. La logique est dans
+         js/edition-paquet.js.
+    ════════════════════════════════════════════════ -->
+    <div class="modale-overlay" id="modale-ajout-question" role="dialog" aria-modal="true" aria-labelledby="titre-modale-ajout-question" hidden>
+        <div class="modale-boite">
+            <div class="modale-titre-row">
+                <h3 class="modale-titre" id="titre-modale-ajout-question">Ajouter une question</h3>
+                <button type="button" class="btn-fermer-modale" id="btn-fermer-modale-ajout" aria-label="Fermer la modale">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <form class="modale-corps" id="form-ajout-question" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="champ-question">Question <span class="req">*</span></label>
+                    <textarea id="champ-question" name="question" class="form-control" placeholder="Saisissez la question..." required></textarea>
+                    <p class="message-erreur" id="erreur-question" hidden>La question est obligatoire.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="champ-reponse">Reponse <span class="req">*</span></label>
+                    <textarea id="champ-reponse" name="reponse" class="form-control" placeholder="Saisissez la reponse..." required></textarea>
+                    <p class="message-erreur" id="erreur-reponse" hidden>La reponse est obligatoire.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Difficulte</label>
+                    <div class="modale-difficulte-row" role="radiogroup" aria-label="Difficulte de la nouvelle question">
+                        <button type="button" class="badge-diff badge-diff-facile active" data-difficulte="facile" role="radio" aria-checked="true">Facile</button>
+                        <button type="button" class="badge-diff badge-diff-moyen" data-difficulte="moyen" role="radio" aria-checked="false">Moyen</button>
+                        <button type="button" class="badge-diff badge-diff-difficile" data-difficulte="difficile" role="radio" aria-checked="false">Difficile</button>
+                    </div>
+                </div>
+
+                <div class="recap-erreurs modale-recap-erreurs" id="recap-erreurs-question" hidden>
+                    <p>Veuillez corriger les erreurs ci-dessus avant de valider :</p>
+                    <ul id="liste-erreurs-question"></ul>
+                </div>
+
+                <div class="modale-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-annuler-ajout-question">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="btn-valider-ajout-question">Ajouter la question</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="js/lib/jquery-3.7.1.min.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/app.js"></script>
     <script src="js/dashboard.js"></script>
+    <script src="js/edition-paquet.js"></script>
 </body>
 </html>
