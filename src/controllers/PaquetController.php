@@ -369,6 +369,61 @@ class PaquetController extends BaseController
         );
     }
 
+    /**
+     * DELETE /api/paquets/:id/share/:userId (SHARE-1.3).
+     *
+     * Retire un destinataire du partage d'un paquet. Seul le proprietaire
+     * du paquet peut retirer un destinataire (un destinataire ne peut pas
+     * "se retirer" lui-meme via cet endpoint — sinon il pourrait nuire
+     * a la traçabilite de qui a recu quoi).
+     *
+     *  1. Verifie le token CSRF (action mutante).
+     *  2. Verifie l'authentification (sinon 401).
+     *  3. Valide id_paquet et id_destinataire (params de route).
+     *  4. Charge le paquet. 404 si introuvable.
+     *  5. Verifie que l'utilisateur courant est proprietaire (sinon 403).
+     *  6. Appelle PartageRepository::revoquer (DELETE prepare).
+     *     Le DELETE est idempotent : si le partage n'existe pas, on
+     *     renvoie tout de meme 200 (on a abouti a l'etat demande).
+     *  7. Repond 200 avec un message de confirmation.
+     *
+     * @param array $params Parametres extraits du chemin (`id`, `userId`).
+     */
+    public function retirer_partage($params)
+    {
+        Csrf::verifier_requete();
+        $id_user = $this->verifier_authentifie();
+
+        $id_paquet = $this->lire_id_paquet($params);
+        if ($id_paquet === null) {
+            $this->repondre(array('erreur' => 'Identifiant de paquet invalide.'), 400);
+            return;
+        }
+
+        $id_destinataire = $this->lire_id_route($params, 'userId');
+        if ($id_destinataire === null) {
+            $this->repondre(
+                array('erreur' => 'Identifiant de destinataire invalide.'),
+                400
+            );
+            return;
+        }
+
+        $paquet = $this->paquets->trouver_par_id($id_paquet);
+        if ($paquet === null) {
+            $this->repondre(array('erreur' => 'Paquet introuvable.'), 404);
+            return;
+        }
+        if ($paquet->getIdProprietaire() !== $id_user) {
+            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            return;
+        }
+
+        $this->partages->revoquer($id_paquet, $id_destinataire);
+
+        $this->repondre(array('message' => 'Partage retire.'), 200);
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────
 
     /**
@@ -400,20 +455,21 @@ class PaquetController extends BaseController
     }
 
     /**
-     * Lit l'identifiant de paquet depuis les parametres de route et le
-     * convertit en entier strictement positif. Renvoie null si la valeur
-     * est absente ou ne represente pas un entier positif (le controleur
-     * repond alors 400).
+     * Lit un identifiant entier strictement positif depuis les
+     * parametres de route, sous une cle donnee. Renvoie null si la
+     * valeur est absente ou ne represente pas un entier positif (le
+     * controleur repond alors 400).
      *
-     * @param array $params Parametres extraits du chemin par le routeur.
+     * @param array  $params Parametres extraits du chemin par le routeur.
+     * @param string $cle    Nom du parametre dans la route (ex: 'id', 'userId').
      * @return int|null
      */
-    private function lire_id_paquet($params)
+    private function lire_id_route($params, $cle)
     {
-        if (!isset($params['id'])) {
+        if (!isset($params[$cle])) {
             return null;
         }
-        $valeur = $params['id'];
+        $valeur = $params[$cle];
         if (!preg_match('/^[0-9]+$/', $valeur)) {
             return null;
         }
@@ -422,6 +478,18 @@ class PaquetController extends BaseController
             return null;
         }
         return $id;
+    }
+
+    /**
+     * Raccourci pour lire l'identifiant de paquet (parametre `id` de la
+     * route). Conserve pour ne pas casser les appels existants.
+     *
+     * @param array $params Parametres extraits du chemin par le routeur.
+     * @return int|null
+     */
+    private function lire_id_paquet($params)
+    {
+        return $this->lire_id_route($params, 'id');
     }
 
     /**

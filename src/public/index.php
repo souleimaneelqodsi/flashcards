@@ -104,6 +104,9 @@ if ($est_appel_api) {
     // SHARE-1.2 : ajout d'un destinataire au partage d'un paquet.
     $routeur->ajouter('POST', '/api/paquets/:id/share', array($paquet_controleur, 'partager'));
 
+    // SHARE-1.3 : retire un destinataire du partage (controle proprietaire).
+    $routeur->ajouter('DELETE', '/api/paquets/:id/share/:userId', array($paquet_controleur, 'retirer_partage'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });
