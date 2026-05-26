@@ -40,8 +40,15 @@ class PaquetRepository
 
     /**
      * Liste les paquets dont l'utilisateur est proprietaire.
+     *
      * Tries par date de creation decroissante (plus recents en haut),
      * conformement au dashboard (CLAUDE.md sec. 5).
+     *
+     * **Tri garanti cote serveur (PAQ-1.6)** : la clause `ORDER BY
+     * date_creation DESC` est appliquee par SQLite ; le controleur
+     * `PaquetController::lister_mes_paquets` ne re-trie jamais. Ainsi le
+     * front (`dashboard.js`) peut se contenter d'afficher les paquets
+     * dans l'ordre recu, sans connaitre la regle metier.
      *
      * @param int $id_proprietaire
      * @return Paquet[]

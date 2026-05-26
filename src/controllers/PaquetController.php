@@ -41,17 +41,23 @@ class PaquetController extends BaseController
      *
      * Liste les paquets dont l'utilisateur courant est proprietaire,
      * tries par date de creation decroissante (les plus recents en haut).
-     * Le tri est garanti cote serveur par le SQL `ORDER BY date_creation
-     * DESC` dans PaquetRepository::trouver_par_proprietaire (PAQ-1.6).
+     *
+     * **Tri garanti cote serveur (PAQ-1.6)** : la clause `ORDER BY
+     * date_creation DESC` est posee dans `PaquetRepository::
+     * trouver_par_proprietaire`. Le controleur n'applique aucun tri en
+     * PHP : on serialise les `Paquet` dans l'ordre recu de SQLite. Le
+     * front (`dashboard.js`) peut donc afficher la liste telle quelle.
      *
      *  1. Verifie que l'utilisateur est authentifie (sinon 401).
-     *  2. Charge ses paquets via le Repository.
+     *  2. Charge ses paquets via le Repository (tri SQL applique).
      *  3. Repond 200 avec un tableau `paquets` (array de toArray()).
      */
     public function lister_mes_paquets()
     {
         $id_user = $this->verifier_authentifie();
 
+        // Le Repository renvoie deja la liste triee par date_creation DESC
+        // (PAQ-1.6). Pas de tri PHP ici : la regle metier vit dans le SQL.
         $paquets = $this->paquets->trouver_par_proprietaire($id_user);
 
         $paquets_array = array();
