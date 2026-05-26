@@ -81,6 +81,9 @@ if ($est_appel_api) {
     // PAQ-1.1 : liste des paquets de l'utilisateur courant.
     $routeur->ajouter('GET', '/api/paquets', array($paquet_controleur, 'lister_mes_paquets'));
 
+    // PAQ-1.2 : creation d'un nouveau paquet.
+    $routeur->ajouter('POST', '/api/paquets', array($paquet_controleur, 'creer'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });

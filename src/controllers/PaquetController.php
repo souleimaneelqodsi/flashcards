@@ -61,4 +61,82 @@ class PaquetController extends BaseController
 
         $this->repondre(array('paquets' => $paquets_array), 200);
     }
+
+    /**
+     * POST /api/paquets (PAQ-1.2).
+     *
+     * Cree un nouveau paquet pour l'utilisateur courant.
+     *
+     *  1. Verifie le token CSRF (action mutante).
+     *  2. Verifie l'authentification (sinon 401).
+     *  3. Lit le corps JSON (titre, theme).
+     *  4. Valide cote serveur (regles partagees, cf. valider_donnees_paquet).
+     *  5. Instancie le paquet via la Factory `Paquet::creer` (date de
+     *     creation positionnee au jour courant, scores a null).
+     *  6. Persiste via le Repository (patron Repository).
+     *  7. Repond 201 Created avec le paquet (toArray).
+     */
+    public function creer()
+    {
+        Csrf::verifier_requete();
+        $id_user = $this->verifier_authentifie();
+
+        $donnees = $this->lire_corps_json();
+        $titre = isset($donnees['titre']) ? trim($donnees['titre']) : '';
+        $theme = isset($donnees['theme']) ? trim($donnees['theme']) : '';
+
+        $erreurs = $this->valider_donnees_paquet($titre, $theme);
+        if (count($erreurs) > 0) {
+            $this->repondre(array('erreurs' => $erreurs), 400);
+            return;
+        }
+
+        // Instanciation via la Factory (patron Factory). La date de
+        // creation et l'id du proprietaire sont fixes ici : on ne fait pas
+        // confiance au client pour ces deux champs.
+        $paquet = Paquet::creer($titre, $theme, $id_user);
+
+        $paquet = $this->paquets->creer($paquet);
+
+        $this->repondre(
+            array(
+                'message' => 'Paquet cree.',
+                'paquet'  => $paquet->toArray()
+            ),
+            201
+        );
+    }
+
+    // ── Validation serveur partagee (PAQ-1.5) ────────────────────────
+
+    /**
+     * Valide les champs d'un paquet (creation et edition).
+     *
+     * Regles (CLAUDE.md sec. 4 et sec. 6) :
+     *  - titre : obligatoire, <= 150 caracteres ;
+     *  - theme : facultatif, mais si fourni <= 100 caracteres.
+     *
+     * Renvoie un tableau "champ" => "message" pour que le client
+     * puisse afficher chaque erreur sous le bon champ (pattern impose).
+     *
+     * @param string $titre Titre saisi (deja trim).
+     * @param string $theme Theme saisi (deja trim, peut etre vide).
+     * @return array<string,string>
+     */
+    private function valider_donnees_paquet($titre, $theme)
+    {
+        $erreurs = array();
+
+        if ($titre === '') {
+            $erreurs['titre'] = 'Le titre est obligatoire.';
+        } else if (strlen($titre) > 150) {
+            $erreurs['titre'] = 'Le titre est trop long (150 caracteres maximum).';
+        }
+
+        if ($theme !== '' && strlen($theme) > 100) {
+            $erreurs['theme'] = 'Le theme est trop long (100 caracteres maximum).';
+        }
+
+        return $erreurs;
+    }
 }
