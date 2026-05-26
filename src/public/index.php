@@ -60,24 +60,27 @@ if ($est_appel_api) {
     require_once __DIR__ . '/../core/Response.php';
     require_once __DIR__ . '/../core/Router.php';
     require_once __DIR__ . '/../controllers/AuthController.php';
+    require_once __DIR__ . '/../controllers/PaquetController.php';
 
     // Methode HTTP de la requete (GET, POST, ...).
     $methode = $_SERVER['REQUEST_METHOD'];
 
-    // Construction du routeur et enregistrement des routes. Les routes d'auth
-    // (AUTH-1) delegüent a AuthController : ce sont encore des mocks (pas de
-    // BD ni de BCRYPT), ils respectent juste le contrat d'API attendu par le
-    // front. Les autres routes restent des stubs inline pour l'instant.
+    // Construction du routeur et enregistrement des routes.
+    //  - routes d'auth (AUTH-2) : delegue a AuthController.
+    //  - routes paquets (PAQ-1) : CRUD delegue a PaquetController.
+    //  - route profil : stub en attendant la macro suivante.
     $routeur = new Router();
     $auth_controleur = new AuthController();
+    $paquet_controleur = new PaquetController();
 
     $routeur->ajouter('POST', '/api/auth/inscription', array($auth_controleur, 'inscription'));
     $routeur->ajouter('POST', '/api/auth/connexion', array($auth_controleur, 'connexion'));
     $routeur->ajouter('POST', '/api/auth/deconnexion', array($auth_controleur, 'deconnexion'));
     $routeur->ajouter('GET', '/api/auth/moi', array($auth_controleur, 'moi'));
-    $routeur->ajouter('GET', '/api/paquets', function () {
-        Response::json(array('message' => 'stub liste des paquets', 'paquets' => array()), 200);
-    });
+
+    // PAQ-1.1 : liste des paquets de l'utilisateur courant.
+    $routeur->ajouter('GET', '/api/paquets', array($paquet_controleur, 'lister_mes_paquets'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });
