@@ -187,6 +187,53 @@ class QuestionController extends BaseController
         );
     }
 
+    /**
+     * DELETE /api/questions/:id (QST-1.3).
+     *
+     * Supprime une question. Comme pour PUT, le controle d'acces se fait
+     * via le paquet parent.
+     *
+     *  1. CSRF + auth.
+     *  2. id_question valide.
+     *  3. Charge la question. 404 si introuvable.
+     *  4. Charge le paquet parent. Verifie proprietaire (sinon 403).
+     *  5. Supprime via le Repository.
+     *  6. Repond 200.
+     *
+     * @param array $params Parametres extraits du chemin (`id`).
+     */
+    public function supprimer($params)
+    {
+        Csrf::verifier_requete();
+        $id_user = $this->verifier_authentifie();
+
+        $id_question = $this->lire_id_route($params, 'id');
+        if ($id_question === null) {
+            $this->repondre(array('erreur' => 'Identifiant de question invalide.'), 400);
+            return;
+        }
+
+        $question = $this->questions->trouver_par_id($id_question);
+        if ($question === null) {
+            $this->repondre(array('erreur' => 'Question introuvable.'), 404);
+            return;
+        }
+
+        $paquet = $this->paquets->trouver_par_id($question->getIdPaquet());
+        if ($paquet === null) {
+            $this->repondre(array('erreur' => 'Paquet parent introuvable.'), 404);
+            return;
+        }
+        if ($paquet->getIdProprietaire() !== $id_user) {
+            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            return;
+        }
+
+        $this->questions->supprimer($id_question);
+
+        $this->repondre(array('message' => 'Question supprimee.'), 200);
+    }
+
     // ── Validation serveur centralisee (QST-1.5) ─────────────────────
 
     /**

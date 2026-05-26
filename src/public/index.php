@@ -118,6 +118,9 @@ if ($est_appel_api) {
     // QST-1.2 : edition d'une question (controle proprietaire via paquet parent).
     $routeur->ajouter('PUT', '/api/questions/:id', array($question_controleur, 'mettre_a_jour'));
 
+    // QST-1.3 : suppression d'une question (controle proprietaire via paquet parent).
+    $routeur->ajouter('DELETE', '/api/questions/:id', array($question_controleur, 'supprimer'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });
