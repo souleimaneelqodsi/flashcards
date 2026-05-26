@@ -30,6 +30,7 @@ $csrf_token = Csrf::obtenir();
     <link rel="stylesheet" href="css/edition-paquet.css">
     <link rel="stylesheet" href="css/study.css">
     <link rel="stylesheet" href="css/profil.css">
+    <link rel="stylesheet" href="css/share-modal.css">
 </head>
 <body>
     <div id="app">
@@ -728,6 +729,51 @@ $csrf_token = Csrf::obtenir();
     </div>
 
     <!-- ════════════════════════════════════════════════
+         Modale de partage d'un paquet (SHARE-1.4).
+         Reference visuelle : project-files/interface/share_bag.png.
+         Auto-completion en jQuery vanilla (keyup + ajax + render),
+         pas de jQuery UI (lib externe hors stack). La logique est
+         dans js/share-modal.js ; le point d'entree global est
+         window.ouvrir_modale_partage(id_paquet, titre).
+    ════════════════════════════════════════════════ -->
+    <div class="modale-overlay" id="modale-partage" role="dialog" aria-modal="true" aria-labelledby="titre-modale-partage" hidden>
+        <div class="modale-boite modale-boite-partage">
+            <div class="modale-titre-row">
+                <div>
+                    <h3 class="modale-titre" id="titre-modale-partage">Partager ce paquet</h3>
+                    <p class="modale-sous-titre" id="partage-sous-titre"></p>
+                </div>
+                <button type="button" class="btn-fermer-modale" id="partage-bouton-fermer" aria-label="Fermer la modale">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modale-corps">
+                <label class="partage-label" for="partage-recherche">Rechercher un utilisateur</label>
+                <div class="partage-input-wrap">
+                    <svg class="partage-input-icone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+                    </svg>
+                    <input type="text" id="partage-recherche" class="form-control partage-input" placeholder="Email ou debut d'email..." autocomplete="off">
+                </div>
+                <div class="partage-resultats" id="partage-resultats" role="listbox" aria-label="Resultats de recherche"></div>
+                <p class="partage-info-bandeau" id="partage-info-bandeau">Le destinataire recevra un acces en lecture seule. Chaque utilisateur garde ses propres scores et progressions.</p>
+            </div>
+
+            <div class="recap-erreurs modale-recap-erreurs" id="partage-recap-erreurs" hidden></div>
+
+            <div class="modale-actions">
+                <button type="button" class="btn btn-secondary" id="partage-bouton-annuler">Annuler</button>
+                <button type="button" class="btn btn-primary" id="partage-bouton-confirmer" disabled>Partager</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
          Modale de confirmation de suppression (FRONT-2.4).
          Affichee avant toute suppression destructrice d'une question
          pour eviter les clics accidentels.
@@ -760,6 +806,7 @@ $csrf_token = Csrf::obtenir();
     <script src="js/router.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/edition-paquet.js"></script>
+    <script src="js/share-modal.js"></script>
     <script src="js/study.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/session.js"></script>

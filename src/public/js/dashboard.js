@@ -60,7 +60,7 @@ function naviguer_vers_paquet(id_paquet) {
 // cliquable (cf. DASH-1.6) : un clic sur le fond ou le titre amene a
 // l'ecran de visualisation ; les boutons internes stoppent la
 // propagation pour conserver leur propre action.
-function rendre_carte_paquet(paquet) {
+function rendre_carte_paquet(paquet, est_proprietaire) {
     // Le backend renvoie last_score et best_score a null tant qu'aucune
     // session n'a ete jouee, et le nombre de cartes n'est pas encore
     // expose par l'API (endpoint dedie hors scope DASH-2). On expose des
@@ -137,21 +137,38 @@ function rendre_carte_paquet(paquet) {
         .attr("type", "button")
         .addClass("btn btn-primary btn-sm")
         .text("Reviser");
-    var bouton_editer = $("<button></button>")
-        .attr("type", "button")
-        .addClass("btn btn-secondary btn-sm")
-        .text("Editer");
-    // Les boutons internes ont leurs propres actions (a venir en FULL-2)
-    // : ils stoppent la propagation du clic pour ne pas declencher la
-    // navigation de la carte vers l'ecran de visualisation.
     bouton_reviser.on("click", function (evenement) {
         evenement.stopPropagation();
     });
-    bouton_editer.on("click", function (evenement) {
-        evenement.stopPropagation();
-    });
     actions.append(bouton_reviser);
-    actions.append(bouton_editer);
+
+    // Boutons Editer / Partager : reserves au proprietaire. La colonne
+    // "Partages avec moi" ne propose ni l'edition ni le re-partage : un
+    // destinataire est un consommateur du paquet, pas un co-proprietaire.
+    if (est_proprietaire) {
+        var bouton_editer = $("<button></button>")
+            .attr("type", "button")
+            .addClass("btn btn-secondary btn-sm")
+            .text("Editer");
+        bouton_editer.on("click", function (evenement) {
+            evenement.stopPropagation();
+        });
+        actions.append(bouton_editer);
+
+        // Partager : ouvre la modale share-modal.js (SHARE-1.4).
+        var bouton_partager = $("<button></button>")
+            .attr("type", "button")
+            .addClass("btn btn-secondary btn-sm")
+            .text("Partager");
+        bouton_partager.on("click", function (evenement) {
+            evenement.stopPropagation();
+            if (typeof window.ouvrir_modale_partage === "function") {
+                window.ouvrir_modale_partage(paquet.id_paquet, paquet.titre);
+            }
+        });
+        actions.append(bouton_partager);
+    }
+
     carte.append(actions);
 
     return carte;
@@ -159,10 +176,12 @@ function rendre_carte_paquet(paquet) {
 
 // ── Affichage d'une liste de paquets dans une colonne ──────────
 // Vide le conteneur, met a jour le compteur, puis insere les cartes
-// (deja triees par date desc). Affiche un etat vide si la liste est
-// vide. Le parametre id_compteur est l'identifiant du badge a mettre
-// a jour ("compteur-mes-paquets" ou "compteur-partages").
-function afficher_paquets(paquets, id_conteneur, id_compteur, texte_vide) {
+// (deja triees par date desc cote serveur). Affiche un etat vide si la
+// liste est vide. Le parametre `est_proprietaire` est passe au renderer
+// pour decider d'afficher ou non les actions reservees au proprietaire
+// (Editer, Partager) : true pour la colonne "Mes paquets", false pour
+// "Partages avec moi".
+function afficher_paquets(paquets, id_conteneur, id_compteur, texte_vide, est_proprietaire) {
     var conteneur = $("#" + id_conteneur);
     conteneur.empty();
     $("#" + id_compteur).text(paquets.length);
@@ -176,7 +195,7 @@ function afficher_paquets(paquets, id_conteneur, id_compteur, texte_vide) {
 
     var i;
     for (i = 0; i < paquets.length; i = i + 1) {
-        conteneur.append(rendre_carte_paquet(paquets[i]));
+        conteneur.append(rendre_carte_paquet(paquets[i], est_proprietaire));
     }
 }
 
@@ -260,7 +279,8 @@ function charger_mes_paquets() {
                 paquets,
                 "liste-mes-paquets",
                 "compteur-mes-paquets",
-                "Aucun paquet pour le moment."
+                "Aucun paquet pour le moment.",
+                true
             );
         },
         erreur: function (xhr, message) {
@@ -292,7 +312,8 @@ function charger_partages_avec_moi() {
                 paquets,
                 "liste-partages",
                 "compteur-partages",
-                "Aucun paquet partage."
+                "Aucun paquet partage.",
+                false
             );
         },
         erreur: function (xhr, message) {
