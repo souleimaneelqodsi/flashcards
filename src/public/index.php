@@ -121,6 +121,9 @@ if ($est_appel_api) {
     // QST-1.3 : suppression d'une question (controle proprietaire via paquet parent).
     $routeur->ajouter('DELETE', '/api/questions/:id', array($question_controleur, 'supprimer'));
 
+    // QST-1.4 : liste des questions d'un paquet (acces proprietaire-ou-destinataire).
+    $routeur->ajouter('GET', '/api/paquets/:id/questions', array($question_controleur, 'lister_par_paquet'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });

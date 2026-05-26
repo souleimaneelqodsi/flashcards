@@ -5,6 +5,7 @@ require_once __DIR__ . '/../core/BaseController.php';
 require_once __DIR__ . '/../core/Csrf.php';
 require_once __DIR__ . '/../repositories/PaquetRepository.php';
 require_once __DIR__ . '/../repositories/QuestionRepository.php';
+require_once __DIR__ . '/../repositories/PartageRepository.php';
 require_once __DIR__ . '/../repositories/DifficulteRepository.php';
 require_once __DIR__ . '/../models/Question.php';
 
@@ -41,11 +42,15 @@ class QuestionController extends BaseController
     /** @var DifficulteRepository */
     private $difficultes;
 
+    /** @var PartageRepository */
+    private $partages;
+
     public function __construct()
     {
         $this->paquets     = new PaquetRepository();
         $this->questions   = new QuestionRepository();
         $this->difficultes = new DifficulteRepository();
+        $this->partages    = new PartageRepository();
     }
 
     /**
@@ -232,6 +237,60 @@ class QuestionController extends BaseController
         $this->questions->supprimer($id_question);
 
         $this->repondre(array('message' => 'Question supprimee.'), 200);
+    }
+
+    /**
+     * GET /api/paquets/:id/questions (QST-1.4).
+     *
+     * Liste les questions d'un paquet. Accessible au proprietaire OU a
+     * un destinataire de partage (meme regle d'acces que VIEW-1.2 :
+     * un destinataire peut consulter le contenu du paquet, sinon il ne
+     * pourrait pas reviser).
+     *
+     *  1. Auth (sinon 401). GET donc pas de CSRF.
+     *  2. id_paquet valide (route).
+     *  3. Paquet existe (404).
+     *  4. Acces : proprietaire OU destinataire (sinon 403).
+     *  5. Liste les questions via Repository (deja triees par
+     *     id_question ASC dans QuestionRepository::trouver_par_paquet).
+     *  6. Repond 200 avec un tableau `questions`.
+     *
+     * @param array $params Parametres extraits du chemin (`id`).
+     */
+    public function lister_par_paquet($params)
+    {
+        $id_user = $this->verifier_authentifie();
+
+        $id_paquet = $this->lire_id_route($params, 'id');
+        if ($id_paquet === null) {
+            $this->repondre(array('erreur' => 'Identifiant de paquet invalide.'), 400);
+            return;
+        }
+
+        $paquet = $this->paquets->trouver_par_id($id_paquet);
+        if ($paquet === null) {
+            $this->repondre(array('erreur' => 'Paquet introuvable.'), 404);
+            return;
+        }
+
+        // Acces autorise : proprietaire ou destinataire de partage.
+        $est_proprietaire = ($paquet->getIdProprietaire() === $id_user);
+        if (!$est_proprietaire) {
+            $est_destinataire = $this->partages->existe($id_paquet, $id_user);
+            if (!$est_destinataire) {
+                $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+                return;
+            }
+        }
+
+        $questions = $this->questions->trouver_par_paquet($id_paquet);
+
+        $questions_array = array();
+        foreach ($questions as $q) {
+            $questions_array[] = $q->toArray();
+        }
+
+        $this->repondre(array('questions' => $questions_array), 200);
     }
 
     // ── Validation serveur centralisee (QST-1.5) ─────────────────────
