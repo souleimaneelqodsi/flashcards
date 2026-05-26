@@ -69,6 +69,42 @@ class PaquetController extends BaseController
     }
 
     /**
+     * GET /api/paquets/shared (DASH-2.1).
+     *
+     * Liste les paquets partages AVEC l'utilisateur courant (i.e. les
+     * paquets dont il est destinataire d'un partage, sans en etre
+     * proprietaire).
+     *
+     * **Tri garanti cote serveur** : la clause `ORDER BY pa.date_partage
+     * DESC` est posee dans `PaquetRepository::trouver_partages_avec` ; le
+     * controleur n'applique aucun tri en PHP. Le front (`dashboard.js`)
+     * peut afficher la liste telle quelle.
+     *
+     * Rappel metier (CLAUDE.md sec. 4) : le partage transfere l'acces au
+     * **contenu**, pas la progression. Les champs `last_score` et
+     * `best_score` renvoyes sont ceux du **proprietaire** ; si le sujet
+     * exige une progression personnelle au destinataire, ce sera traite
+     * dans une table dediee a part (non couvert par DASH-2).
+     *
+     *  1. Verifie que l'utilisateur est authentifie (sinon 401).
+     *  2. Charge les paquets partages avec lui via le Repository.
+     *  3. Repond 200 avec un tableau `paquets`.
+     */
+    public function lister_partages_avec_moi()
+    {
+        $id_user = $this->verifier_authentifie();
+
+        $paquets = $this->paquets->trouver_partages_avec($id_user);
+
+        $paquets_array = array();
+        foreach ($paquets as $paquet) {
+            $paquets_array[] = $paquet->toArray();
+        }
+
+        $this->repondre(array('paquets' => $paquets_array), 200);
+    }
+
+    /**
      * POST /api/paquets (PAQ-1.2).
      *
      * Cree un nouveau paquet pour l'utilisateur courant.

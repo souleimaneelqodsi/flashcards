@@ -81,6 +81,12 @@ if ($est_appel_api) {
     // PAQ-1.1 : liste des paquets de l'utilisateur courant.
     $routeur->ajouter('GET', '/api/paquets', array($paquet_controleur, 'lister_mes_paquets'));
 
+    // DASH-2.1 : liste des paquets partages avec l'utilisateur courant.
+    // Doit etre enregistre AVANT toute route a placeholders sur /api/paquets/:id :
+    // la table des routes exactes est verifiee en premier par le routeur,
+    // donc "/api/paquets/shared" tombera bien ici et pas dans le PUT/DELETE :id.
+    $routeur->ajouter('GET', '/api/paquets/shared', array($paquet_controleur, 'lister_partages_avec_moi'));
+
     // PAQ-1.2 : creation d'un nouveau paquet.
     $routeur->ajouter('POST', '/api/paquets', array($paquet_controleur, 'creer'));
 
