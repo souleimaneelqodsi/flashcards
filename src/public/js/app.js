@@ -182,12 +182,21 @@ function enregistrer_routes() {
     });
 
     // Creation d'un nouveau paquet et edition d'un paquet existant partagent
-    // la meme vue d'edition. #edit-paquet accepte un id en suffixe.
+    // la meme vue d'edition. #edit-paquet accepte un id en suffixe. Le
+    // mode (creation vs edition) est detecte par edition-paquet.js a partir
+    // du hash courant (PAQ-2.2), qui se charge aussi du pre-remplissage
+    // du formulaire en mode edition via GET /api/paquets/:id.
     Router.ajouter("#nouveau-paquet", function () {
         afficher_vue(VUE_EDITION_PAQUET);
+        if (typeof window.afficher_edition_paquet === "function") {
+            window.afficher_edition_paquet();
+        }
     });
     Router.ajouter("#edit-paquet", function () {
         afficher_vue(VUE_EDITION_PAQUET);
+        if (typeof window.afficher_edition_paquet === "function") {
+            window.afficher_edition_paquet();
+        }
     });
     Router.ajouter_avec_id("#edit-paquet");
 

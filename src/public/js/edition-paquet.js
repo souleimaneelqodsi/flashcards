@@ -37,6 +37,13 @@ var modale_id_question_courante = null;
 // suppression (cible de la modale #modale-confirmation-suppression).
 var id_question_a_supprimer = null;
 
+// ── Etat du paquet en cours d'edition (PAQ-2.2) ────────────────
+// "creation" pour POST /api/paquets, "edition" pour PUT /api/paquets/:id.
+// L'id n'est renseigne qu'en mode edition. Reinitialise a chaque entree
+// dans la vue par afficher_edition_paquet() (appele par le router).
+var paquet_mode = "creation";
+var paquet_id_courant = null;
+
 // ── Selection visuelle d'une difficulte dans la modale ────────
 function selectionner_difficulte_modale(niveau) {
     $("#" + ID_FORM + " .badge-diff").removeClass("active").attr("aria-checked", "false");
@@ -284,6 +291,221 @@ function synchroniser_apercu() {
     $("#apercu-theme").text(theme);
 }
 
+// ── Branchement API (PAQ-2.2) ────────────────────────────────
+// Detecte le mode courant en lisant window.location.hash :
+//   #nouveau-paquet         -> mode "creation" (POST /api/paquets).
+//   #edit-paquet-<id>       -> mode "edition" (PUT /api/paquets/:id).
+// Conserve l'id du paquet en cours d'edition pour le PUT et pour la
+// redirection vers la vue de visualisation apres succes.
+function detecter_mode_edition() {
+    var hash = window.location.hash;
+    var prefixe_edition = "#edit-paquet-";
+    if (hash.indexOf(prefixe_edition) === 0) {
+        var suffixe = hash.substring(prefixe_edition.length);
+        if (suffixe.match(/^[0-9]+$/)) {
+            paquet_mode = "edition";
+            paquet_id_courant = parseInt(suffixe, 10);
+            return;
+        }
+    }
+    paquet_mode = "creation";
+    paquet_id_courant = null;
+}
+
+// Remet le formulaire a vide : utilise a l'entree en mode creation pour
+// effacer les valeurs initiales statiques de app.php (titre stub, theme
+// stub) qui ne servaient qu'a illustrer le rendu du mockup.
+function reinitialiser_form_paquet() {
+    $("#paquet-titre").val("").removeClass("champ-invalide");
+    $("#paquet-theme").val("");
+    $("#erreur-paquet-titre").attr("hidden", "hidden");
+    $("#recap-erreurs-paquet").attr("hidden", "hidden");
+    $("#liste-erreurs-paquet").empty();
+    $("#paquet-titre-counter").text("0");
+    synchroniser_apercu();
+}
+
+// Mode edition : recupere le paquet depuis l'API et pre-remplit le
+// formulaire. En cas d'erreur (paquet inexistant, acces refuse), on
+// affiche un toast et on bascule vers le dashboard.
+function charger_paquet_pour_edition(id_paquet) {
+    AjaxService.get("paquets/" + id_paquet, undefined, {
+        succes: function (reponse) {
+            // Reponse VIEW-1.2 : { paquet, proprietaire, destinataires, est_proprietaire }
+            if (!reponse || !reponse.paquet) {
+                rediriger_apres_erreur("Paquet introuvable.");
+                return;
+            }
+            if (reponse.est_proprietaire !== true) {
+                rediriger_apres_erreur("Vous n'etes pas proprietaire de ce paquet.");
+                return;
+            }
+            var paquet = reponse.paquet;
+            $("#paquet-titre").val(paquet.titre || "");
+            $("#paquet-theme").val(paquet.theme || "");
+            $("#paquet-titre-counter").text((paquet.titre || "").length);
+            $("#titre-edition-paquet").text("Editer un paquet");
+            synchroniser_apercu();
+            valider_titre_paquet();
+        },
+        erreur: function (xhr, message) {
+            rediriger_apres_erreur(message);
+        }
+    });
+}
+
+function rediriger_apres_erreur(message) {
+    if (window.Toast && typeof window.Toast.afficher === "function") {
+        window.Toast.afficher(message, "erreur");
+    }
+    window.location.hash = "#dashboard";
+}
+
+// Point d'entree appele par le router au changement de hash. Configure
+// la vue selon le mode courant. Expose en global pour app.js.
+function afficher_edition_paquet() {
+    detecter_mode_edition();
+    if (paquet_mode === "creation") {
+        $("#titre-edition-paquet").text("Nouveau paquet");
+        reinitialiser_form_paquet();
+    } else {
+        // Mode edition : reset puis fetch + populate.
+        reinitialiser_form_paquet();
+        $("#titre-edition-paquet").text("Chargement...");
+        charger_paquet_pour_edition(paquet_id_courant);
+    }
+}
+window.afficher_edition_paquet = afficher_edition_paquet;
+
+// Affiche un tableau d'erreurs dans le recap pied de formulaire.
+function afficher_erreurs_form(messages) {
+    var liste = $("#liste-erreurs-paquet");
+    liste.empty();
+    var i;
+    for (i = 0; i < messages.length; i = i + 1) {
+        liste.append($("<li></li>").text(messages[i]));
+    }
+    if (messages.length > 0) {
+        $("#recap-erreurs-paquet").removeAttr("hidden");
+    } else {
+        $("#recap-erreurs-paquet").attr("hidden", "hidden");
+    }
+}
+
+// Marque visuellement un champ comme invalide (pattern impose CLAUDE.md
+// §6 : .champ-invalide + message visible). On cible titre et theme.
+function marquer_champ_invalide(id_champ, id_message, texte) {
+    $("#" + id_champ).addClass("champ-invalide");
+    if (id_message) {
+        $("#" + id_message).text(texte).removeAttr("hidden");
+    }
+}
+
+// Envoie le formulaire vers l'API selon le mode courant.
+function enregistrer_paquet() {
+    // Validation cliente : titre obligatoire <= 150 (FRONT-2.5).
+    var titre_ok = valider_titre_paquet();
+    if (!titre_ok) {
+        afficher_erreurs_form(["Le titre est obligatoire (150 caracteres maximum)."]);
+        $("#paquet-titre").focus();
+        return;
+    }
+    afficher_erreurs_form([]);
+
+    var titre = $("#paquet-titre").val().replace(/^\s+|\s+$/g, "");
+    var theme = $("#paquet-theme").val();
+    if (typeof theme !== "string") {
+        theme = "";
+    }
+    theme = theme.replace(/^\s+|\s+$/g, "");
+
+    var payload = { titre: titre, theme: theme };
+
+    // Le mode est lu une derniere fois pour eviter un decalage si le hash
+    // a change entre l'entree dans la vue et le clic sur Enregistrer.
+    detecter_mode_edition();
+
+    if (paquet_mode === "edition") {
+        envoyer_put(payload);
+    } else {
+        envoyer_post(payload);
+    }
+}
+
+function envoyer_post(payload) {
+    AjaxService.post("paquets", payload, {
+        succes: function (reponse) {
+            apres_succes(reponse, "Paquet cree.");
+        },
+        erreur: function (xhr, message) {
+            traiter_erreur_form(xhr, message);
+        }
+    });
+}
+
+function envoyer_put(payload) {
+    if (paquet_id_courant === null) {
+        afficher_erreurs_form(["Identifiant de paquet manquant."]);
+        return;
+    }
+    AjaxService.put("paquets/" + paquet_id_courant, payload, {
+        succes: function (reponse) {
+            apres_succes(reponse, "Paquet mis a jour.");
+        },
+        erreur: function (xhr, message) {
+            traiter_erreur_form(xhr, message);
+        }
+    });
+}
+
+// Succes : toast + redirection vers la vue de visualisation du paquet.
+function apres_succes(reponse, message_succes) {
+    if (window.Toast && typeof window.Toast.afficher === "function") {
+        window.Toast.afficher(message_succes, "succes");
+    }
+    var id_cible = paquet_id_courant;
+    if (reponse && reponse.paquet && reponse.paquet.id_paquet) {
+        id_cible = reponse.paquet.id_paquet;
+    }
+    if (id_cible !== null && id_cible !== undefined) {
+        window.location.hash = "#visualisation-paquet-" + id_cible;
+    } else {
+        window.location.hash = "#dashboard";
+    }
+}
+
+// Erreur API : decode les erreurs serveur si format { erreurs: {champ: msg}}
+// (cas validation 400 - PAQ-1.5) et les affiche sur les champs + recap.
+function traiter_erreur_form(xhr, message_par_defaut) {
+    // Reset visuel des champs.
+    $("#paquet-titre").removeClass("champ-invalide");
+    $("#erreur-paquet-titre").attr("hidden", "hidden");
+
+    var messages = [];
+
+    if (xhr.responseJSON && typeof xhr.responseJSON === "object") {
+        var corps = xhr.responseJSON;
+        if (corps.erreurs && typeof corps.erreurs === "object") {
+            if (corps.erreurs.titre) {
+                marquer_champ_invalide("paquet-titre", "erreur-paquet-titre", corps.erreurs.titre);
+                messages.push(corps.erreurs.titre);
+            }
+            if (corps.erreurs.theme) {
+                $("#paquet-theme").addClass("champ-invalide");
+                messages.push(corps.erreurs.theme);
+            }
+        } else if (typeof corps.erreur === "string") {
+            messages.push(corps.erreur);
+        }
+    }
+
+    if (messages.length === 0) {
+        messages.push(message_par_defaut);
+    }
+
+    afficher_erreurs_form(messages);
+}
+
 // ── Initialisation au chargement du DOM ───────────────────────
 $(function () {
 
@@ -297,21 +519,13 @@ $(function () {
         synchroniser_apercu();
     });
 
-    // Clic sur "Enregistrer le paquet" : on valide au moins le titre
-    // avant tout envoi reseau. La persistance reelle (POST/PUT /api/
-    // paquets) viendra en FULL-2.5 / FULL-2.6 avec branchement AJAX.
+    // Clic sur "Enregistrer le paquet" (PAQ-2.2). Selon le mode courant
+    // (creation vs edition), envoie POST ou PUT vers l'API. La validation
+    // dynamique du titre (FRONT-2.5) reste le pre-filtre cote client ;
+    // les eventuelles erreurs serveur (longueur, autre regle metier)
+    // sont affichees dans le meme recap-erreurs-paquet.
     $("#btn-enregistrer-paquet").on("click", function () {
-        var titre_ok = valider_titre_paquet();
-        var liste_erreurs = $("#liste-erreurs-paquet");
-        liste_erreurs.empty();
-        if (!titre_ok) {
-            liste_erreurs.append($("<li></li>").text("Le titre est obligatoire (150 caracteres maximum)."));
-            $("#recap-erreurs-paquet").removeAttr("hidden");
-            $("#paquet-titre").focus();
-            return;
-        }
-        $("#recap-erreurs-paquet").attr("hidden", "hidden");
-        // TODO FULL-2.5 / FULL-2.6 : envoi AJAX (POST ou PUT).
+        enregistrer_paquet();
     });
 
     // Ouverture de la modale au clic sur "+ Ajouter une question".
