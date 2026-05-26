@@ -61,6 +61,7 @@ if ($est_appel_api) {
     require_once __DIR__ . '/../core/Router.php';
     require_once __DIR__ . '/../controllers/AuthController.php';
     require_once __DIR__ . '/../controllers/PaquetController.php';
+    require_once __DIR__ . '/../controllers/UtilisateurController.php';
 
     // Methode HTTP de la requete (GET, POST, ...).
     $methode = $_SERVER['REQUEST_METHOD'];
@@ -72,6 +73,7 @@ if ($est_appel_api) {
     $routeur = new Router();
     $auth_controleur = new AuthController();
     $paquet_controleur = new PaquetController();
+    $utilisateur_controleur = new UtilisateurController();
 
     $routeur->ajouter('POST', '/api/auth/inscription', array($auth_controleur, 'inscription'));
     $routeur->ajouter('POST', '/api/auth/connexion', array($auth_controleur, 'connexion'));
@@ -95,6 +97,9 @@ if ($est_appel_api) {
 
     // PAQ-1.4 : suppression en cascade (questions + partages + paquet).
     $routeur->ajouter('DELETE', '/api/paquets/:id', array($paquet_controleur, 'supprimer'));
+
+    // SHARE-1.1 : auto-completion d'email pour le partage de paquet.
+    $routeur->ajouter('GET', '/api/users/search', array($utilisateur_controleur, 'search'));
 
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
