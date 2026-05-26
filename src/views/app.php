@@ -31,6 +31,7 @@ $csrf_token = Csrf::obtenir();
     <link rel="stylesheet" href="css/study.css">
     <link rel="stylesheet" href="css/profil.css">
     <link rel="stylesheet" href="css/share-modal.css">
+    <link rel="stylesheet" href="css/visualisation-paquet.css">
 </head>
 <body>
     <div id="app">
@@ -169,6 +170,18 @@ $csrf_token = Csrf::obtenir();
                      deplace dans js/dashboard.js (afficher_dashboard) pour
                      pouvoir etre rejoue a chaque navigation. -->
                 <div class="page-body" id="view"></div>
+
+                <!-- ════════════════════════════════════════════════
+                     VUE : Visualisation d'un paquet (VIEW-1.3)
+                     Affiche le titre, la date d'ajout, le proprietaire,
+                     la liste des destinataires (chips). Si l'utilisateur
+                     courant est proprietaire : liens Editer / Supprimer
+                     / Partager + bouton Reviser. Sinon : Reviser
+                     uniquement. Le contenu est injecte par
+                     js/visualisation-paquet.js (afficher_visualisation_paquet)
+                     a partir de GET /api/paquets/:id.
+                ════════════════════════════════════════════════ -->
+                <section class="page-body view-screen" id="vue-visualisation-paquet" hidden></section>
 
                 <!-- ════════════════════════════════════════════════
                      VUE : Edition d'un paquet (FRONT-2.1 - 2.5)
@@ -807,6 +820,7 @@ $csrf_token = Csrf::obtenir();
     <script src="js/dashboard.js"></script>
     <script src="js/edition-paquet.js"></script>
     <script src="js/share-modal.js"></script>
+    <script src="js/visualisation-paquet.js"></script>
     <script src="js/study.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/session.js"></script>

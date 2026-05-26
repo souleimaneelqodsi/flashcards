@@ -18,6 +18,7 @@ var VUE_FIN_SESSION = "vue-fin-session";
 var VUE_LOGIN = "vue-login";
 var VUE_REGISTER = "vue-register";
 var VUE_PROFIL = "vue-profil";
+var VUE_VISUALISATION_PAQUET = "vue-visualisation-paquet";
 var TOUTES_LES_VUES = [
     VUE_DASHBOARD,
     VUE_EDITION_PAQUET,
@@ -25,7 +26,8 @@ var TOUTES_LES_VUES = [
     VUE_FIN_SESSION,
     VUE_LOGIN,
     VUE_REGISTER,
-    VUE_PROFIL
+    VUE_PROFIL,
+    VUE_VISUALISATION_PAQUET
 ];
 
 // Affiche une vue (section) et masque toutes les autres.
@@ -201,11 +203,14 @@ function enregistrer_routes() {
     });
     Router.ajouter_avec_id("#fin-session");
 
-    // Visualisation d'un paquet (#visualisation-paquet-<id>) : la vraie vue
-    // n'est pas encore construite, on affiche un placeholder dans #view.
+    // Visualisation d'un paquet (#visualisation-paquet-<id>, VIEW-1.3) :
+    // l'ecran est construit en JS par visualisation-paquet.js a partir de
+    // GET /api/paquets/:id (VIEW-1.2).
     Router.ajouter("#visualisation-paquet", function () {
-        afficher_vue(VUE_DASHBOARD);
-        afficher_vue_placeholder("Visualisation du paquet", "Detail du paquet et liste des destinataires de partage.");
+        afficher_vue(VUE_VISUALISATION_PAQUET);
+        if (typeof window.afficher_visualisation_paquet === "function") {
+            window.afficher_visualisation_paquet();
+        }
     });
     Router.ajouter_avec_id("#visualisation-paquet");
 
