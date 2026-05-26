@@ -3,6 +3,9 @@ src/data/*.db
 src/data/*.db-journal
 *.sqbpro
 
+# Logs runtime de l'application (jamais commit, regeneres a chaque demarrage)
+src/data/app.log
+
 # OS files
 .DS_Store
 Thumbs.db
