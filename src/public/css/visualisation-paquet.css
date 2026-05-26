@@ -134,6 +134,27 @@
     max-width: 200px;
 }
 
+/* Bouton X de retrait sur un chip (VIEW-1.1). Visible uniquement pour
+   le proprietaire (le JS ne le rend pas sinon). */
+.chip-retirer {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--texte-secondaire);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.chip-retirer:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
 /* ── Avatar circulaire pour chip / meta personne ── */
 .chip-avatar {
     width: 28px;

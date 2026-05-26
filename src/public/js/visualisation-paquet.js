@@ -106,9 +106,12 @@
         vue.append(carte);
     }
 
-    // ── Rendu : chip d'un destinataire (lecture seule pour VIEW-1.3) ──
-    // VIEW-1.1 ajoutera un bouton X de retrait sur ce chip.
-    function rendre_chip_destinataire(utilisateur) {
+    // ── Rendu : chip d'un destinataire ─────────────────────────
+    // VIEW-1.3 : avatar + nom + email en lecture seule.
+    // VIEW-1.1 : ajoute un bouton X de retrait, visible uniquement si
+    // l'utilisateur courant est proprietaire (sinon il n'a pas le droit
+    // de retirer un destinataire, cf. SHARE-1.3 cote serveur).
+    function rendre_chip_destinataire(utilisateur, paquet, est_proprietaire) {
         var chip = $("<span></span>")
             .addClass("chip-destinataire")
             .attr("data-id-user", utilisateur.id_user);
@@ -123,11 +126,91 @@
         chip.append($("<span></span>").addClass("chip-nom").text(libelle));
         chip.append($("<span></span>").addClass("chip-email").text(utilisateur.email));
 
+        // Bouton X de retrait (VIEW-1.1) : seulement pour le proprietaire.
+        if (est_proprietaire) {
+            var bouton = $("<button></button>")
+                .attr("type", "button")
+                .addClass("chip-retirer")
+                .attr(
+                    "aria-label",
+                    "Retirer " + utilisateur.prenom + " " + utilisateur.nom
+                        + " du partage"
+                );
+            // SVG croix (icone constante, pas de contenu utilisateur).
+            bouton.html(
+                '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" '
+                + 'stroke="currentColor" stroke-width="3" stroke-linecap="round" '
+                + 'stroke-linejoin="round" aria-hidden="true">'
+                + '<line x1="18" y1="6" x2="6" y2="18"></line>'
+                + '<line x1="6" y1="6" x2="18" y2="18"></line></svg>'
+            );
+            bouton.on("click", function () {
+                retirer_destinataire(paquet, utilisateur, chip);
+            });
+            chip.append(bouton);
+        }
+
         return chip;
     }
 
+    // ── Retrait d'un destinataire (VIEW-1.1) ───────────────────
+    // 1. Confirmation utilisateur (action destructrice pour le partage).
+    // 2. Appel DELETE /api/paquets/:id/share/:userId (SHARE-1.3 serveur).
+    // 3. Sur succes : retire le chip du DOM, met a jour le compteur, et
+    //    affiche un toast. Sur erreur : toast d'erreur, le chip reste.
+    function retirer_destinataire(paquet, utilisateur, element_chip) {
+        var nom = utilisateur.prenom + " " + utilisateur.nom;
+        var message_confirm = "Retirer " + nom + " du partage de \""
+            + paquet.titre + "\" ? Cette personne perdra l'acces au paquet.";
+        if (!window.confirm(message_confirm)) {
+            return;
+        }
+
+        var chemin = "paquets/" + paquet.id_paquet + "/share/" + utilisateur.id_user;
+        AjaxService.supprimer(chemin, {
+            succes: function () {
+                element_chip.remove();
+                mettre_a_jour_compteur_destinataires();
+                if (window.Toast && typeof window.Toast.afficher === "function") {
+                    window.Toast.afficher(nom + " a ete retire du partage.", "succes");
+                }
+            },
+            erreur: function (xhr, message_erreur) {
+                if (window.Toast && typeof window.Toast.afficher === "function") {
+                    window.Toast.afficher(
+                        "Impossible de retirer " + nom + " : " + message_erreur,
+                        "erreur"
+                    );
+                }
+            }
+        });
+    }
+
+    // Recompte les chips restants dans la liste et met a jour le badge
+    // "N personne(s)" affiche dans l'en-tete de la section. On utilise
+    // .find() (explicite dans le perimetre cours) plutot que .children()
+    // (non listee).
+    function mettre_a_jour_compteur_destinataires() {
+        var conteneur = $("#vp-chips-liste");
+        var nb = conteneur.find(".chip-destinataire").length;
+        var libelle = nb + (nb > 1 ? " personnes" : " personne");
+        $(".vp-destinataires .vp-section-count").text(libelle);
+
+        // Si on vient de retirer le dernier destinataire, on affiche le
+        // message d'etat vide a la place de la liste.
+        if (nb === 0) {
+            var section = $(".vp-destinataires");
+            section.find(".vp-chips-liste").remove();
+            section.append(
+                $("<p></p>")
+                    .addClass("vp-section-empty")
+                    .text("Ce paquet n'est partage avec personne pour l'instant.")
+            );
+        }
+    }
+
     // ── Rendu : section "Destinataires de partage" ──────────────
-    function rendre_section_destinataires(destinataires, est_proprietaire) {
+    function rendre_section_destinataires(destinataires, est_proprietaire, paquet) {
         var section = $("<section></section>").addClass("vp-section vp-destinataires");
 
         var entete = $("<div></div>").addClass("vp-section-head");
@@ -158,7 +241,9 @@
             .attr("id", "vp-chips-liste");
         var i;
         for (i = 0; i < destinataires.length; i = i + 1) {
-            conteneur_chips.append(rendre_chip_destinataire(destinataires[i]));
+            conteneur_chips.append(
+                rendre_chip_destinataire(destinataires[i], paquet, est_proprietaire)
+            );
         }
         section.append(conteneur_chips);
 
@@ -345,7 +430,7 @@
         vue.append(rendre_entete(paquet, est_proprietaire));
         vue.append(rendre_barre_actions(paquet, est_proprietaire));
         vue.append(rendre_carte_infos(paquet, proprietaire));
-        vue.append(rendre_section_destinataires(destinataires, est_proprietaire));
+        vue.append(rendre_section_destinataires(destinataires, est_proprietaire, paquet));
     }
 
     // ── Point d'entree appele par le router ─────────────────────
