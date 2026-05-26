@@ -115,6 +115,9 @@ if ($est_appel_api) {
     // QST-1.1 : creation d'une question dans un paquet.
     $routeur->ajouter('POST', '/api/paquets/:id/questions', array($question_controleur, 'creer'));
 
+    // QST-1.2 : edition d'une question (controle proprietaire via paquet parent).
+    $routeur->ajouter('PUT', '/api/questions/:id', array($question_controleur, 'mettre_a_jour'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });

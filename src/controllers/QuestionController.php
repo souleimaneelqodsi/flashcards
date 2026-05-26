@@ -112,6 +112,81 @@ class QuestionController extends BaseController
         );
     }
 
+    /**
+     * PUT /api/questions/:id (QST-1.2).
+     *
+     * Edite une question existante (contenu_question, contenu_reponse,
+     * id_difficulte). Le controle d'acces se fait via le paquet parent :
+     * la question appartient a un paquet, dont on verifie le
+     * proprietaire.
+     *
+     *  1. CSRF + auth.
+     *  2. id_question valide (route).
+     *  3. Charge la question. 404 si introuvable.
+     *  4. Charge le paquet parent. Verifie proprietaire (sinon 403).
+     *  5. Lit + valide le corps JSON (validation centralisee QST-1.5).
+     *  6. Met a jour les champs et persiste.
+     *  7. Repond 200 avec la question modifiee.
+     *
+     * @param array $params Parametres extraits du chemin (`id`).
+     */
+    public function mettre_a_jour($params)
+    {
+        Csrf::verifier_requete();
+        $id_user = $this->verifier_authentifie();
+
+        $id_question = $this->lire_id_route($params, 'id');
+        if ($id_question === null) {
+            $this->repondre(array('erreur' => 'Identifiant de question invalide.'), 400);
+            return;
+        }
+
+        $question = $this->questions->trouver_par_id($id_question);
+        if ($question === null) {
+            $this->repondre(array('erreur' => 'Question introuvable.'), 404);
+            return;
+        }
+
+        // Controle proprietaire via le paquet parent.
+        $paquet = $this->paquets->trouver_par_id($question->getIdPaquet());
+        if ($paquet === null) {
+            // Cas defensif : question orpheline d'un paquet. Ne devrait
+            // pas arriver grace au cascade DELETE (PAQ-1.4) mais on
+            // protege quand meme.
+            $this->repondre(array('erreur' => 'Paquet parent introuvable.'), 404);
+            return;
+        }
+        if ($paquet->getIdProprietaire() !== $id_user) {
+            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            return;
+        }
+
+        $donnees = $this->lire_corps_json();
+        $contenu_question = $this->lire_chaine_corps($donnees, 'contenu_question');
+        $contenu_reponse  = $this->lire_chaine_corps($donnees, 'contenu_reponse');
+        $id_difficulte    = $this->lire_id_corps($donnees, 'id_difficulte');
+
+        $erreurs = $this->valider_donnees_question($contenu_question, $contenu_reponse, $id_difficulte);
+        if (count($erreurs) > 0) {
+            $this->repondre(array('erreurs' => $erreurs), 400);
+            return;
+        }
+
+        $question->setContenuQuestion($contenu_question);
+        $question->setContenuReponse($contenu_reponse);
+        $question->setIdDifficulte($id_difficulte);
+
+        $this->questions->mettre_a_jour($question);
+
+        $this->repondre(
+            array(
+                'message'  => 'Question mise a jour.',
+                'question' => $question->toArray()
+            ),
+            200
+        );
+    }
+
     // ── Validation serveur centralisee (QST-1.5) ─────────────────────
 
     /**
