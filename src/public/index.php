@@ -62,6 +62,7 @@ if ($est_appel_api) {
     require_once __DIR__ . '/../controllers/AuthController.php';
     require_once __DIR__ . '/../controllers/PaquetController.php';
     require_once __DIR__ . '/../controllers/UtilisateurController.php';
+    require_once __DIR__ . '/../controllers/QuestionController.php';
 
     // Methode HTTP de la requete (GET, POST, ...).
     $methode = $_SERVER['REQUEST_METHOD'];
@@ -74,6 +75,7 @@ if ($est_appel_api) {
     $auth_controleur = new AuthController();
     $paquet_controleur = new PaquetController();
     $utilisateur_controleur = new UtilisateurController();
+    $question_controleur = new QuestionController();
 
     $routeur->ajouter('POST', '/api/auth/inscription', array($auth_controleur, 'inscription'));
     $routeur->ajouter('POST', '/api/auth/connexion', array($auth_controleur, 'connexion'));
@@ -109,6 +111,9 @@ if ($est_appel_api) {
 
     // SHARE-1.3 : retire un destinataire du partage (controle proprietaire).
     $routeur->ajouter('DELETE', '/api/paquets/:id/share/:userId', array($paquet_controleur, 'retirer_partage'));
+
+    // QST-1.1 : creation d'une question dans un paquet.
+    $routeur->ajouter('POST', '/api/paquets/:id/questions', array($question_controleur, 'creer'));
 
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
