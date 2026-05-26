@@ -236,7 +236,7 @@ $csrf_token = Csrf::obtenir();
                                 <div class="apercu-card">
                                     <div class="apercu-card-titre" id="apercu-titre">Bases de donnees relationnelles</div>
                                     <div class="apercu-card-theme" id="apercu-theme">SQL et modelisation</div>
-                                    <div class="apercu-card-count"><span id="apercu-count">2</span> cartes</div>
+                                    <div class="apercu-card-count"><span id="apercu-count">0</span> cartes</div>
                                 </div>
                             </div>
 
@@ -249,53 +249,16 @@ $csrf_token = Csrf::obtenir();
                         <!-- Colonne droite : liste des questions du paquet -->
                         <div class="edition-questions">
                             <div class="edition-questions-head">
-                                <h3 class="edition-section-titre">Questions (<span id="nb-questions">2</span>)</h3>
+                                <h3 class="edition-section-titre">Questions (<span id="nb-questions">0</span>)</h3>
                             </div>
 
-                            <div class="questions-liste" id="questions-liste">
-
-                                <!-- Question stub n°1 (FRONT-2.1 : structure et liste). Les
-                                     interactions (ajout, edition, suppression, validation)
-                                     viennent en FRONT-2.2 a 2.5. -->
-                                <article class="question-item" data-id-question="1">
-                                    <span class="question-numero">1</span>
-                                    <div class="question-corps">
-                                        <p class="question-titre">Qu'est-ce que la normalisation 3NF ?</p>
-                                        <p class="question-reponse-preview">Un schema est en 3NF si toute dependance fonctionnelle non triviale implique une cle.</p>
-                                        <div class="question-difficulte" role="radiogroup" aria-label="Difficulte de la question 1">
-                                            <button type="button" class="badge-diff badge-diff-facile active" data-difficulte="facile" role="radio" aria-checked="true">Facile</button>
-                                            <button type="button" class="badge-diff badge-diff-moyen" data-difficulte="moyen" role="radio" aria-checked="false">Moyen</button>
-                                            <button type="button" class="badge-diff badge-diff-difficile" data-difficulte="difficile" role="radio" aria-checked="false">Difficile</button>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn-supprimer-question" aria-label="Supprimer la question 1">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
-                                    </button>
-                                </article>
-
-                                <article class="question-item" data-id-question="2">
-                                    <span class="question-numero">2</span>
-                                    <div class="question-corps">
-                                        <p class="question-titre">Qu'est-ce qu'une jointure INNER JOIN ?</p>
-                                        <p class="question-reponse-preview">Retourne les lignes communes aux deux tables selon une condition de jointure.</p>
-                                        <div class="question-difficulte" role="radiogroup" aria-label="Difficulte de la question 2">
-                                            <button type="button" class="badge-diff badge-diff-facile" data-difficulte="facile" role="radio" aria-checked="false">Facile</button>
-                                            <button type="button" class="badge-diff badge-diff-moyen active" data-difficulte="moyen" role="radio" aria-checked="true">Moyen</button>
-                                            <button type="button" class="badge-diff badge-diff-difficile" data-difficulte="difficile" role="radio" aria-checked="false">Difficile</button>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn-supprimer-question" aria-label="Supprimer la question 2">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
-                                    </button>
-                                </article>
-
-                            </div>
+                            <!-- Liste des questions du paquet. Remplie par
+                                 js/edition-paquet.js a partir de GET
+                                 /api/paquets/:id/questions (QST-1.4 / QST-1.6)
+                                 en mode edition, ou laissee vide en mode
+                                 creation tant que le paquet n'est pas
+                                 enregistre. -->
+                            <div class="questions-liste" id="questions-liste"></div>
 
                             <button type="button" class="btn-ajouter-question" id="btn-ajouter-question">
                                 + Ajouter une question

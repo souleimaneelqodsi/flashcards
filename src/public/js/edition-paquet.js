@@ -44,6 +44,35 @@ var id_question_a_supprimer = null;
 var paquet_mode = "creation";
 var paquet_id_courant = null;
 
+// ── Mapping difficulte (QST-1.6) ───────────────────────────────
+// Cote front, la difficulte est manipulee comme une chaine
+// ("facile"/"moyen"/"difficile") pour piloter les classes CSS et
+// l'aria-checked. Cote serveur, c'est un entier (FK vers la table
+// referentiel `difficultes` seedee Facile/Moyen/Difficile par
+// install.php, dans cet ordre - donc 1/2/3).
+function niveau_vers_id_difficulte(niveau) {
+    if (niveau === "facile") {
+        return 1;
+    }
+    if (niveau === "moyen") {
+        return 2;
+    }
+    if (niveau === "difficile") {
+        return 3;
+    }
+    return 1;
+}
+
+function id_difficulte_vers_niveau(id_difficulte) {
+    if (id_difficulte === 2) {
+        return "moyen";
+    }
+    if (id_difficulte === 3) {
+        return "difficile";
+    }
+    return "facile";
+}
+
 // ── Selection visuelle d'une difficulte dans la modale ────────
 function selectionner_difficulte_modale(niveau) {
     $("#" + ID_FORM + " .badge-diff").removeClass("active").attr("aria-checked", "false");
@@ -291,6 +320,196 @@ function synchroniser_apercu() {
     $("#apercu-theme").text(theme);
 }
 
+// ── Branchement API des questions (QST-1.6) ──────────────────
+
+// POST /api/paquets/:id/questions : creation d'une nouvelle question
+// pour le paquet en cours d'edition. Sur succes, insere la question
+// dans le DOM avec l'id_question reel renvoye par l'API. Sur erreur,
+// affiche les erreurs dans le recap-erreurs-question.
+function envoyer_post_question(contenu_question, contenu_reponse, niveau, id_difficulte) {
+    if (paquet_mode !== "edition" || paquet_id_courant === null) {
+        afficher_erreurs_question(["Enregistrez d'abord le paquet avant d'ajouter des questions."]);
+        return;
+    }
+    var payload = {
+        contenu_question: contenu_question,
+        contenu_reponse:  contenu_reponse,
+        id_difficulte:    id_difficulte
+    };
+    AjaxService.post(
+        "paquets/" + paquet_id_courant + "/questions",
+        payload,
+        {
+            succes: function (reponse) {
+                var question = (reponse && reponse.question) ? reponse.question : null;
+                if (question === null) {
+                    afficher_erreurs_question(["Reponse serveur invalide."]);
+                    return;
+                }
+                ajouter_question_au_dom(question, niveau);
+                fermer_modale_ajout_question();
+                if (window.Toast && typeof window.Toast.afficher === "function") {
+                    window.Toast.afficher("Question ajoutee.", "succes");
+                }
+            },
+            erreur: function (xhr, message) {
+                traiter_erreur_question(xhr, message);
+            }
+        }
+    );
+}
+
+// PUT /api/questions/:id : edition d'une question existante. Sur
+// succes, met a jour le DOM avec les nouvelles valeurs. Sur erreur,
+// affiche dans le recap-erreurs-question.
+function envoyer_put_question(contenu_question, contenu_reponse, niveau, id_difficulte) {
+    var id_question = modale_id_question_courante;
+    if (id_question === null) {
+        afficher_erreurs_question(["Identifiant de question manquant."]);
+        return;
+    }
+    var payload = {
+        contenu_question: contenu_question,
+        contenu_reponse:  contenu_reponse,
+        id_difficulte:    id_difficulte
+    };
+    AjaxService.put(
+        "questions/" + id_question,
+        payload,
+        {
+            succes: function () {
+                mettre_a_jour_question_existante(
+                    id_question, contenu_question, contenu_reponse, niveau
+                );
+                fermer_modale_ajout_question();
+                if (window.Toast && typeof window.Toast.afficher === "function") {
+                    window.Toast.afficher("Question mise a jour.", "succes");
+                }
+            },
+            erreur: function (xhr, message) {
+                traiter_erreur_question(xhr, message);
+            }
+        }
+    );
+}
+
+// DELETE /api/questions/:id : suppression d'une question. Sur succes,
+// retire l'element du DOM, renumerote les questions restantes, met a
+// jour le compteur. Sur erreur, toast d'erreur (la modale de
+// confirmation est deja fermee, on n'a pas de recap a alimenter).
+function envoyer_delete_question(id_question, element_question) {
+    AjaxService.supprimer("questions/" + id_question, {
+        succes: function () {
+            element_question.remove();
+            renumeroter_questions();
+            mettre_a_jour_compteur_questions();
+            if (window.Toast && typeof window.Toast.afficher === "function") {
+                window.Toast.afficher("Question supprimee.", "succes");
+            }
+        },
+        erreur: function (xhr, message) {
+            if (window.Toast && typeof window.Toast.afficher === "function") {
+                window.Toast.afficher(
+                    "Impossible de supprimer la question : " + message,
+                    "erreur"
+                );
+            }
+        }
+    });
+}
+
+// Ajoute une question (renvoyee par l'API) en bas de la liste, avec
+// son id_question reel et le numero sequentiel suivant. Met a jour le
+// compteur. Utilise pour le POST en ajout.
+function ajouter_question_au_dom(question, niveau) {
+    var numero = $("#questions-liste .question-item").length + 1;
+    var element = construire_element_question(
+        numero,
+        question.contenu_question,
+        question.contenu_reponse,
+        niveau
+    );
+    element.attr("data-id-question", question.id_question);
+    $("#questions-liste").append(element);
+    mettre_a_jour_compteur_questions();
+}
+
+// Renumerote toutes les questions visibles (apres suppression). Meme
+// logique que celle qui etait inline dans le handler de suppression.
+function renumeroter_questions() {
+    $("#questions-liste .question-item").each(function (index) {
+        var nouveau_numero = index + 1;
+        $(this).find(".question-numero")
+            .text(nouveau_numero)
+            .attr("aria-label", "Question " + nouveau_numero);
+        $(this).find(".btn-supprimer-question")
+            .attr("aria-label", "Supprimer la question " + nouveau_numero);
+        $(this).find(".question-difficulte")
+            .attr("aria-label", "Difficulte de la question " + nouveau_numero);
+    });
+}
+
+// Affiche un tableau de messages dans le recap-erreurs-question
+// (pattern impose CLAUDE.md §6 : recap rouge en pied de modale).
+function afficher_erreurs_question(messages) {
+    var liste = $("#" + ID_LISTE_ERREURS);
+    liste.empty();
+    var i;
+    for (i = 0; i < messages.length; i = i + 1) {
+        liste.append($("<li></li>").text(messages[i]));
+    }
+    if (messages.length > 0) {
+        $("#" + ID_RECAP).removeAttr("hidden");
+    } else {
+        $("#" + ID_RECAP).attr("hidden", "hidden");
+    }
+}
+
+// Decode les erreurs serveur de la modale question (format
+// { erreurs: {champ: msg} } cas validation 400, ou { erreur: msg }
+// sinon) et les affiche dans le recap, en marquant aussi les champs
+// concernes en rouge (.champ-invalide).
+function traiter_erreur_question(xhr, message_par_defaut) {
+    // Reset visuel des champs.
+    $("#" + ID_CHAMP_QUESTION).removeClass("champ-invalide");
+    $("#" + ID_CHAMP_REPONSE).removeClass("champ-invalide");
+    $("#" + ID_ERREUR_QUESTION).attr("hidden", "hidden");
+    $("#" + ID_ERREUR_REPONSE).attr("hidden", "hidden");
+
+    var messages = [];
+
+    if (xhr.responseJSON && typeof xhr.responseJSON === "object") {
+        var corps = xhr.responseJSON;
+        if (corps.erreurs && typeof corps.erreurs === "object") {
+            if (corps.erreurs.contenu_question) {
+                $("#" + ID_CHAMP_QUESTION).addClass("champ-invalide");
+                $("#" + ID_ERREUR_QUESTION)
+                    .text(corps.erreurs.contenu_question)
+                    .removeAttr("hidden");
+                messages.push(corps.erreurs.contenu_question);
+            }
+            if (corps.erreurs.contenu_reponse) {
+                $("#" + ID_CHAMP_REPONSE).addClass("champ-invalide");
+                $("#" + ID_ERREUR_REPONSE)
+                    .text(corps.erreurs.contenu_reponse)
+                    .removeAttr("hidden");
+                messages.push(corps.erreurs.contenu_reponse);
+            }
+            if (corps.erreurs.id_difficulte) {
+                messages.push(corps.erreurs.id_difficulte);
+            }
+        } else if (typeof corps.erreur === "string") {
+            messages.push(corps.erreur);
+        }
+    }
+
+    if (messages.length === 0) {
+        messages.push(message_par_defaut);
+    }
+
+    afficher_erreurs_question(messages);
+}
+
 // ── Branchement API (PAQ-2.2) ────────────────────────────────
 // Detecte le mode courant en lisant window.location.hash :
 //   #nouveau-paquet         -> mode "creation" (POST /api/paquets).
@@ -327,7 +546,9 @@ function reinitialiser_form_paquet() {
 
 // Mode edition : recupere le paquet depuis l'API et pre-remplit le
 // formulaire. En cas d'erreur (paquet inexistant, acces refuse), on
-// affiche un toast et on bascule vers le dashboard.
+// affiche un toast et on bascule vers le dashboard. Apres avoir charge
+// le paquet, on enchaine sur le chargement des questions associees
+// (QST-1.6).
 function charger_paquet_pour_edition(id_paquet) {
     AjaxService.get("paquets/" + id_paquet, undefined, {
         succes: function (reponse) {
@@ -347,11 +568,75 @@ function charger_paquet_pour_edition(id_paquet) {
             $("#titre-edition-paquet").text("Editer un paquet");
             synchroniser_apercu();
             valider_titre_paquet();
+            // Enchaine sur le chargement des questions (QST-1.6).
+            charger_questions_du_paquet(id_paquet);
         },
         erreur: function (xhr, message) {
             rediriger_apres_erreur(message);
         }
     });
+}
+
+// Mode edition : charge les questions du paquet via GET (QST-1.4) et
+// les rend dans #questions-liste. Reutilise construire_element_question
+// pour garantir une mise en forme identique aux ajouts en cours de
+// session. Appele apres le chargement du paquet, depuis
+// charger_paquet_pour_edition.
+function charger_questions_du_paquet(id_paquet) {
+    $("#questions-liste").empty();
+    AjaxService.get("paquets/" + id_paquet + "/questions", undefined, {
+        succes: function (reponse) {
+            var questions = (reponse && reponse.questions) ? reponse.questions : [];
+            rendre_questions(questions);
+            mettre_a_jour_compteur_questions();
+        },
+        erreur: function (xhr, message) {
+            if (window.Toast && typeof window.Toast.afficher === "function") {
+                window.Toast.afficher(
+                    "Impossible de charger les questions : " + message,
+                    "erreur"
+                );
+            }
+        }
+    });
+}
+
+// Rendu d'une liste de questions API dans #questions-liste. Chaque
+// question est convertie au format DOM par construire_element_question.
+// Le champ data-id-question recoit l'id_question reel renvoye par
+// l'API (pas le compteur local), de maniere a pouvoir cibler
+// l'endpoint PUT/DELETE plus tard.
+function rendre_questions(questions) {
+    var liste = $("#questions-liste");
+    var i;
+    for (i = 0; i < questions.length; i = i + 1) {
+        var q = questions[i];
+        var niveau = id_difficulte_vers_niveau(q.id_difficulte);
+        var numero = i + 1;
+        var element = construire_element_question(
+            numero,
+            q.contenu_question,
+            q.contenu_reponse,
+            niveau
+        );
+        // Remplace l'id local genere par l'id_question reel (BD).
+        element.attr("data-id-question", q.id_question);
+        liste.append(element);
+    }
+}
+
+// En mode "creation", on ne peut pas encore ajouter de question (le
+// paquet n'a pas d'id_paquet tant qu'il n'est pas POSTed). On laisse
+// le bouton visible mais inactif, avec un message explicatif au clic.
+function appliquer_etat_creation_ou_edition() {
+    var bouton_ajouter = $("#btn-ajouter-question");
+    if (paquet_mode === "creation") {
+        bouton_ajouter.prop("disabled", true);
+        bouton_ajouter.attr("title", "Enregistrez d'abord le paquet pour pouvoir y ajouter des questions.");
+    } else {
+        bouton_ajouter.prop("disabled", false);
+        bouton_ajouter.removeAttr("title");
+    }
 }
 
 function rediriger_apres_erreur(message) {
@@ -365,11 +650,16 @@ function rediriger_apres_erreur(message) {
 // la vue selon le mode courant. Expose en global pour app.js.
 function afficher_edition_paquet() {
     detecter_mode_edition();
+    // Vide la liste de questions a chaque entree pour eviter d'afficher
+    // les questions d'un paquet precedemment visite.
+    $("#questions-liste").empty();
+    mettre_a_jour_compteur_questions();
+    appliquer_etat_creation_ou_edition();
     if (paquet_mode === "creation") {
         $("#titre-edition-paquet").text("Nouveau paquet");
         reinitialiser_form_paquet();
     } else {
-        // Mode edition : reset puis fetch + populate.
+        // Mode edition : reset puis fetch + populate (paquet + questions).
         reinitialiser_form_paquet();
         $("#titre-edition-paquet").text("Chargement...");
         charger_paquet_pour_edition(paquet_id_courant);
@@ -458,7 +748,11 @@ function envoyer_put(payload) {
     });
 }
 
-// Succes : toast + redirection vers la vue de visualisation du paquet.
+// Succes : toast + redirection. En mode CREATION, on bascule vers le
+// mode EDITION du nouveau paquet (#edit-paquet-<id>) pour permettre
+// d'ajouter immediatement des questions (QST-1.6 a besoin d'un id_paquet
+// existant pour POST /api/paquets/:id/questions). En mode EDITION, on
+// va sur la vue de visualisation pour voir le resultat.
 function apres_succes(reponse, message_succes) {
     if (window.Toast && typeof window.Toast.afficher === "function") {
         window.Toast.afficher(message_succes, "succes");
@@ -467,10 +761,14 @@ function apres_succes(reponse, message_succes) {
     if (reponse && reponse.paquet && reponse.paquet.id_paquet) {
         id_cible = reponse.paquet.id_paquet;
     }
-    if (id_cible !== null && id_cible !== undefined) {
-        window.location.hash = "#visualisation-paquet-" + id_cible;
-    } else {
+    if (id_cible === null || id_cible === undefined) {
         window.location.hash = "#dashboard";
+        return;
+    }
+    if (paquet_mode === "creation") {
+        window.location.hash = "#edit-paquet-" + id_cible;
+    } else {
+        window.location.hash = "#visualisation-paquet-" + id_cible;
     }
 }
 
@@ -563,29 +861,27 @@ $(function () {
         $(this).addClass("active").attr("aria-checked", "true");
     });
 
-    // Soumission du formulaire : selon le mode (ajout vs edition),
-    // soit on ajoute une nouvelle question, soit on met a jour celle
-    // qui est en cours d'edition.
+    // Soumission du formulaire (QST-1.6) : branche sur l'API selon le
+    // mode (POST en ajout, PUT en edition). La maj DOM ne se fait
+    // qu'apres succes serveur, pour ne jamais afficher une question
+    // qui n'existe pas en base. Erreurs serveur affichees dans le
+    // recap-erreurs-question (pattern impose CLAUDE.md §6).
     $("#" + ID_FORM).on("submit", function (evenement) {
         evenement.preventDefault();
         var formulaire_ok = valider_formulaire_ajout_question();
         if (!formulaire_ok) {
             return;
         }
-        var question = $("#" + ID_CHAMP_QUESTION).val().replace(/^\s+|\s+$/g, "");
-        var reponse = $("#" + ID_CHAMP_REPONSE).val().replace(/^\s+|\s+$/g, "");
-        var difficulte = difficulte_selectionnee();
+        var question_txt = $("#" + ID_CHAMP_QUESTION).val().replace(/^\s+|\s+$/g, "");
+        var reponse_txt  = $("#" + ID_CHAMP_REPONSE).val().replace(/^\s+|\s+$/g, "");
+        var niveau = difficulte_selectionnee();
+        var id_difficulte = niveau_vers_id_difficulte(niveau);
 
         if (modale_mode === "edition" && modale_id_question_courante !== null) {
-            mettre_a_jour_question_existante(modale_id_question_courante, question, reponse, difficulte);
+            envoyer_put_question(question_txt, reponse_txt, niveau, id_difficulte);
         } else {
-            var numero = $("#questions-liste .question-item").length + 1;
-            var nouvel_element = construire_element_question(numero, question, reponse, difficulte);
-            $("#questions-liste").append(nouvel_element);
-            mettre_a_jour_compteur_questions();
+            envoyer_post_question(question_txt, reponse_txt, niveau, id_difficulte);
         }
-
-        fermer_modale_ajout_question();
     });
 
     // ── Edition inline (FRONT-2.3) ──
@@ -636,28 +932,20 @@ $(function () {
         }
     });
 
-    // Confirmation : retire la question du DOM, met a jour le compteur,
-    // re-numerote les questions restantes pour conserver la sequence
-    // 1, 2, 3, ... visible dans le mockup.
+    // Confirmation (QST-1.6) : DELETE /api/questions/:id, puis retrait
+    // DOM + renumerotation + compteur si succes. On ferme la modale de
+    // confirmation tout de suite (le retour utilisateur passera par un
+    // toast en cas d'echec ou de succes).
     $("#btn-confirmer-suppression").on("click", function () {
         if (id_question_a_supprimer === null) {
             fermer_modale_suppression();
             return;
         }
-        $("#questions-liste .question-item[data-id-question='" + id_question_a_supprimer + "']").remove();
-        // Renumerotation visuelle des questions restantes.
-        $("#questions-liste .question-item").each(function (index) {
-            var nouveau_numero = index + 1;
-            $(this).find(".question-numero")
-                .text(nouveau_numero)
-                .attr("aria-label", "Question " + nouveau_numero);
-            $(this).find(".btn-supprimer-question")
-                .attr("aria-label", "Supprimer la question " + nouveau_numero);
-            $(this).find(".question-difficulte")
-                .attr("aria-label", "Difficulte de la question " + nouveau_numero);
-        });
-        mettre_a_jour_compteur_questions();
+        var element = $("#questions-liste .question-item[data-id-question='"
+            + id_question_a_supprimer + "']");
+        var id = id_question_a_supprimer;
         fermer_modale_suppression();
+        envoyer_delete_question(id, element);
     });
 
 });
