@@ -78,24 +78,24 @@ Phase 2,P4,Frontend,FRONT-2.11,Compteur score live dans le header de session,2,H
 Phase 2,P4,Frontend,FRONT-2.12,Appel API fin de session (last_score calcul best_score - uniquement si proprietaire),2,Hors cours - auto-formation AJAX
 Phase 2,P4,Frontend,FRONT-2.13,Affichage Dernier/Best sur les cartes-paquet du dashboard,1,Hors cours - auto-formation
 Phase 2,P4,Frontend,FRONT-2.14,Gestion etats session study via flags JS simples (Q_affichee R_revelee Session_finie),2,Implementation directe du diagramme etats-transitions DESIGN-0.4 - pas pattern State (hors liste sujet TER)
-Phase 2,P5,Fullstack,FULL-2.1,GET /api/paquets (mes paquets tri date desc),2,Hors cours - auto-formation API REST
-Phase 2,P5,Fullstack,FULL-2.2,POST /api/paquets (titre <= 150 theme - validation serveur),2,Hors cours - auto-formation
-Phase 2,P5,Fullstack,FULL-2.3,PUT /api/paquets/:id (edition controle proprietaire),2,Hors cours - auto-formation
-Phase 2,P5,Fullstack,FULL-2.4,DELETE /api/paquets/:id (cascade questions + partages),2,Hors cours - auto-formation
-Phase 2,P5,Fullstack,FULL-2.5,Vue creation/edition paquet (titre + theme) conforme new_bag.png avec validation dynamique,2,Hors cours - auto-formation
-Phase 2,P5,Fullstack,FULL-2.6,Validation serveur titre obligatoire <= 150 contenu requis,2,Hors cours - auto-formation
-Phase 2,P5,Fullstack,FULL-2.7,GET /api/paquets/shared (paquets recus tri date partage),2,Hors cours - auto-formation
-Phase 2,P5,Fullstack,FULL-2.8,Branchement front Mes Flashcards sur l'API,2,Hors cours - auto-formation
-Phase 2,P5,Fullstack,FULL-2.9,Branchement front Partagees avec moi sur l'API,2,Hors cours - auto-formation
-Phase 2,P5,Fullstack,FULL-2.10,Confirmation tri date desc cote serveur (SQL ORDER BY),1,Hors cours - auto-formation SQL
-Phase 2,P5,Fullstack,FULL-2.11,GET /api/users/search?q= (auto-completion email),3,Hors cours - auto-formation (auto-completion citee par sujet TER)
-Phase 2,P5,Fullstack,FULL-2.12,POST /api/paquets/:id/share (ajout destinataire - verif existe + pas proprietaire + pas deja partage),2,Hors cours - auto-formation
-Phase 2,P5,Fullstack,FULL-2.13,DELETE /api/paquets/:id/share/:userId,1,Hors cours - auto-formation
-Phase 2,P5,Fullstack,FULL-2.14,UI champ auto-completion en jQuery vanilla (keyup + ajax + render liste - pas jQuery UI) conforme share_bag.png,3,Hors cours - auto-formation - jQuery vanilla suffit (jQuery UI lib externe hors stack)
-Phase 2,P5,Fullstack,FULL-2.15,Liste des utilisateurs partages (chips + retrait) sur ecran de visualisation paquet,2,Hors cours - auto-formation HTML/CSS
-Phase 2,P5,Fullstack,FULL-2.16,GET /api/paquets/:id (ecran visualisation - titre date proprietaire liste destinataires),2,Exigence sujet TER : ecran de visualisation doit afficher destinataires de partage
-Phase 2,P5,Fullstack,FULL-2.17,Vue Visualisation paquet (liens Editer/Supprimer si proprietaire + liste destinataires chips),3,Exigence sujet TER : ecran de visualisation complet
-Phase 2,P5,Fullstack,FULL-2.18,Pattern Strategy pour calcul de score selon difficulte (Facile Moyen Difficile) - 4eme patron optionnel,2,Ch8 - pattern Strategy - optionnel (3 patrons Singleton+Repository+Factory deja garantis)
+Phase 2,P5,Fullstack,PAQ-1.1,GET /api/paquets (mes paquets tri date desc),2,Hors cours - auto-formation API REST
+Phase 2,P5,Fullstack,PAQ-1.2,POST /api/paquets (titre <= 150 theme - validation serveur),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,PAQ-1.3,PUT /api/paquets/:id (edition controle proprietaire),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,PAQ-1.4,DELETE /api/paquets/:id (cascade questions + partages),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,PAQ-2.1,Vue creation/edition paquet (titre + theme) conforme new_bag.png avec validation dynamique,2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,PAQ-1.5,Validation serveur titre obligatoire <= 150 contenu requis,2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,DASH-2.1,GET /api/paquets/shared (paquets recus tri date partage),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,DASH-2.2,Branchement front Mes Flashcards sur l'API,2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,DASH-2.3,Branchement front Partagees avec moi sur l'API,2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,PAQ-1.6,Confirmation tri date desc cote serveur (SQL ORDER BY),1,Hors cours - auto-formation SQL
+Phase 2,P5,Fullstack,SHARE-1.1,GET /api/users/search?q= (auto-completion email),3,Hors cours - auto-formation (auto-completion citee par sujet TER)
+Phase 2,P5,Fullstack,SHARE-1.2,POST /api/paquets/:id/share (ajout destinataire - verif existe + pas proprietaire + pas deja partage),2,Hors cours - auto-formation
+Phase 2,P5,Fullstack,SHARE-1.3,DELETE /api/paquets/:id/share/:userId,1,Hors cours - auto-formation
+Phase 2,P5,Fullstack,SHARE-1.4,UI champ auto-completion en jQuery vanilla (keyup + ajax + render liste - pas jQuery UI) conforme share_bag.png,3,Hors cours - auto-formation - jQuery vanilla suffit (jQuery UI lib externe hors stack)
+Phase 2,P5,Fullstack,VIEW-1.1,Liste des utilisateurs partages (chips + retrait) sur ecran de visualisation paquet,2,Hors cours - auto-formation HTML/CSS
+Phase 2,P5,Fullstack,VIEW-1.2,GET /api/paquets/:id (ecran visualisation - titre date proprietaire liste destinataires),2,Exigence sujet TER : ecran de visualisation doit afficher destinataires de partage
+Phase 2,P5,Fullstack,VIEW-1.3,Vue Visualisation paquet (liens Editer/Supprimer si proprietaire + liste destinataires chips),3,Exigence sujet TER : ecran de visualisation complet
+Phase 2,P5,Fullstack,STRAT-1.1,Pattern Strategy pour calcul de score selon difficulte (Facile Moyen Difficile) - 4eme patron optionnel,2,Ch8 - pattern Strategy - optionnel (3 patrons Singleton+Repository+Factory deja garantis)
 Phase 2,P5,Backend,FULL-3.1,POST /api/paquets/:id/questions (creer une question via QuestionRepository + Factory Question::creer),2,Hors cours - auto-formation - endpoint questions absent du decoupage FULL-2 initial
 Phase 2,P5,Backend,FULL-3.2,PUT /api/questions/:id (editer une question - controle proprietaire via le paquet parent),2,Hors cours - auto-formation
 Phase 2,P5,Backend,FULL-3.3,DELETE /api/questions/:id (supprimer une question - controle proprietaire),1,Hors cours - auto-formation
