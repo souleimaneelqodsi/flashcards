@@ -105,4 +105,20 @@ class PartageRepository
             array($id_paquet, $id_destinataire)
         );
     }
+
+    /**
+     * Revoque tous les partages d'un paquet (tous destinataires confondus).
+     * Utilise par PaquetRepository::supprimer_avec_cascade (PAQ-1.4) :
+     * SQLite n'a pas d'`ON DELETE CASCADE` actif par defaut sur les FK
+     * declarees en install.php, on assure donc la cascade manuellement.
+     *
+     * @param int $id_paquet
+     */
+    public function revoquer_toutes_par_paquet($id_paquet)
+    {
+        DB::getInstance()->executer(
+            'DELETE FROM partages WHERE id_paquet = ?',
+            array($id_paquet)
+        );
+    }
 }

@@ -114,4 +114,20 @@ class QuestionRepository
             array($id_question)
         );
     }
+
+    /**
+     * Supprime toutes les questions d'un paquet.
+     * Utilise par PaquetRepository::supprimer_avec_cascade (PAQ-1.4) :
+     * SQLite n'a pas d'`ON DELETE CASCADE` actif par defaut sur les FK
+     * declarees en install.php, on assure donc la cascade manuellement.
+     *
+     * @param int $id_paquet
+     */
+    public function supprimer_par_paquet($id_paquet)
+    {
+        DB::getInstance()->executer(
+            'DELETE FROM questions WHERE id_paquet = ?',
+            array($id_paquet)
+        );
+    }
 }

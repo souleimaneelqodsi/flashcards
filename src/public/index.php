@@ -87,6 +87,9 @@ if ($est_appel_api) {
     // PAQ-1.3 : edition d'un paquet (controle proprietaire dans l'action).
     $routeur->ajouter('PUT', '/api/paquets/:id', array($paquet_controleur, 'mettre_a_jour'));
 
+    // PAQ-1.4 : suppression en cascade (questions + partages + paquet).
+    $routeur->ajouter('DELETE', '/api/paquets/:id', array($paquet_controleur, 'supprimer'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });

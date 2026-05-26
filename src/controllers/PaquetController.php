@@ -173,6 +173,51 @@ class PaquetController extends BaseController
         );
     }
 
+    /**
+     * DELETE /api/paquets/:id (PAQ-1.4).
+     *
+     * Supprime un paquet en cascade : questions du paquet, partages du
+     * paquet, puis le paquet lui-meme. La cascade est realisee par le
+     * Repository (`supprimer_avec_cascade`) au sein d'une transaction
+     * SQLite, pour garantir l'atomicite.
+     *
+     *  1. Verifie le token CSRF (action mutante).
+     *  2. Verifie l'authentification (sinon 401).
+     *  3. Lit l'id de paquet depuis le chemin (et valide qu'il est numerique).
+     *  4. Charge le paquet. 404 si introuvable.
+     *  5. Verifie que l'utilisateur courant est proprietaire (sinon 403).
+     *  6. Lance la suppression en cascade via le Repository.
+     *  7. Repond 200 avec un message de confirmation.
+     *
+     * @param array $params Parametres extraits du chemin (`id`).
+     */
+    public function supprimer($params)
+    {
+        Csrf::verifier_requete();
+        $id_user = $this->verifier_authentifie();
+
+        $id_paquet = $this->lire_id_paquet($params);
+        if ($id_paquet === null) {
+            $this->repondre(array('erreur' => 'Identifiant de paquet invalide.'), 400);
+            return;
+        }
+
+        $paquet = $this->paquets->trouver_par_id($id_paquet);
+        if ($paquet === null) {
+            $this->repondre(array('erreur' => 'Paquet introuvable.'), 404);
+            return;
+        }
+
+        if ($paquet->getIdProprietaire() !== $id_user) {
+            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            return;
+        }
+
+        $this->paquets->supprimer_avec_cascade($id_paquet);
+
+        $this->repondre(array('message' => 'Paquet supprime.'), 200);
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────
 
     /**
