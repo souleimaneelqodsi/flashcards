@@ -296,21 +296,40 @@ class QuestionController extends BaseController
     // ── Validation serveur centralisee (QST-1.5) ─────────────────────
 
     /**
-     * Valide les champs d'une question (creation et edition).
+     * Valide les champs d'une question (point d'entree unique utilise
+     * par `creer` et `mettre_a_jour`). Helper centralise pour garantir
+     * la parite des regles entre creation et edition : si on ajoute
+     * demain une regle (caracteres interdits, longueur min, etc.) elle
+     * s'applique automatiquement aux deux endpoints (et a une future
+     * import en masse si besoin).
+     *
+     * **Parite client-serveur (CLAUDE.md sec. 6) :** ces regles doivent
+     * etre miroirees cote front (FRONT-2.5 puis QST-1.6). Le client
+     * filtre les saisies evidentes pour l'UX, le serveur protege la BD
+     * contre tout client malveillant.
      *
      * Regles (CLAUDE.md sec. 4 et sec. 6) :
-     *  - contenu_question : obligatoire, non vide apres trim ;
-     *  - contenu_reponse  : obligatoire, non vide apres trim ;
+     *  - contenu_question : obligatoire, non vide apres trim, <= 1000 chars ;
+     *  - contenu_reponse  : obligatoire, non vide apres trim, <= 1000 chars ;
      *  - id_difficulte    : entier > 0 ET reference existante dans la
      *                       table referentiel `difficultes`.
      *
-     * Le controle d'existence de la difficulte fait une requete BD
-     * via DifficulteRepository (patron Repository). C'est un peu plus
-     * couteux qu'une simple comparaison de plage [1,3], mais c'est
-     * robuste si on ajoute d'autres niveaux plus tard, et ca evite
-     * les inserts orphelins (FK respectee).
+     * Le controle d'existence de la difficulte fait une requete BD via
+     * DifficulteRepository (patron Repository). C'est un peu plus couteux
+     * qu'une simple comparaison de plage [1,3], mais c'est robuste si on
+     * ajoute d'autres niveaux plus tard, et ca evite les inserts
+     * orphelins (FK respectee). Si la table referentiel grossit, on
+     * pourra mettre un cache statique ; en l'etat, 3 lignes, c'est
+     * negligeable.
      *
-     * @return array<string,string>
+     * Les bornes hautes (1000 chars) sont defensives : SQLite n'a pas de
+     * limite technique sur les colonnes TEXT, mais on prefere refuser
+     * proprement plutot que d'accepter un input deraisonnable.
+     *
+     * @param string   $contenu_question Deja trim/type-checke par lire_chaine_corps.
+     * @param string   $contenu_reponse  Idem.
+     * @param int|null $id_difficulte    Deja type-checke par lire_id_corps.
+     * @return array<string,string> "champ" => "message", vide si OK.
      */
     private function valider_donnees_question($contenu_question, $contenu_reponse, $id_difficulte)
     {
@@ -319,8 +338,6 @@ class QuestionController extends BaseController
         if ($contenu_question === '') {
             $erreurs['contenu_question'] = 'La question est obligatoire.';
         } else if (strlen($contenu_question) > 1000) {
-            // Borne haute defensive (la colonne TEXT n'a pas de limite
-            // technique en SQLite mais on evite les saisies abusives).
             $erreurs['contenu_question'] = 'La question est trop longue (1000 caracteres maximum).';
         }
 
