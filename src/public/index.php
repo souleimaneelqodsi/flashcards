@@ -101,6 +101,9 @@ if ($est_appel_api) {
     // SHARE-1.1 : auto-completion d'email pour le partage de paquet.
     $routeur->ajouter('GET', '/api/users/search', array($utilisateur_controleur, 'search'));
 
+    // SHARE-1.2 : ajout d'un destinataire au partage d'un paquet.
+    $routeur->ajouter('POST', '/api/paquets/:id/share', array($paquet_controleur, 'partager'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });

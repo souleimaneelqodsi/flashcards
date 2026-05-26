@@ -4,7 +4,10 @@
 require_once __DIR__ . '/../core/BaseController.php';
 require_once __DIR__ . '/../core/Csrf.php';
 require_once __DIR__ . '/../repositories/PaquetRepository.php';
+require_once __DIR__ . '/../repositories/UtilisateurRepository.php';
+require_once __DIR__ . '/../repositories/PartageRepository.php';
 require_once __DIR__ . '/../models/Paquet.php';
+require_once __DIR__ . '/../models/Partage.php';
 
 /**
  * Controleur du CRUD des paquets (PAQ-1).
@@ -31,9 +34,17 @@ class PaquetController extends BaseController
     /** @var PaquetRepository */
     private $paquets;
 
+    /** @var UtilisateurRepository */
+    private $utilisateurs;
+
+    /** @var PartageRepository */
+    private $partages;
+
     public function __construct()
     {
-        $this->paquets = new PaquetRepository();
+        $this->paquets      = new PaquetRepository();
+        $this->utilisateurs = new UtilisateurRepository();
+        $this->partages     = new PartageRepository();
     }
 
     /**
@@ -260,6 +271,104 @@ class PaquetController extends BaseController
         $this->repondre(array('message' => 'Paquet supprime.'), 200);
     }
 
+    /**
+     * POST /api/paquets/:id/share (SHARE-1.2).
+     *
+     * Ajoute un destinataire au partage d'un paquet. Verifications
+     * exigees par le sujet TER et la conception :
+     *  1. Token CSRF ;
+     *  2. Authentification ;
+     *  3. id_paquet numerique valide ;
+     *  4. id_destinataire numerique valide (corps JSON) ;
+     *  5. Paquet existe (sinon 404) ;
+     *  6. L'utilisateur courant est proprietaire du paquet (sinon 403 :
+     *     seul le proprietaire decide qui peut acceder a son paquet) ;
+     *  7. Le destinataire existe en BD (sinon 400) ;
+     *  8. Le destinataire n'est pas le proprietaire (sinon 400 :
+     *     partager un paquet a soi-meme n'a aucun sens metier) ;
+     *  9. Le partage n'existe pas deja (sinon 409 Conflict).
+     *
+     * Renvoie 201 Created avec le partage cree. La date de partage est
+     * positionnee au jour courant par la Factory `Partage::creer`.
+     *
+     * @param array $params Parametres extraits du chemin (`id`).
+     */
+    public function partager($params)
+    {
+        Csrf::verifier_requete();
+        $id_user = $this->verifier_authentifie();
+
+        $id_paquet = $this->lire_id_paquet($params);
+        if ($id_paquet === null) {
+            $this->repondre(array('erreur' => 'Identifiant de paquet invalide.'), 400);
+            return;
+        }
+
+        // Lecture et validation du destinataire dans le corps JSON.
+        $donnees = $this->lire_corps_json();
+        $id_destinataire = $this->lire_id_destinataire($donnees);
+        if ($id_destinataire === null) {
+            $this->repondre(
+                array('erreur' => 'Identifiant de destinataire invalide.'),
+                400
+            );
+            return;
+        }
+
+        // Charge le paquet et controle l'existence + proprietaire.
+        $paquet = $this->paquets->trouver_par_id($id_paquet);
+        if ($paquet === null) {
+            $this->repondre(array('erreur' => 'Paquet introuvable.'), 404);
+            return;
+        }
+        if ($paquet->getIdProprietaire() !== $id_user) {
+            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            return;
+        }
+
+        // Empeche le partage a soi-meme. Verifie avant la base utilisateurs
+        // pour eviter une requete inutile.
+        if ($id_destinataire === $paquet->getIdProprietaire()) {
+            $this->repondre(
+                array('erreur' => 'Vous ne pouvez pas partager un paquet avec vous-meme.'),
+                400
+            );
+            return;
+        }
+
+        // Verifie que le destinataire existe (un client malveillant pourrait
+        // envoyer un id_user inexistant pour fausser l'etat de la base).
+        $destinataire = $this->utilisateurs->trouver_par_id($id_destinataire);
+        if ($destinataire === null) {
+            $this->repondre(array('erreur' => 'Destinataire introuvable.'), 400);
+            return;
+        }
+
+        // Empeche les doublons : un meme paquet ne peut etre partage qu'une
+        // fois a un destinataire donne (la cle primaire composite l'interdit
+        // au niveau BD, mais on prefere une 409 explicite).
+        if ($this->partages->existe($id_paquet, $id_destinataire)) {
+            $this->repondre(
+                array('erreur' => 'Ce paquet est deja partage avec cet utilisateur.'),
+                409
+            );
+            return;
+        }
+
+        // Cree le partage via la Factory + le Repository.
+        $partage = Partage::creer($id_paquet, $id_destinataire);
+        $this->partages->creer($partage);
+
+        $this->repondre(
+            array(
+                'message' => 'Partage cree.',
+                'partage' => $partage->toArray(),
+                'destinataire' => $destinataire->toArray()
+            ),
+            201
+        );
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────
 
     /**
@@ -313,6 +422,37 @@ class PaquetController extends BaseController
             return null;
         }
         return $id;
+    }
+
+    /**
+     * Lit l'identifiant de destinataire depuis le corps JSON (cle
+     * `id_destinataire`). Defense en profondeur : accepte uniquement un
+     * entier (int) ou une chaine de chiffres. Renvoie null si la valeur
+     * est absente, non numerique ou <= 0.
+     *
+     * @param array $donnees Corps JSON deja decode.
+     * @return int|null
+     */
+    private function lire_id_destinataire($donnees)
+    {
+        if (!isset($donnees['id_destinataire'])) {
+            return null;
+        }
+        $valeur = $donnees['id_destinataire'];
+        if (is_int($valeur)) {
+            if ($valeur <= 0) {
+                return null;
+            }
+            return $valeur;
+        }
+        if (is_string($valeur) && preg_match('/^[0-9]+$/', $valeur)) {
+            $id = (int) $valeur;
+            if ($id <= 0) {
+                return null;
+            }
+            return $id;
+        }
+        return null;
     }
 
     // ── Validation serveur centralisee (PAQ-1.5) ─────────────────────
