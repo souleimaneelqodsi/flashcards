@@ -116,6 +116,87 @@ class PaquetController extends BaseController
     }
 
     /**
+     * GET /api/paquets/:id (VIEW-1.2).
+     *
+     * Renvoie tout ce qu'il faut pour rendre l'ecran de visualisation
+     * d'un paquet (VIEW-1.3) : le paquet lui-meme, son proprietaire
+     * (sans mot de passe), et la liste des destinataires de partage
+     * (sans mot de passe non plus).
+     *
+     * Controle d'acces : seuls le proprietaire OU un destinataire de
+     * partage peuvent voir un paquet (l'ecran de visualisation expose
+     * les destinataires, ce qui est une information personnelle ; on ne
+     * laisse pas n'importe qui consulter).
+     *
+     *  1. Verifie l'authentification (sinon 401) - GET donc pas de CSRF.
+     *  2. Charge le paquet par son id. 404 si introuvable.
+     *  3. Verifie que l'utilisateur courant est proprietaire OU
+     *     destinataire (sinon 403).
+     *  4. Charge le proprietaire (Repository).
+     *  5. Charge la liste des destinataires (Repository).
+     *  6. Repond 200 avec un objet enrichi `paquet`, `proprietaire`,
+     *     `destinataires`, et `est_proprietaire` (booleen pratique
+     *     pour le front qui decide ainsi d'afficher Editer/Supprimer
+     *     et le bouton Partager).
+     *
+     * @param array $params Parametres extraits du chemin (`id`).
+     */
+    public function afficher($params)
+    {
+        $id_user = $this->verifier_authentifie();
+
+        $id_paquet = $this->lire_id_paquet($params);
+        if ($id_paquet === null) {
+            $this->repondre(array('erreur' => 'Identifiant de paquet invalide.'), 400);
+            return;
+        }
+
+        $paquet = $this->paquets->trouver_par_id($id_paquet);
+        if ($paquet === null) {
+            $this->repondre(array('erreur' => 'Paquet introuvable.'), 404);
+            return;
+        }
+
+        $est_proprietaire = ($paquet->getIdProprietaire() === $id_user);
+
+        // Acces autorise : proprietaire OU destinataire. Pour eviter une
+        // requete supplementaire si on est deja proprietaire, on ne va
+        // verifier l'existence du partage que pour les non-proprietaires.
+        if (!$est_proprietaire) {
+            $est_destinataire = $this->partages->existe($id_paquet, $id_user);
+            if (!$est_destinataire) {
+                $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+                return;
+            }
+        }
+
+        // Charge le proprietaire pour pouvoir l'afficher meme si le
+        // visiteur n'est pas le proprietaire (un destinataire voit
+        // "Cree par <prenom>" sur l'ecran de visualisation).
+        $proprietaire = $this->utilisateurs->trouver_par_id($paquet->getIdProprietaire());
+        $proprietaire_array = ($proprietaire === null) ? null : $proprietaire->toArray();
+
+        // Liste les destinataires du partage. Vide si aucun partage.
+        // Utilise la methode existante du Repository (deja jointe sur
+        // utilisateurs et exclut mot_de_passe).
+        $destinataires = $this->partages->lister_destinataires_par_paquet($id_paquet);
+        $destinataires_array = array();
+        foreach ($destinataires as $u) {
+            $destinataires_array[] = $u->toArray();
+        }
+
+        $this->repondre(
+            array(
+                'paquet'           => $paquet->toArray(),
+                'proprietaire'     => $proprietaire_array,
+                'destinataires'    => $destinataires_array,
+                'est_proprietaire' => $est_proprietaire
+            ),
+            200
+        );
+    }
+
+    /**
      * POST /api/paquets (PAQ-1.2).
      *
      * Cree un nouveau paquet pour l'utilisateur courant.

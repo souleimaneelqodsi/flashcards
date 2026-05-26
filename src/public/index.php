@@ -92,6 +92,9 @@ if ($est_appel_api) {
     // PAQ-1.2 : creation d'un nouveau paquet.
     $routeur->ajouter('POST', '/api/paquets', array($paquet_controleur, 'creer'));
 
+    // VIEW-1.2 : ecran de visualisation d'un paquet (titre + proprietaire + destinataires).
+    $routeur->ajouter('GET', '/api/paquets/:id', array($paquet_controleur, 'afficher'));
+
     // PAQ-1.3 : edition d'un paquet (controle proprietaire dans l'action).
     $routeur->ajouter('PUT', '/api/paquets/:id', array($paquet_controleur, 'mettre_a_jour'));
 
