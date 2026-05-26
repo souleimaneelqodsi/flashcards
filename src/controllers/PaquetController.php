@@ -82,8 +82,8 @@ class PaquetController extends BaseController
         $id_user = $this->verifier_authentifie();
 
         $donnees = $this->lire_corps_json();
-        $titre = isset($donnees['titre']) ? trim($donnees['titre']) : '';
-        $theme = isset($donnees['theme']) ? trim($donnees['theme']) : '';
+        $titre = $this->lire_chaine_corps($donnees, 'titre');
+        $theme = $this->lire_chaine_corps($donnees, 'theme');
 
         $erreurs = $this->valider_donnees_paquet($titre, $theme);
         if (count($erreurs) > 0) {
@@ -150,8 +150,8 @@ class PaquetController extends BaseController
         }
 
         $donnees = $this->lire_corps_json();
-        $titre = isset($donnees['titre']) ? trim($donnees['titre']) : '';
-        $theme = isset($donnees['theme']) ? trim($donnees['theme']) : '';
+        $titre = $this->lire_chaine_corps($donnees, 'titre');
+        $theme = $this->lire_chaine_corps($donnees, 'theme');
 
         $erreurs = $this->valider_donnees_paquet($titre, $theme);
         if (count($erreurs) > 0) {
@@ -221,6 +221,34 @@ class PaquetController extends BaseController
     // ── Helpers ──────────────────────────────────────────────────────
 
     /**
+     * Lit un champ texte du corps JSON et le normalise pour la validation.
+     *
+     * Defense en profondeur : si un client envoie un type non-string
+     * (array, objet, nombre), on renvoie une chaine vide. La validation
+     * en aval ("champ obligatoire") signalera alors l'erreur normalement,
+     * sans laisser `trim()` declencher un warning ou pire.
+     *
+     * Le trim est applique pour qu'un champ ne contenant que des espaces
+     * compte comme vide (sinon "   " satisferait la regle "titre non
+     * vide" sans avoir de sens metier).
+     *
+     * @param array  $donnees Corps JSON deja decode.
+     * @param string $cle     Cle du champ a lire (ex: 'titre', 'theme').
+     * @return string Chaine trimee, ou chaine vide si absente / mauvais type.
+     */
+    private function lire_chaine_corps($donnees, $cle)
+    {
+        if (!isset($donnees[$cle])) {
+            return '';
+        }
+        $valeur = $donnees[$cle];
+        if (!is_string($valeur)) {
+            return '';
+        }
+        return trim($valeur);
+    }
+
+    /**
      * Lit l'identifiant de paquet depuis les parametres de route et le
      * convertit en entier strictement positif. Renvoie null si la valeur
      * est absente ou ne represente pas un entier positif (le controleur
@@ -245,20 +273,26 @@ class PaquetController extends BaseController
         return $id;
     }
 
-    // ── Validation serveur partagee (PAQ-1.5) ────────────────────────
+    // ── Validation serveur centralisee (PAQ-1.5) ─────────────────────
 
     /**
-     * Valide les champs d'un paquet (creation et edition).
+     * Valide les champs d'un paquet (utilise par `creer` et
+     * `mettre_a_jour`). Helper unique pour garantir la coherence des
+     * regles entre creation et edition : si on ajoute demain une regle
+     * (ex: caracteres interdits), elle s'applique automatiquement aux
+     * deux endpoints.
      *
      * Regles (CLAUDE.md sec. 4 et sec. 6) :
      *  - titre : obligatoire, <= 150 caracteres ;
      *  - theme : facultatif, mais si fourni <= 100 caracteres.
      *
      * Renvoie un tableau "champ" => "message" pour que le client
-     * puisse afficher chaque erreur sous le bon champ (pattern impose).
+     * puisse afficher chaque erreur sous le bon champ (pattern impose
+     * par CLAUDE.md sec. 6 : message sous le champ + recap en bas).
      *
-     * @param string $titre Titre saisi (deja trim).
-     * @param string $theme Theme saisi (deja trim, peut etre vide).
+     * @param string $titre Titre saisi (deja trim et type-checke par
+     *                      `lire_chaine_corps`).
+     * @param string $theme Theme saisi (idem ; peut etre vide).
      * @return array<string,string>
      */
     private function valider_donnees_paquet($titre, $theme)
