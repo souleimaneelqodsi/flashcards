@@ -1,5 +1,5 @@
 // src/public/js/dashboard.js
-// Rendu cote client du tableau de bord (DASH-1.3, BACK-2.2, DASH-2.2).
+// Rendu cote client du tableau de bord (DASH-1.3, BACK-2.2, DASH-2.2, DASH-2.3).
 //
 // Le rendu se fait en deux temps :
 //   1) construire_squelette_dashboard() injecte la structure HTML (titre +
@@ -19,13 +19,6 @@
 // Depuis BACK-2.2, le rendu n'est plus automatique au DOM ready : il est
 // declenche par le router (`afficher_dashboard()`), de maniere a etre
 // rejoue chaque fois que l'utilisateur revient sur #dashboard.
-
-// ── Donnees stub residuelles ────────────────────────────────────
-// Le branchement de "Partages avec moi" sur l'API est traite par
-// DASH-2.3 ; en attendant on conserve un tableau vide (un compte neuf
-// n'a aucun partage de toute facon).
-
-var partages_stub = [];
 
 // ── Formatage de la date pour l'affichage ───────────────────────
 // Affiche "Aujourd'hui" pour la date du jour, "Hier" pour la veille,
@@ -280,8 +273,43 @@ function charger_mes_paquets() {
     });
 }
 
+// ── Branchement API : Partages avec moi (DASH-2.3) ──────────────
+// Appelle GET /api/paquets/shared via AjaxService et rend la liste
+// dans la colonne droite du dashboard. Le serveur applique deja
+// `ORDER BY pa.date_partage DESC` (DASH-2.1), donc le front affiche
+// les paquets dans l'ordre recu sans re-trier.
+function charger_partages_avec_moi() {
+    afficher_message_colonne("liste-partages", "Chargement...");
+    $("#compteur-partages").text("0");
+
+    AjaxService.get("paquets/shared", undefined, {
+        succes: function (reponse) {
+            var paquets = [];
+            if (reponse && reponse.paquets) {
+                paquets = reponse.paquets;
+            }
+            afficher_paquets(
+                paquets,
+                "liste-partages",
+                "compteur-partages",
+                "Aucun paquet partage."
+            );
+        },
+        erreur: function (xhr, message) {
+            afficher_message_colonne(
+                "liste-partages",
+                "Impossible de charger les partages (" + message + ")."
+            );
+            $("#compteur-partages").text("0");
+        }
+    });
+}
+
 // ── Point d'entree du tableau de bord (appele par le router) ───
 // Reconstruit la vue puis declenche les chargements AJAX par colonne.
+// Les deux appels sont independants : on ne chaine pas leurs callbacks,
+// les deux colonnes peuvent donc remplir leur etat de chargement et
+// leur resultat en parallele.
 // Expose en global pour que app.js puisse l'enregistrer comme handler
 // de la route #dashboard.
 function afficher_dashboard() {
@@ -290,13 +318,8 @@ function afficher_dashboard() {
     // Mes paquets : appel API (DASH-2.2).
     charger_mes_paquets();
 
-    // Partages avec moi : encore en stub, branchement API en DASH-2.3.
-    afficher_paquets(
-        partages_stub,
-        "liste-partages",
-        "compteur-partages",
-        "Aucun paquet partage."
-    );
+    // Partages avec moi : appel API (DASH-2.3).
+    charger_partages_avec_moi();
 }
 
 // Expose l'entree au router.
