@@ -107,6 +107,99 @@ class PaquetController extends BaseController
         );
     }
 
+    /**
+     * PUT /api/paquets/:id (PAQ-1.3).
+     *
+     * Edite un paquet existant (titre + theme uniquement). Les scores
+     * (`last_score`, `best_score`) NE sont PAS editables par cet endpoint
+     * (CLAUDE.md sec. 4 : la progression est personnelle au proprietaire
+     * et n'est modifiee qu'en fin de session de revision).
+     *
+     *  1. Verifie le token CSRF (action mutante).
+     *  2. Verifie l'authentification (sinon 401).
+     *  3. Charge le paquet par son id. 404 si introuvable.
+     *  4. Verifie que l'utilisateur courant est bien proprietaire (sinon
+     *     403 - on cache l'information d'existence en cas de proprietaire
+     *     different, par principe de moindre indiscretion).
+     *  5. Lit le corps JSON et valide titre + theme (PAQ-1.5).
+     *  6. Met a jour les champs et persiste via le Repository.
+     *  7. Repond 200 avec le paquet modifie.
+     *
+     * @param array $params Parametres extraits du chemin (`id`).
+     */
+    public function mettre_a_jour($params)
+    {
+        Csrf::verifier_requete();
+        $id_user = $this->verifier_authentifie();
+
+        $id_paquet = $this->lire_id_paquet($params);
+        if ($id_paquet === null) {
+            $this->repondre(array('erreur' => 'Identifiant de paquet invalide.'), 400);
+            return;
+        }
+
+        $paquet = $this->paquets->trouver_par_id($id_paquet);
+        if ($paquet === null) {
+            $this->repondre(array('erreur' => 'Paquet introuvable.'), 404);
+            return;
+        }
+
+        if ($paquet->getIdProprietaire() !== $id_user) {
+            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            return;
+        }
+
+        $donnees = $this->lire_corps_json();
+        $titre = isset($donnees['titre']) ? trim($donnees['titre']) : '';
+        $theme = isset($donnees['theme']) ? trim($donnees['theme']) : '';
+
+        $erreurs = $this->valider_donnees_paquet($titre, $theme);
+        if (count($erreurs) > 0) {
+            $this->repondre(array('erreurs' => $erreurs), 400);
+            return;
+        }
+
+        $paquet->setTitre($titre);
+        $paquet->setTheme($theme);
+
+        $this->paquets->mettre_a_jour($paquet);
+
+        $this->repondre(
+            array(
+                'message' => 'Paquet mis a jour.',
+                'paquet'  => $paquet->toArray()
+            ),
+            200
+        );
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Lit l'identifiant de paquet depuis les parametres de route et le
+     * convertit en entier strictement positif. Renvoie null si la valeur
+     * est absente ou ne represente pas un entier positif (le controleur
+     * repond alors 400).
+     *
+     * @param array $params Parametres extraits du chemin par le routeur.
+     * @return int|null
+     */
+    private function lire_id_paquet($params)
+    {
+        if (!isset($params['id'])) {
+            return null;
+        }
+        $valeur = $params['id'];
+        if (!preg_match('/^[0-9]+$/', $valeur)) {
+            return null;
+        }
+        $id = (int) $valeur;
+        if ($id <= 0) {
+            return null;
+        }
+        return $id;
+    }
+
     // ── Validation serveur partagee (PAQ-1.5) ────────────────────────
 
     /**

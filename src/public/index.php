@@ -84,6 +84,9 @@ if ($est_appel_api) {
     // PAQ-1.2 : creation d'un nouveau paquet.
     $routeur->ajouter('POST', '/api/paquets', array($paquet_controleur, 'creer'));
 
+    // PAQ-1.3 : edition d'un paquet (controle proprietaire dans l'action).
+    $routeur->ajouter('PUT', '/api/paquets/:id', array($paquet_controleur, 'mettre_a_jour'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });
