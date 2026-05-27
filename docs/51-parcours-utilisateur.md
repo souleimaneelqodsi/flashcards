@@ -13,12 +13,22 @@
 ## 1. Cartographie generale des ecrans
 
 Le parcours type d'un utilisateur s'organise autour de neuf ecrans,
-regroupes en quatre flux fonctionnels.
+tous **implementes et branches sur l'API** apres les sprints `FULL-2`
+(decoupage `PAQ-1` / `PAQ-2` / `DASH-2` / `SHARE-1` / `VIEW-1`) et
+`FULL-3` (decoupage `QST-1` / `STUDY-1` / `WIRE-1` / `OPT-1`).
 
 ```
 [ Auth ]                  [ Tableau de bord ]
   Login ──connexion──►        ┌──► Edition d'un paquet ───► Modale ajout question
-  Signup ──inscription──►     │                              Modale suppression
+  Signup ──inscription──►     │    (creation ou edition)    Modale suppression
+                              │
+                              ├──► Visualisation d'un paquet
+                              │    (titre + date + proprietaire + chips destinataires)
+                              │      │
+                              │      ├─► Modale partage (auto-completion email)
+                              │      ├─► Reviser
+                              │      ├─► Editer
+                              │      └─► Supprimer
                               │
                               ├──► Mode revision (Anki)
                               │    Q affichee ←flip→ R revelee
@@ -26,18 +36,16 @@ regroupes en quatre flux fonctionnels.
                               │                       v
                               │    Recapitulatif de fin de session
                               │
-                              ├──► Visualisation d'un paquet
-                              │    (titre + date + proprietaire + destinataires)
-                              │      │
-                              │      └─► Modale partage
-                              │
                               └──► Profil utilisateur
+                                   (identite + stats + edition + couleur avatar)
 ```
 
 Tous ces ecrans sont rendus par la meme page HTML (`src/views/app.php`)
 sous forme de **sections** masquees ou visibles. La navigation s'opere
 sans rechargement, par modification de `window.location.hash` (cf.
-parcours technique en section 11).
+parcours technique en section 11). Le routage SPA generalise est livre
+par `BACK-2.1` ; le dispatcher reconnait toutes les routes du tableau
+de la section 11.
 
 ---
 
@@ -114,22 +122,32 @@ deux zones"). Cette exception est documentee dans la section "Choix UX"
 **Structure** :
 
 - Sidebar gauche : navigation (Tableau de bord, Nouveau paquet,
-  Partages avec moi, Profil) + bandeau utilisateur (avatar JD + nom).
-- Topbar : titre + barre de recherche + notifications + avatar.
-- Bandeau "Bonjour, Jean" + bouton primaire "Nouveau paquet" en haut a
-  droite.
-- Deux colonnes flexbox :
-  - **Mes paquets** (gauche) : liste de cartes-paquet triees par
-    `date_maj` decroissante. Chaque carte affiche titre, theme, badge
-    "X cartes", barre de progression (best_score), ligne "Record :
-    N% / Dernier : N% / Mise a jour : Il y a N j", et boutons
-    "Reviser" / "Editer".
-  - **Partages avec moi** (droite) : meme composant, mais l'utilisateur
-    n'est pas proprietaire (donc pas de bouton "Editer", et les scores
-    affiches sont ceux du proprietaire).
+  Partages avec moi, Profil) + bandeau utilisateur (avatar avec
+  initiales + nom). Le bouton menu du topbar (`WIRE-1.3`) permet
+  d'ouvrir / fermer la sidebar pour gagner de la place.
+- Topbar : titre + avatar cliquable. La barre de recherche
+  (`OPT-1.1`), les notifications (`OPT-1.6`) et le lien Parametres
+  (`OPT-1.2`) ont ete retires car non implementes et hors-sujet TER —
+  l'interface ne promet rien qu'elle ne livre pas.
+- Bandeau "Bonjour, <prenom>" + bouton primaire "Nouveau paquet" en
+  haut a droite.
+- **Cartes KPI** au-dessus des colonnes (rangee de 4 indicateurs) :
+  nombre total de paquets, meilleur score global, nombre de paquets
+  partages, nombre total de cartes. Chiffres calcules cote client a
+  partir de `GET /api/paquets` (`WIRE-1.4`).
+- Deux colonnes flexbox alimentees par l'API :
+  - **Mes paquets** (gauche) : `GET /api/paquets` (`DASH-2.2`). Liste
+    triee par `date_maj` decroissante. Chaque carte affiche titre,
+    theme, badge "X cartes", barre de progression (best_score), ligne
+    "Record : N% / Dernier : N% / Mise a jour : Il y a N j", et
+    boutons "Reviser" / "Editer".
+  - **Partages avec moi** (droite) : `GET /api/paquets/shared`
+    (`DASH-2.3`). Meme composant, mais l'utilisateur n'est pas
+    proprietaire (pas de bouton "Editer", scores du proprietaire).
 
 **Etat vide** : un paquet sans `last_score`/`best_score` affiche
-"Jamais revise" au lieu de la triplette de scores.
+"Jamais revise" au lieu de la triplette de scores. Une colonne sans
+paquet affiche un message d'invitation.
 
 **Transitions** :
 
@@ -189,31 +207,49 @@ qui composent le paquet.
   pour ne pas declencher l'edition complete.
 
 **Transition** : "Annuler" et la fleche retour ramenent au dashboard.
-"Enregistrer le paquet" valide d'abord le titre (non vide, <= 150
-caracteres) avant d'envoyer (la persistance reelle est prevue en
-FULL-2.5/2.6).
+"Enregistrer le paquet" est branche sur l'API en mode auto-detecte
+(`PAQ-2.2`) :
+
+- En creation : `POST /api/paquets` puis redirection vers l'edition
+  du paquet nouvellement cree (`#edit-paquet-<id>`). En creation, le
+  bouton "Ajouter une question" est desactive tant que le paquet
+  n'a pas ete enregistre une premiere fois ; ensuite, l'ajout de
+  questions devient possible sans quitter la vue (`2cbb3a3`).
+- En edition : `PUT /api/paquets/:id` puis redirection vers la vue
+  de visualisation (`#paquet-<id>`). Les erreurs de validation
+  serveur sont affichees sous le champ concerne en plus du recap
+  rouge en bas (parite client / serveur).
 
 ---
 
-## 6. Visualisation d'un paquet (vue cible — implementation FULL-2)
+## 6. Visualisation d'un paquet — `project-files/interface/` (ecran implemente)
 
-**Quand** : clic sur une carte-paquet depuis le dashboard. Route
-`#paquet-<id>`.
+**Quand** : clic sur une carte-paquet depuis le dashboard, ou apres
+sauvegarde reussie en edition. Route `#paquet-<id>`.
 
 **Objectif** : afficher le **detail** d'un paquet et la liste des
 utilisateurs qui peuvent le voir (exigence sujet TER).
 
-**Structure prevue** :
+**Structure** (livree par `VIEW-1.1` et `VIEW-1.3`) :
 
-- Titre du paquet, date d'ajout, proprietaire.
-- Liste des questions (lecture seule).
-- Liste des **destinataires** du partage (chips avec nom + bouton
-  retirer si l'utilisateur courant est proprietaire).
-- Si proprietaire : liens "Editer" et "Supprimer".
+- Titre du paquet, date d'ajout, **proprietaire** (nom + email).
+- Liste des **destinataires** du partage sous forme de **chips**
+  colorees (avatar + nom). Si l'utilisateur courant est proprietaire,
+  un bouton croix (`x`) permet de **retirer** un destinataire
+  (`DELETE /api/paquets/:id/share/:userId`, confirme par une modale,
+  `VIEW-1.1`). Seul le proprietaire voit ce bouton de retrait.
+- Liste des questions du paquet en lecture seule.
+- Barre d'actions, visible uniquement si **proprietaire** :
+  - "Reviser" (`#study-<id>`) — disponible aussi pour les
+    destinataires.
+  - "Editer" (`#edit-paquet-<id>`).
+  - "Partager" (ouvre la modale de partage, cf. section 10).
+  - "Supprimer" (`DELETE /api/paquets/:id`, cascade transactionnelle
+    sur questions + partages).
 
-**Etat actuel** : l'ecran sera implemente en FULL-2.16 / FULL-2.17. La
-route `#paquet-<id>` est deja reconnue par le dispatcher SPA, qui
-retombera sur le dashboard tant que la vue n'existe pas.
+**Donnees source** : `GET /api/paquets/:id` (`VIEW-1.2`). L'acces est
+restreint aux **proprietaire ou destinataire** ; tout autre utilisateur
+recoit un 403.
 
 ---
 
@@ -248,6 +284,11 @@ l'ensemble des cartes du paquet, en mode Anki.
     - **Liste des questions** de la session, avec etat visuel : grise
       (non vue), violet (en cours), verte (savais), rouge (a revoir).
 
+**Donnees source** : `GET /api/paquets/:id/study` (`STUDY-1.1` /
+`STUDY-1.3`) — renvoie le paquet, ses questions reelles et un flag
+`est_proprietaire`. L'acces est restreint aux proprietaire ou
+destinataire du paquet.
+
 **Machine d'etats** (cf. diagramme DESIGN-0.4) :
 
 ```
@@ -259,14 +300,21 @@ Q_affichee ──flip──► R_revelee ──savais/revoir──► (suivante)
 **Transitions** :
 
 - `Q_affichee` <-> `R_revelee` : flip au clic ou a la touche `Espace`.
-- `R_revelee` → question suivante : clic sur "Je savais !" / "A revoir"
-  ou touches `1` / `2`. La question evaluee est marquee dans la liste
-  laterale, les pastilles et le pourcentage sont mis a jour en temps
-  reel.
-- Apres la **derniere** question : appel AJAX `POST /api/paquets/:id/session`
-  pour transmettre le score au serveur (uniquement applique si
-  l'utilisateur est proprietaire — cf. CLAUDE.md §4) puis bascule sur
-  l'ecran de fin de session.
+  Une animation de retournement et de glissement vers la question
+  suivante est appliquee (`a71dc50`) pour rendre la transition
+  perceptible sans recourir a une rotation 3D.
+- `R_revelee` → question suivante : clic sur "Je savais !" /
+  "A revoir" ou touches `1` / `2`. La question evaluee est marquee
+  dans la liste laterale, les pastilles et le pourcentage sont mis a
+  jour en temps reel.
+- Apres la **derniere** question : appel AJAX
+  `POST /api/paquets/:id/score` (`STUDY-1.2` / `STUDY-1.4`) qui met
+  a jour `last_score` (toujours) et `best_score` (uniquement si le
+  nouveau score est meilleur). L'endpoint refuse silencieusement les
+  scores envoyes par un destinataire non proprietaire — la regle
+  metier `last_score`/`best_score` strictement personnels au
+  proprietaire (cf. CLAUDE.md §4) est appliquee cote serveur. La
+  reponse contient le best_score officiel et alimente l'ecran de fin.
 - `← Tableau de bord` (lien dans la sidebar) : abandon de la session,
   retour au dashboard sans envoi de score.
 
@@ -307,44 +355,65 @@ chiffre de sa session.
 **Quand** : clic sur l'avatar (topbar) ou le bandeau utilisateur
 (sidebar). Route `#profil`.
 
-**Objectif** : afficher l'identite de l'utilisateur connecte et lui
-permettre de se deconnecter.
+**Objectif** : afficher l'identite de l'utilisateur connecte, lui
+permettre de modifier ses informations et de se deconnecter.
 
-**Structure** : (cf. implementation AUTH-GATE.4)
+**Structure** (livree par `AUTH-GATE.4`, `WIRE-1.4` et `5c607da`) :
 
-- Card identite : avatar avec initiales, nom + prenom, email.
-- Statistiques personnelles (nombre de paquets crees, nombre de paquets
-  partages, meilleur score global).
-- Reglages : toggle dark/light, bouton "Se deconnecter" rouge.
+- **Card identite** : avatar (initiales sur un fond degrade dont la
+  couleur est **personnalisable** depuis l'ecran d'edition), nom +
+  prenom, email.
+- **Statistiques personnelles** (chiffres reels, branches sur
+  `GET /api/paquets`) : nombre de paquets crees, meilleur score
+  historique, nombre de sessions de revision (approximation =
+  paquets revises au moins une fois). Le lien "Partages" present
+  dans le mockup a ete retire car redondant avec la colonne
+  "Partages avec moi" du dashboard.
+- **Edition du profil** : formulaire qui permet de modifier nom,
+  prenom, email, mot de passe et couleur d'avatar (`5c607da`). La
+  validation respecte le pattern §6 (rouge dynamique + recap).
+- **Reglages** : toggle dark/light, bouton "Se deconnecter" rouge.
 
 **Transition** :
 
-- "Se deconnecter" → appel `POST /api/auth/logout` puis retour au Login
-  (la session PHP est detruite cote serveur, le cookie PHPSESSID est
-  supprime).
+- "Se deconnecter" → appel `POST /api/auth/deconnexion` puis retour
+  au Login (la session PHP est detruite cote serveur, le cookie
+  PHPSESSID est supprime).
 
 ---
 
-## 10. Partage d'un paquet — `project-files/interface/share_bag.png` (vue cible — FULL-2.14)
+## 10. Partage d'un paquet — `project-files/interface/share_bag.png` (modale implementee)
 
-**Quand** : depuis la vue de visualisation d'un paquet (section 6), bouton
-"Partager" si l'utilisateur est proprietaire.
+**Quand** : depuis la vue de visualisation d'un paquet (section 6),
+bouton "Partager" si l'utilisateur est proprietaire.
 
-**Objectif** : ajouter un destinataire au paquet.
+**Objectif** : ajouter un destinataire au paquet en saisissant son
+email avec auto-completion.
 
-**Structure prevue** :
+**Structure** (livree par `SHARE-1.1` a `SHARE-1.4`) :
 
-- Modale centree avec champ de recherche **avec auto-completion** sur
-  l'email des utilisateurs (endpoint `GET /api/users/search?q=...`).
-- Au fur et a mesure de la saisie, une liste deroulante propose les
-  emails correspondants. Clic sur un email → ajout immediat a la liste
-  des destinataires (chip).
-- La liste des destinataires actuels est visible dans la modale, avec
-  une croix pour retirer un partage.
+- **Modale centree** avec un champ de recherche.
+- **Auto-completion** au fur et a mesure de la saisie : a chaque
+  `keyup`, apres un **debounce de 250 ms**, une requete
+  `GET /api/users/search?q=<terme>` est envoyee. Le serveur renvoie
+  une liste d'emails matchant (LIKE prepare echappe, exclut
+  l'utilisateur courant et les destinataires deja partages).
+- Liste deroulante des resultats : chaque element affiche l'avatar
+  (avec sa **couleur reelle** depuis le profil du destinataire,
+  `a762731`) + le nom + l'email.
+- Clic sur un email → `POST /api/paquets/:id/share` (`SHARE-1.2`),
+  qui execute **9 verifications** cote serveur (CSRF, auth,
+  proprietaire, existence du destinataire, pas-soi-meme, pas-deja-
+  partage, etc.) avant d'inserer le partage. Le destinataire
+  apparait immediatement comme chip dans la liste des destinataires
+  de la vue de visualisation (section 6).
+- Un bandeau contextuel informe l'utilisateur du contexte (paquet en
+  cours de partage, eventuels erreurs / succes via toast).
 
-**Etat actuel** : non implemente. La vue sera ajoutee en FULL-2.14 et
-2.15. Le mockup est utilise comme reference pour la future
-implementation.
+**Choix technique** : auto-completion en **jQuery vanilla**
+(`.on("keyup")` + `setTimeout` pour le debounce + `$.ajax` + render
+manuel de la liste), pas de jQuery UI ni autre bibliotheque externe —
+hors stack TER.
 
 ---
 
@@ -359,13 +428,13 @@ affichees a la volee par un dispatcher JavaScript.
 window.location.hash         Vue affichee
 ─────────────────────────────────────────────
 (vide) ou #dashboard         Dashboard
+#login / #inscription        Ecrans d'authentification (garde SPA)
 #nouveau-paquet              Edition (mode creation)
-#paquet-<id>/edition         Edition (mode modification)
-#paquet-<id>                 Visualisation (vue cible — FULL-2)
+#edit-paquet-<id>            Edition (mode modification, proprietaire only)
+#paquet-<id>                 Visualisation (titre + chips + actions)
 #study-<id>                  Mode revision (Anki)
 #fin-session-<id>            Recapitulatif de fin
-#profil                      Profil utilisateur
-#partages                    Liste des paquets partages (mockup en attente)
+#profil                      Profil utilisateur (lecture + edition)
 ```
 
 Le mecanisme : un clic sur `<a href="#study-3">` declenche l'evenement

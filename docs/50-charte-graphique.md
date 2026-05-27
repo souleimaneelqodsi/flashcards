@@ -192,11 +192,32 @@ de l'interface basculer de maniere coherente, sans regle CSS oubliee.
 | Edition paquet | Modale, badges difficulte | `--succes-clair` (Facile), `--attention-clair` (Moyen), `--erreur-clair` (Difficile) |
 | Mode revision | Cartes recto/verso, panneau | Gradient `--primaire` -> `--primaire-moyen` (recto), boutons d'evaluation `--succes-clair`/`--erreur-clair` |
 | Fin de session | Carte centrale | `--succes`, `--erreur`, `--attention` (stats), gradient violet en arriere-plan |
-| Profil | Card identite, stats | `--surface`, `--primaire-clair` |
+| Profil | Card identite, stats, edition | `--surface`, `--primaire-clair` + **couleur d'avatar personnalisable** (`5c607da`) |
+| Toasts d'erreur / succes | Bandeau bas droit | `--erreur-clair` / `--succes-clair` selon le niveau (`cf47f9a`) |
 
 ---
 
-## 8. Limites assumees
+## 8. Extension a posteriori : couleur d'avatar personnalisable
+
+Apres l'integration de la vue profil (`5c607da`), chaque utilisateur
+peut choisir une **couleur d'avatar** parmi une palette restreinte de
+6 teintes accordees au design system (variantes des couleurs
+primaires et d'etat). La couleur est stockee dans le profil de
+l'utilisateur cote serveur et appliquee :
+
+- Sur le bandeau utilisateur de la sidebar.
+- Sur l'avatar du topbar.
+- Sur les **chips de partage** dans la vue de visualisation d'un
+  paquet et dans la modale d'auto-completion (`a762731`).
+
+Aucun nouveau token CSS n'a ete introduit : les 6 teintes sont des
+gradients composes a partir des tokens existants (`--primaire`,
+`--accent`, `--succes`, `--attention`, etc.). L'identite visuelle de
+la marque reste cohérente.
+
+---
+
+## 9. Limites assumees
 
 - **Pas de variables CSS pour les espacements** : les paddings et
   margins sont en valeurs litterales (`16px`, `22px`, etc.). Un travail

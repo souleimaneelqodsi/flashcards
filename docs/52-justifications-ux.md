@@ -109,8 +109,24 @@ Trois raisons.
 
 Le rendu visuel est moins spectaculaire qu'une vraie animation 3D. C'est
 un choix explicite : la fonctionnalite (reveler la reponse) prime sur
-l'effet visuel. La transition reste agreable grace a une legere
-elevation au survol (`transform: translateY(-2px)`).
+l'effet visuel.
+
+### Ajout posterieur : animations 2D (`a71dc50`)
+
+Apres le branchement de la vue Study sur l'API, une animation
+**2D** (pas 3D) a ete ajoutee pour rendre la transition perceptible :
+
+- Bascule recto/verso : court fondu d'opacite + leger decalage
+  vertical (`opacity` + `transform: translateY`).
+- Navigation entre questions : leger glissement horizontal
+  (`transform: translateX`).
+
+Ces deux animations s'appuient uniquement sur `transition` et
+`transform` 2D (translation, opacite), qui sont dans le perimetre
+courant du CSS3 deja autorise par CLAUDE.md (cf. radius, ombres,
+transitions hover). Aucune rotation 3D, aucune `perspective`, aucune
+`backface-visibility`. La promesse "code lisible par un debutant"
+reste tenue.
 
 ---
 
@@ -314,9 +330,9 @@ n'a pas de cas d'usage concret ici.
 
 ### Le constat
 
-Plusieurs mockups (`dashboard.png` avec "Bonjour, Jean 👋",
-`end_of_session.png` avec un emoji confetti) utilisent des emojis pour
-agrementer l'experience.
+Plusieurs mockups (`dashboard.png` avec "Bonjour, Jean" suivi d'un
+emoji main qui salue, `end_of_session.png` avec un emoji confetti)
+utilisent des emojis pour agrementer l'experience.
 
 ### La decision
 
@@ -343,40 +359,100 @@ Tous les SVG inline du projet ont :
 
 ---
 
-## 8. Donnees stub en Phase 2 frontend, branchement reporte a FULL-2
+## 8. Donnees stub en FRONT-2, branchement reel en FULL-2/3 (retour d'experience)
 
 ### Le constat
 
-Le mode revision et le dashboard affichent des paquets et des questions
-concrets, alors qu'au moment de FRONT-2, le backend Phase 2
-(`AUTH-2`, `BACK-2`) n'avait pas encore expose les endpoints
-`GET /api/paquets`, `GET /api/questions`, `POST /api/paquets/:id/session`.
+Au moment de `FRONT-2` (livraison de l'edition de paquet et du mode
+revision), le backend Phase 2 n'avait pas encore expose les endpoints
+`GET /api/paquets`, `GET /api/questions`,
+`POST /api/paquets/:id/score`, ni l'auto-completion des emails. Le
+frontend ne pouvait pas attendre.
 
 ### La decision
 
 Coder l'interface **avec des stubs JavaScript** (tableaux en dur dans
-`dashboard.js` / `study.js`) plutot que d'attendre les endpoints.
+`dashboard.js` / `study.js`) plutot que de bloquer le sprint frontend.
 
 ### Pourquoi ce choix
 
-1. **Decouplage des taches** : les phases sont decoupees pour permettre
-   un travail parallele. Frontend et backend avancent independamment.
-2. **Validation visuelle precoce** : l'equipe peut valider l'interface
-   sur des donnees representatives sans dependre de la base.
-3. **Branchement futur trivial** : la structure des stubs reflete
+1. **Decouplage des sprints** : Phase 2 frontend (`FRONT-2`) et Phase 2
+   backend (`BD-2` + `AUTH-2` + `BACK-2`) avancent en parallele sans
+   dependance bloquante.
+2. **Validation visuelle precoce** : l'equipe a pu valider l'interface,
+   le tri par date decroissante, l'effet flip, la machine d'etats du
+   mode revision sur des donnees representatives, sans dependre de la
+   base.
+3. **Branchement prepare** : la structure des stubs reflete
    exactement les champs du modele (`id_paquet`, `titre`, `theme`,
-   `last_score`, `best_score`, `date_maj`). Quand l'endpoint sera pret
-   (FULL-2.8), il suffira de remplacer la ligne `var paquets_stub =
-   [...]` par un `$.ajax({...})` qui appelle la meme fonction
-   d'affichage.
+   `last_score`, `best_score`, `date_maj`). Les fonctions
+   d'affichage (`afficher_paquets`, `afficher_question_courante`,
+   `rafraichir_pastilles_score`) n'ont **pas eu besoin d'etre
+   reecrites** au moment du branchement.
 
-### Tracabilite
+### Retour d'experience apres FULL-2 / FULL-3
 
-Le commit `ed3b181` ("chore(dashboard): retire les paquets placeholder
-(etat vide en attendant l'API FULL-2) [AUTH-GATE.5]") montre la
-suppression des stubs apres branchement d'une partie du backend. Le
-pattern s'est revele efficace : on retire un tableau, on ajoute un
-appel AJAX, le reste de la logique reste identique.
+Le pattern a tenu ses promesses. Le branchement reel s'est fait en
+trois etapes successives, sans reecriture des fonctions de rendu :
+
+| Etape | Commits | Action |
+|---|---|---|
+| Retrait des stubs dashboard | `ed3b181` (`AUTH-GATE.5`) | Suppression du tableau `paquets_stub`, etat vide visible. |
+| Branchement liste paquets | `d359d12` (`DASH-2.2`), `5fc1241` (`DASH-2.3`) | Remplacement par `GET /api/paquets` et `GET /api/paquets/shared`. |
+| Branchement mode revision | `59c25ce` (`STUDY-1.3`), `0004b74` (`STUDY-1.4`) | Remplacement par `GET /api/paquets/:id/study` et `POST /api/paquets/:id/score`. |
+
+Le seul ajustement non trivial a ete le **mapping difficulte** :
+l'API renvoie un `id_difficulte` numerique, le frontend utilise des
+chaines `facile / moyen / difficile`. Resolu par une petite fonction
+de traduction. Aucun autre changement structurel n'a ete necessaire.
+
+**Conclusion** : approche a recommander pour tout futur travail
+parallele frontend / backend dans le cadre d'un sprint TER.
+
+---
+
+## 9. Nettoyage du layout : retrait de la recherche, des notifications et des parametres (`OPT-1`)
+
+### Le constat
+
+Les mockups initiaux du dashboard montraient une **barre de recherche**
+dans le topbar, une **icone notifications** avec une pastille, et un
+lien **Parametres** dans la sidebar (a cote du Profil). Apres le
+branchement reel du dashboard (`DASH-2`) et du profil (`AUTH-GATE`),
+aucune de ces fonctionnalites n'est implementee, et **aucune tache du
+CSV ne la prevoit**.
+
+### La decision
+
+Retirer ces elements du topbar et de la sidebar :
+
+| Element | Commit | Justification |
+|---|---|---|
+| Barre de recherche | `f2d443d` (`OPT-1.1`) | Hors-sujet TER, non implementee. |
+| Lien Parametres | `89bd035` (`OPT-1.2`) | Le toggle dark/light est deja dans la sidebar ; rien d'autre a parametrer. |
+| Icone notifications + pastille | `982c55f` (`OPT-1.6`) | Decor sans contenu (aucun systeme de notification cote serveur). |
+
+### Pourquoi ce choix
+
+1. **Ne pas promettre ce qu'on ne livre pas** : une barre de recherche
+   visible sans fonctionnalite associee suggere a l'utilisateur que la
+   recherche existe. C'est trompeur et donne l'impression d'une
+   interface incomplete.
+2. **Eviter les questions de soutenance gratuites** : un element
+   visible mais non explique est un point d'accroche pour le
+   correcteur. Mieux vaut le retirer que d'avoir a justifier son
+   absence de fonctionnalite.
+3. **Reduire le bruit visuel** : le topbar epure (titre + avatar)
+   focalise l'attention sur le contenu principal.
+4. **Coherence avec le perimetre** : aucune de ces fonctionnalites
+   n'est citee dans le sujet TER ni dans le dossier de conception.
+   Les ajouter aurait constitue un scope creep.
+
+### Alternative ecartee
+
+Garder les elements visibles mais inactifs (gris) aurait suggere
+"fonctionnalite a venir" — interpretation trompeuse pour un projet
+livre. Le retrait pur est plus honnete.
 
 ---
 
