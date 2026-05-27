@@ -1,14 +1,14 @@
 # Patrons de conception utilises (DOC-ARCH.3)
 
 Le sujet TER exige au minimum trois patrons de conception differents. Le projet
-en implemente exactement trois, choisis pour repondre a des besoins concrets :
+en implémenté exactement trois, choisis pour répondre a des besoins concrets :
 **Singleton** pour la connexion a la base de donnees, **Repository** pour
-l'acces aux donnees, et **Factory Method** pour la creation des entites
+l'accès aux donnees, et **Factory Method** pour la création des entités
 metier. Aucun autre patron n'a ete retenu (pas d'Observer, pas de Strategy,
 pas de Decorator) : ajouter des patrons sans besoin reel alourdit le code et
 complique la maintenance (CLAUDE.md section 3).
 
-> References d'implementation : `src/core/DB.php`, `src/repositories/`,
+> références d'implémentation : `src/core/DB.php`, `src/repositories/`,
 > `src/models/Paquet.php`, `src/models/Question.php`,
 > `src/models/Utilisateur.php`.
 
@@ -16,17 +16,17 @@ complique la maintenance (CLAUDE.md section 3).
 
 ## 1. Patron Singleton — connexion PDO unique
 
-### 1.1 Probleme resolu
+### 1.1 problème resolu
 
 SQLite est une base de donnees fichier. Ouvrir plusieurs connexions PDO vers
-le meme fichier dans une meme requete HTTP multiplie les lectures/ecritures
+le même fichier dans une même requête HTTP multiplie les lectures/ecritures
 inutiles et peut provoquer des conflits de verrou. On veut garantir qu'une
-seule connexion PDO est creee par requete HTTP, partagee par tous les
+seule connexion PDO est créée par requête HTTP, partagee par tous les
 repositories.
 
 ### 1.2 Mise en oeuvre
 
-La classe `DB` (`src/core/DB.php`) suit le schema classique du Singleton :
+La classe `DB` (`src/core/DB.php`) suit le schéma classique du Singleton :
 
 ```php
 class DB
@@ -60,50 +60,50 @@ class DB
 ```
 
 Deux mecanismes garantissent l'unicite :
-- Le **constructeur prive** empeche toute creation directe avec `new DB()`.
-- La methode **`getInstance()`** cree l'objet uniquement si `$instance` est
-  `null`, puis renvoie toujours la meme reference.
+- Le **constructeur prive** empeche toute création directe avec `new DB()`.
+- La méthode **`getInstance()`** créé l'objet uniquement si `$instance` est
+  `null`, puis renvoie toujours la même référence.
 
-La connexion PDO elle-meme est creee de facon paresseuse (au premier appel a
-`pdo()`), evitant d'ouvrir le fichier SQLite si la requete HTTP ne necessite
-pas d'acces base (cas des requetes sur des routes inexistantes renvoyant 404).
+La connexion PDO elle-même est créée de façon paresseuse (au premier appel a
+`pdo()`), evitant d'ouvrir le fichier SQLite si la requête HTTP ne nécessite
+pas d'accès base (cas des requêtes sur des routes inexistantes renvoyant 404).
 
 Tous les repositories appellent `DB::getInstance()->executer(...)` sans jamais
 instancier `DB` directement.
 
 ### 1.3 Justification en trois phrases
 
-Une seule connexion PDO par requete HTTP est suffisante et recommandee pour
+Une seule connexion PDO par requête HTTP est suffisante et recommandee pour
 SQLite. Le Singleton garantit cette unicite sans que chaque repository ait a
 gerer l'ouverture et la fermeture de la connexion. Le constructeur prive et
 l'absence de `__clone` rendent l'unicite inviolable par code.
 
 ---
 
-## 2. Patron Repository — acces aux donnees isole
+## 2. Patron Repository — accès aux donnees isole
 
-### 2.1 Probleme resolu
+### 2.1 problème resolu
 
 Sans Repository, les controleurs PHP contiendraient du SQL. Melanger la
-logique HTTP (validation, authentification, formatage JSON) et les requetes
-SQL dans les memes methodes rend le code difficile a lire, a tester et a faire
-evoluer. Le patron Repository separe ces deux responsabilites.
+logique HTTP (validation, authentification, formatage JSON) et les requêtes
+SQL dans les mêmes méthodes rend le code difficile a lire, a tester et a faire
+evoluer. Le patron Repository sépare ces deux responsabilités.
 
 ### 2.2 Mise en oeuvre
 
-Il y a un repository par entite metier, dans `src/repositories/` :
+Il y a un repository par entité metier, dans `src/repositories/` :
 
-| Repository | Entite | Role |
+| Repository | entité | rôle |
 |---|---|---|
 | `UtilisateurRepository` | `utilisateurs` | CRUD utilisateurs, recherche par email |
-| `PaquetRepository` | `paquets` | CRUD paquets, listes par proprietaire et par destinataire |
+| `PaquetRepository` | `paquets` | CRUD paquets, listes par propriétaire et par destinataire |
 | `QuestionRepository` | `questions` | CRUD questions, liste par paquet |
 | `PartageRepository` | `partages` | Ajout/suppression/liste des partages |
 | `DifficulteRepository` | `difficultes` | Lecture du referentiel Facile/Moyen/Difficile |
 
-Chaque repository expose des methodes metier nommees en francais
+Chaque repository expose des méthodes metier nommees en francais
 (`trouver_par_id`, `trouver_par_proprietaire`, `creer`, `supprimer`) et
-renvoie des objets entite, jamais des tableaux bruts ni des `PDOStatement`.
+renvoie des objets entité, jamais des tableaux bruts ni des `PDOStatement`.
 
 Exemple dans `PaquetRepository` :
 
@@ -130,48 +130,48 @@ public function trouver_par_proprietaire($id_proprietaire)
 }
 ```
 
-Le controleur qui appelle cette methode ne connait pas le SQL : il recoit
+Le controleur qui appelle cette méthode ne connait pas le SQL : il reçoit
 directement un tableau de `Paquet`.
 
-La regle est appliquee sans exception : **aucun controleur ne contient de
+La règle est appliquee sans exception : **aucun controleur ne contient de
 code PDO**. Les controleurs creent leurs repositories dans leur constructeur
-et appellent uniquement des methodes metier.
+et appellent uniquement des méthodes metier.
 
 ### 2.3 Cas particulier : transaction de suppression en cascade
 
 `PaquetRepository::supprimer_avec_cascade` encapsule une transaction SQLite
 (suppression des questions, des partages, puis du paquet). La logique de
 transaction appartient au repository car c'est un detail de persistance, pas
-de la logique HTTP. Le controleur appelle une seule methode et ignore que
+de la logique HTTP. Le controleur appelle une seule méthode et ignore que
 trois tables sont touchees.
 
 ### 2.4 Justification en trois phrases
 
-Le Repository isole tout le SQL dans une couche dediee, ce qui empeche les
+Le Repository isole tout le SQL dans une couche dédiée, ce qui empeche les
 controleurs de melanger logique HTTP et logique de persistance. Un changement
-de schema ou une optimisation de requete n'implique que le repository concerne,
+de schéma ou une optimisation de requête n'implique que le repository concerne,
 sans toucher aux controleurs ni aux vues. Cela correspond exactement au
-principe de separation des responsabilites attendu dans un projet M1 MIAGE.
+principe de séparation des responsabilités attendu dans un projet M1 MIAGE.
 
 ---
 
-## 3. Patron Factory Method — creation des entites metier
+## 3. Patron Factory Method — création des entités metier
 
-### 3.1 Probleme resolu
+### 3.1 problème resolu
 
-Les entites metier (`Paquet`, `Question`, `Utilisateur`) ont un constructeur
-prive : on ne peut pas ecrire `new Paquet(...)` depuis l'exterieur. Cela
-interdit la creation d'objets incomplets ou dans un etat incohérent.
-Deux scenarios de creation coexistent : creer une entite depuis un formulaire
-(donnees utilisateur) et reconstituer une entite depuis une ligne SQL (donnees
+Les entités metier (`Paquet`, `Question`, `Utilisateur`) ont un constructeur
+prive : on ne peut pas écrire `new Paquet(...)` depuis l'exterieur. Cela
+interdit la création d'objets incomplets ou dans un état incohérent.
+Deux scenarios de création coexistent : créer une entité depuis un formulaire
+(donnees utilisateur) et reconstituer une entité depuis une ligne SQL (donnees
 base de donnees). Les contraintes d'initialisation different selon le scenario.
 
 ### 3.2 Mise en oeuvre
 
-Chaque modele expose deux methodes statiques qui jouent le role de
+Chaque modèle expose deux méthodes statiques qui jouent le rôle de
 **Factory Methods** (patron Factory Method de GoF) :
 
-| Methode | Scenario | Comportement |
+| méthode | Scenario | Comportement |
 |---|---|---|
 | `Entite::creer(...)` | Nouveau depuis formulaire | Initialise l'id a `null`, positionne la date du jour, fixe les valeurs par defaut |
 | `Entite::fromRow($ligne)` | Reconstruction depuis SQL | Rehydrate tous les champs depuis le tableau associatif retourne par PDO |
@@ -208,34 +208,34 @@ public static function fromRow($ligne)
 }
 ```
 
-Le meme schema est applique a `Question` (`Question::creer`, `Question::fromRow`)
+Le même schéma est applique a `Question` (`Question::creer`, `Question::fromRow`)
 et a `Utilisateur` (`Utilisateur::creer`, `Utilisateur::fromRow`).
 
-Il n'existe pas de classe `PaquetFactory` separee : les methodes statiques
-sur le modele lui-meme constituent une forme valide du patron Factory Method,
-reconnue par GoF. Cela evite de creer des classes supplementaires sans apport
+Il n'existe pas de classe `PaquetFactory` séparée : les méthodes statiques
+sur le modèle lui-même constituent une forme valide du patron Factory Method,
+reconnue par GoF. Cela evite de créer des classes supplementaires sans apport
 reel pour un projet de cette taille.
 
 ### 3.3 Justification en trois phrases
 
-Le constructeur prive des entites interdit toute creation dans un etat
+Le constructeur prive des entités interdit toute création dans un état
 incoherent : il n'est pas possible d'obtenir un `Paquet` sans titre ou sans
-proprietaire. Les deux Factory Methods (`creer` et `fromRow`) centralisent
-les regles d'initialisation pour chaque scenario, evitant de les repeter dans
+propriétaire. Les deux Factory Methods (`creer` et `fromRow`) centralisent
+les règles d'initialisation pour chaque scenario, evitant de les répéter dans
 les repositories et les controleurs. Cette approche est plus simple qu'une
-classe Factory separee tout en remplissant exactement le meme role.
+classe Factory séparée tout en remplissant exactement le même rôle.
 
 ---
 
 ## 4. Recapitulatif
 
-| Patron | Classe(s) concernee(s) | Probleme resolu | Fichier |
+| Patron | Classe(s) concernee(s) | problème resolu | Fichier |
 |---|---|---|---|
-| Singleton | `DB` | Une seule connexion PDO par requete HTTP | `src/core/DB.php` |
+| Singleton | `DB` | Une seule connexion PDO par requête HTTP | `src/core/DB.php` |
 | Repository | `*Repository` (x5) | Isolation du SQL hors des controleurs | `src/repositories/*.php` |
-| Factory Method | `Paquet`, `Question`, `Utilisateur` | Creation coherente des entites (formulaire vs SQL) | `src/models/*.php` |
+| Factory Method | `Paquet`, `Question`, `Utilisateur` | création cohérente des entités (formulaire vs SQL) | `src/models/*.php` |
 
 Les trois patrons se complementent : le **Singleton** fournit la connexion, le
 **Repository** l'utilise pour persister les donnees, et la **Factory Method**
 produit les objets que le Repository retourne. Ensemble, ils couvrent toute la
-chaine d'acces aux donnees sans introduire de code complexe.
+chaine d'accès aux donnees sans introduire de code complexe.

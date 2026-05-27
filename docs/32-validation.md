@@ -1,39 +1,39 @@
 # 32. Validation des donnees : client ET serveur
 
-Le sujet impose une **double validation** de chaque formulaire : cote
-client (jQuery, pour le confort immediat) **et** cote serveur (PHP, pour la
-securite). Cette section documente la matrice des regles, leur miroir
+Le sujet impose une **double validation** de chaque formulaire : côté
+client (jQuery, pour le confort immediat) **et** côté serveur (PHP, pour la
+sécurité). Cette section documente la matrice des règles, leur miroir
 client/serveur, et le pattern d'affichage des erreurs (rouge dynamique +
 message sous le champ + recapitulatif en bas) impose par CLAUDE.md sec. 6.
 
 ## 32.1 Pourquoi valider deux fois
 
-- **Cote client** : retour immediat a l'utilisateur, sans aller-retour
+- **côté client** : retour immediat a l'utilisateur, sans aller-retour
   reseau. Confort uniquement. La validation client est **contournable**
   (un utilisateur peut desactiver JavaScript ou appeler l'API directement).
-- **Cote serveur** : c'est la **seule** validation a laquelle on fait
-  confiance pour la securite et l'integrite des donnees. Un client
+- **côté serveur** : c'est la **seule** validation a laquelle on fait
+  confiance pour la sécurité et l'intégrité des donnees. Un client
   malveillant ne peut jamais court-circuiter la validation serveur, car
-  elle s'execute avant tout acces a la base.
+  elle s'exécuté avant tout accès a la base.
 
-Regle d'or du projet : **toute regle presente cote client doit exister a
-l'identique cote serveur**. Les deux ne se remplacent pas, ils se doublent.
+règle d'or du projet : **toute règle présenté côté client doit exister a
+l'identique côté serveur**. Les deux ne se remplacent pas, ils se doublent.
 
-## 32.2 Matrice des regles
+## 32.2 Matrice des règles
 
-Regles communes (memes seuils en JS et en PHP) :
+règles communes (mêmes seuils en JS et en PHP) :
 
-| Champ              | Regle                                                  | Validation client | Validation serveur |
+| Champ              | règle                                                  | Validation client | Validation serveur |
 |--------------------|--------------------------------------------------------|-------------------|--------------------|
 | Email              | format `login@domaine.ext`, longueur <= 150, **unique** | `auth.js` (regex) | `AuthController::valider_inscription` + unicite (409) |
 | Mot de passe       | obligatoire, >= 6 caracteres                           | `auth.js`         | `AuthController::valider_inscription` |
-| Confirmation MDP   | identique au mot de passe (inscription)                | `auth.js`         | (le serveur ne recoit que le MDP final) |
+| Confirmation MDP   | identique au mot de passe (inscription)                | `auth.js`         | (le serveur ne reçoit que le MDP final) |
 | Nom / Prenom       | obligatoire, <= 100 caracteres                         | `auth.js`         | `AuthController::valider_inscription` |
 | Date de naissance  | format `AAAA-MM-JJ`, date reelle, age entre 7 et 100   | `auth.js`         | `AuthController::valider_inscription` (`checkdate`) |
 | Titre de paquet    | obligatoire, <= 150 caracteres                         | `edition-paquet.js` | `PaquetController` |
-| Question / Reponse | non vides                                              | `edition-paquet.js` | `QuestionController` |
+| Question / réponse | non vides                                              | `edition-paquet.js` | `QuestionController` |
 
-Les memes regles sont reutilisees pour l'edition du profil
+Les mêmes règles sont reutilisees pour l'édition du profil
 (`UtilisateurController::valider_profil`, identique a l'inscription sans le
 mot de passe) et le changement de mot de passe (>= 6 + confirmation).
 
@@ -56,24 +56,24 @@ le serveur, et inversement. Pas de surprise pour l'utilisateur.
 
 Le champ est un `<input type="date">`, dont la valeur est au format ISO
 `AAAA-MM-JJ`. Le sujet demande un format `AAAAMMJJ` strict : on le respecte
-via le format ISO (memes composantes, separateurs `-` fournis par le
-navigateur). La verification se fait en deux niveaux :
+via le format ISO (mêmes composantes, separateurs `-` fournis par le
+navigateur). La vérification se fait en deux niveaux :
 
 1. **Forme** : regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}$` des deux cotes.
-2. **Date reelle + age** : cote serveur, `checkdate($mois, $jour, $annee)`
+2. **Date reelle + age** : côté serveur, `checkdate($mois, $jour, $annee)`
    rejette les dates impossibles (ex : 2023-02-30) ; l'age calcule par
-   `BaseController::calculer_age` est borne entre 7 et 100 ans. Cote
-   client, `age_a_partir_de` applique la meme borne, et le selecteur de
+   `BaseController::calculer_age` est borne entre 7 et 100 ans. côté
+   client, `age_a_partir_de` applique la même borne, et le selecteur de
    date est borne par `min`/`max` (entre il y a 100 ans et il y a 7 ans).
 
-Le serveur **revalide** la date avec `checkdate` meme si le navigateur
-garantit deja une date valide : c'est de la **defense en profondeur** (le
+Le serveur **revalide** la date avec `checkdate` même si le navigateur
+garantit déjà une date valide : c'est de la **defense en profondeur** (le
 serveur ne fait jamais confiance a l'entree client).
 
-## 32.3 Le pattern d'affichage des erreurs (cote client)
+## 32.3 Le pattern d'affichage des erreurs (côté client)
 
 CLAUDE.md sec. 6 impose un comportement precis. Il repose sur trois
-elements de structure presents dans
+Éléments de structure presents dans
 [src/views/app.php](../src/views/app.php) pour chaque champ :
 
 ```html
@@ -98,7 +98,7 @@ aux exemples du sujet :
 ### Rouge dynamique : `blur` pour signaler, `keyup` pour lever
 
 Le sujet exige que le champ devienne rouge **des qu'une mauvaise entree est
-detectee**, pas seulement au submit. Notre implementation (dans
+détectée**, pas seulement au submit. Notre implémentation (dans
 [src/public/js/auth.js](../src/public/js/auth.js)) affine ce principe pour
 ne pas etre desagreable a la saisie :
 
@@ -126,7 +126,7 @@ function brancher_champ_register(nom_champ, id_input, id_message) {
 Les helpers `marquer_champ_invalide` / `marquer_champ_valide` centralisent
 l'ajout/retrait de la classe et l'affichage/masquage du message. Le texte
 est insere avec `.text()` (et non `.html()`), ce qui evite toute injection
-HTML (cf. [33-acces-csrf.md](33-acces-csrf.md)).
+HTML (cf. [33-accès-csrf.md](33-accès-csrf.md)).
 
 ### Recapitulatif en bas + submit bloque
 
@@ -148,9 +148,9 @@ function soumettre_register(evenement) {
 }
 ```
 
-## 32.4 Validation serveur et reponse structuree par champ
+## 32.4 Validation serveur et réponse structuree par champ
 
-Cote serveur, chaque validateur renvoie un **tableau associatif
+côté serveur, chaque validateur renvoie un **tableau associatif
 `champ => message`** (et non une simple liste), ce qui permet au client de
 repositionner chaque message sous le bon champ :
 
@@ -165,9 +165,9 @@ if ($email === '') {
 }
 ```
 
-Si des erreurs existent, le controleur repond **400** avec
+Si des erreurs existent, le controleur répond **400** avec
 `{ "erreurs": { "email": "...", "mot_de_passe": "..." } }`. Le front
-(`soumettre_register`) detecte ce 400 et rappelle
+(`soumettre_register`) détecté ce 400 et rappelle
 `rafraichir_affichage_erreurs_register(xhr.responseJSON.erreurs)`, qui
 re-affiche exactement comme la validation client : champs en rouge, messages
 sous les champs, recap en bas. Le rendu est donc identique, que l'erreur
@@ -178,32 +178,32 @@ vienne du client ou du serveur.
 | Situation                          | Code | Traitement front |
 |------------------------------------|------|-------------------|
 | Champs invalides                   | 400  | erreurs par champ re-affichees |
-| Email deja utilise (inscription)   | 409  | champ email en rouge + message |
+| Email déjà utilise (inscription)   | 409  | champ email en rouge + message |
 | Identifiants invalides (login)     | 401  | les deux champs en rouge + recap (message generique) |
 
-## 32.5 Coherence des messages
+## 32.5 cohérence des messages
 
 Les messages d'erreur sont volontairement **identiques** entre le JS et le
 PHP (par exemple "Le mot de passe doit faire au moins 6 caractères.").
-L'utilisateur voit le meme texte quel que soit le niveau qui a detecte
-l'erreur, ce qui rend l'application coherente et previsible.
+L'utilisateur voit le même texte quel que soit le niveau qui a détecté
+l'erreur, ce qui rend l'application cohérente et previsible.
 
 ## 32.6 Conformite au sujet
 
-| Exigence (CLAUDE.md sec. 6) | Implementation |
+| Exigence (CLAUDE.md sec. 6) | implémentation |
 |------------------------------|----------------|
 | Validation client ET serveur, jamais l'un sans l'autre | `auth.js` (client) + `AuthController` / `UtilisateurController` (serveur) |
-| Champ rouge des qu'une mauvaise entree est detectee (pas qu'au submit) | `blur` -> `.champ-invalide` |
+| Champ rouge des qu'une mauvaise entree est détectée (pas qu'au submit) | `blur` -> `.champ-invalide` |
 | Message d'erreur sous le champ | `<p class="message-erreur">` pilote par `marquer_champ_invalide` |
 | Recapitulatif en bas du formulaire | `.recap-erreurs` + `afficher_recap_erreurs` |
 | Submit bloque tant qu'il reste une erreur | `return` avant l'envoi AJAX si `nb_erreurs > 0` |
-| Email unique avec erreur claire | unicite verifiee en base, reponse 409 |
+| Email unique avec erreur claire | unicite vérifiée en base, réponse 409 |
 
-## 32.7 Perimetre des APIs utilisees
+## 32.7 périmètre des APIs utilisees
 
-Cote JS : selecteurs `$()`, `.on("blur keyup submit")`, `.val()`, `.text()`,
+côté JS : selecteurs `$()`, `.on("blur keyup submit")`, `.val()`, `.text()`,
 `.addClass`/`.removeClass`, `.attr`/`.removeAttr`, `.empty()`, `.append()`,
 `.preventDefault()`, et les regex JavaScript natives (`.test()`) — tout est
-dans le perimetre du cours. Cote PHP : `trim`, `strlen`, `preg_match`,
+dans le périmètre du cours. côté PHP : `trim`, `strlen`, `preg_match`,
 `checkdate`, `substr`, `count` — fonctions standard citees par le sujet.
 Aucun plugin de validation externe (pas de jQuery Validate) n'est utilise.

@@ -1,25 +1,25 @@
-# 30. Sessions PHP : cycle de vie, cookie, regeneration d'identifiant
+# 30. Sessions PHP : cycle de vie, cookie, régénération d'identifiant
 
 Cette section documente la gestion des sessions PHP dans FlashCards MIAGE :
-comment une session est demarree, durcie, utilisee pour identifier
-l'utilisateur connecte, regeneree a la connexion et detruite a la
-deconnexion. Le mecanisme de session est la brique sur laquelle reposent
+comment une session est démarrée, durcie, utilisee pour identifier
+l'utilisateur connecte, régénérée a la connexion et détruite a la
+déconnexion. Le mecanisme de session est la brique sur laquelle reposent
 l'authentification (qui est connecte ?), la protection CSRF (cf.
-[33-acces-csrf.md](33-acces-csrf.md)) et le controle d'acces aux paquets.
+[33-accès-csrf.md](33-accès-csrf.md)) et le contrôle d'accès aux paquets.
 
 ## 30.1 Qu'est-ce qu'une session PHP ?
 
-HTTP est un protocole sans etat : deux requetes successives d'un meme
+HTTP est un protocole sans état : deux requêtes successives d'un même
 navigateur sont, par defaut, independantes. Pour qu'un utilisateur reste
 "connecte" d'une page a l'autre, PHP fournit le mecanisme de **session** :
 
-1. Au premier `session_start()`, PHP genere un identifiant aleatoire
+1. Au premier `session_start()`, PHP généré un identifiant aleatoire
    (le **session id**) et l'envoie au navigateur dans un cookie nomme
    `PHPSESSID`.
-2. Les donnees associees a cette session sont stockees **cote serveur**
+2. Les donnees associees a cette session sont stockees **côté serveur**
    (par defaut dans un fichier temporaire), jamais dans le cookie. Le
    cookie ne contient que l'identifiant.
-3. A chaque requete suivante, le navigateur renvoie automatiquement le
+3. A chaque requête suivante, le navigateur renvoie automatiquement le
    cookie ; PHP retrouve le bon fichier de session et repeuple la
    superglobale `$_SESSION`.
 
@@ -30,15 +30,15 @@ connexion, cf. `AuthController::connexion`) :
 |------------------------|------------------------------------------|----------|
 | `$_SESSION['id_user']` | Identifiant de l'utilisateur connecte    | `AuthController::connexion` |
 | `$_SESSION['email']`   | Email de l'utilisateur (confort/affichage) | `AuthController::connexion`, resynchronise par `UtilisateurController::mettre_a_jour_profil` |
-| `$_SESSION['csrf_token']` | Jeton anti-CSRF (cf. 33-acces-csrf.md) | `Csrf::generer_si_absent` |
+| `$_SESSION['csrf_token']` | Jeton anti-CSRF (cf. 33-accès-csrf.md) | `Csrf::generer_si_absent` |
 
-## 30.2 Demarrage et durcissement du cookie de session
+## 30.2 démarrage et durcissement du cookie de session
 
 Tout passe par le front-controller unique
-[src/public/index.php](../src/public/index.php). La session est demarree
-**pour toute requete** (page HTML comme appel API), car le token CSRF doit
+[src/public/index.php](../src/public/index.php). La session est démarrée
+**pour toute requête** (page HTML comme appel API), car le token CSRF doit
 exister des le premier rendu et l'identite de l'utilisateur doit etre
-disponible sur chaque endpoint protege.
+disponible sur chaque endpoint protégé.
 
 Avant `session_start()`, on configure les parametres du cookie de session
 avec `session_set_cookie_params()` :
@@ -57,7 +57,7 @@ if (!isset($_SESSION)) {
 }
 ```
 
-Chaque option a une raison de securite precise :
+Chaque option a une raison de sécurité precise :
 
 - **`httponly => true`** : le cookie de session n'est pas lisible en
   JavaScript (`document.cookie`). Si une faille XSS injectait du script
@@ -65,19 +65,19 @@ Chaque option a une raison de securite precise :
   pas usurper la session. C'est la principale defense contre le vol de
   session par XSS.
 - **`samesite => 'Lax'`** : le navigateur n'envoie pas le cookie sur la
-  plupart des requetes cross-site (declenchees depuis un autre domaine).
+  plupart des requêtes cross-site (declenchees depuis un autre domaine).
   C'est une defense supplementaire contre le CSRF, en complement du jeton
-  applicatif documente en [33-acces-csrf.md](33-acces-csrf.md).
+  applicatif documente en [33-accès-csrf.md](33-accès-csrf.md).
 - **`secure => $connexion_https`** : en HTTPS, le cookie n'est jamais
   envoye en clair sur une connexion non chiffree. La condition vaut
   `false` en developpement local (HTTP via `php -S`), pour que
   l'application reste utilisable, et `true` en production HTTPS.
 - **`lifetime => 0`** : cookie de session pure, supprime a la fermeture du
-  navigateur (pas de persistance "remember me", hors perimetre du sujet).
+  navigateur (pas de persistance "remember me", hors périmètre du sujet).
 - **`path => '/'`** : le cookie est valable sur toute l'application.
 
 Le test `if (!isset($_SESSION))` evite de reconfigurer / redemarrer une
-session deja active (PHP emettrait sinon un warning).
+session déjà active (PHP emettrait sinon un warning).
 
 ## 30.3 Cycle de vie d'une session
 
@@ -109,9 +109,9 @@ session deja active (PHP emettrait sinon un warning).
 
 ## 30.4 La connexion : `session_regenerate_id(true)`
 
-A la connexion reussie (`AuthController::connexion`), apres avoir verifie
+A la connexion reussie (`AuthController::connexion`), après avoir vérifié
 le mot de passe avec `password_verify` (cf. [31-bcrypt.md](31-bcrypt.md)),
-on execute :
+on exécuté :
 
 ```php
 session_regenerate_id(true);
@@ -119,20 +119,20 @@ $_SESSION['id_user'] = $utilisateur->getIdUser();
 $_SESSION['email']   = $utilisateur->getEmail();
 ```
 
-**Pourquoi regenerer l'identifiant ?** Pour se proteger de la **fixation
+**Pourquoi régénérer l'identifiant ?** Pour se protéger de la **fixation
 de session** (*session fixation*). Dans cette attaque, l'agresseur force
-la victime a utiliser un session id qu'il connait deja (par exemple via un
+la victime a utiliser un session id qu'il connait déjà (par exemple via un
 lien piege), puis attend que la victime se connecte avec cet id : il
-herite alors d'une session authentifiee.
+hérite alors d'une session authentifiee.
 
 `session_regenerate_id(true)` attribue un **nouvel** identifiant au moment
 precis ou la session change de niveau de privilege (anonyme -> connecte).
 L'ancien id que l'attaquant aurait pu fixer devient inutile. L'argument
 `true` demande la **suppression** de l'ancien fichier de session, pour ne
-pas laisser trainer une session orpheline cote serveur.
+pas laisser trainer une session orpheline côté serveur.
 
-Juste apres, `Csrf::regenerer()` produit aussi un nouveau jeton CSRF (cf.
-[33-acces-csrf.md](33-acces-csrf.md)) : un jeton capture sur la page de
+Juste après, `Csrf::regenerer()` produit aussi un nouveau jeton CSRF (cf.
+[33-accès-csrf.md](33-accès-csrf.md)) : un jeton capture sur la page de
 login avant connexion ne doit pas rester valable une fois connecte.
 
 ## 30.5 Le garde d'authentification : `verifier_authentifie()`
@@ -152,18 +152,18 @@ protected function verifier_authentifie()
 }
 ```
 
-Chaque action protegee l'appelle en premiere ligne. Si la session ne
-contient pas d'`id_user` (jamais connecte, session expiree ou detruite),
-le serveur repond **401 Unauthorized** et l'action ne s'execute pas. En
-cas de succes, la methode renvoie l'`id_user` pour la suite du traitement.
-Cote front, l'intercepteur 401 de
+Chaque action protégée l'appelle en premiere ligne. Si la session ne
+contient pas d'`id_user` (jamais connecte, session expiree ou détruite),
+le serveur répond **401 Unauthorized** et l'action ne s'exécuté pas. En
+cas de succès, la méthode renvoie l'`id_user` pour la suite du traitement.
+côté front, l'intercepteur 401 de
 [src/public/js/ajax.js](../src/public/js/ajax.js) redirige alors vers
-l'ecran de connexion.
+l'écran de connexion.
 
-## 30.6 La deconnexion : vider, expirer le cookie, detruire
+## 30.6 La déconnexion : vider, expirer le cookie, détruire
 
-La deconnexion (`AuthController::deconnexion`) fait trois choses, dans cet
-ordre, pour une deconnexion **complete** :
+La déconnexion (`AuthController::deconnexion`) fait trois choses, dans cet
+ordre, pour une déconnexion **complète** :
 
 ```php
 // 1. Vide le contenu de la session en memoire.
@@ -184,29 +184,29 @@ session_destroy();
 ```
 
 - **Vider `$_SESSION`** retire `id_user`, `email` et `csrf_token` de la
-  requete courante.
+  requête courante.
 - **Expirer le cookie** : on repose le cookie `PHPSESSID` avec une date
   d'expiration dans le passe (`time() - 42000`), ce qui ordonne au
-  navigateur de le supprimer. Sans cette etape, le navigateur garderait le
-  cookie jusqu'a sa peremption naturelle ; ce n'est pas conforme a une
-  vraie deconnexion. On reutilise les memes parametres (`path`, `domain`,
+  navigateur de le supprimer. Sans cette étape, le navigateur garderait le
+  cookie jusqu'a sa péremption naturelle ; ce n'est pas conforme a une
+  vraie déconnexion. On réutilisé les mêmes parametres (`path`, `domain`,
   `secure`, `httponly`) que ceux du cookie d'origine pour cibler le bon
   cookie.
-- **`session_destroy()`** supprime les donnees de session cote serveur.
+- **`session_destroy()`** supprime les donnees de session côté serveur.
 
 ## 30.7 Conformite au sujet
 
-| Exigence (CLAUDE.md sec. 7 / sujet TER) | Implementation |
+| Exigence (CLAUDE.md sec. 7 / sujet TER) | implémentation |
 |------------------------------------------|----------------|
-| `session_start()` en debut de requete protegee | Demarree pour toute requete dans `index.php` |
-| Verifier `$_SESSION['id_user']` avant toute action metier | `BaseController::verifier_authentifie()`, appele en premiere ligne |
+| `session_start()` en debut de requête protégée | démarrée pour toute requête dans `index.php` |
+| vérifier `$_SESSION['id_user']` avant toute action metier | `BaseController::verifier_authentifie()`, appele en premiere ligne |
 | `session_regenerate_id(true)` a la connexion | `AuthController::connexion` |
-| Deconnexion effective | `AuthController::deconnexion` (vide + expire cookie + detruit) |
+| déconnexion effective | `AuthController::deconnexion` (vide + expire cookie + détruit) |
 
-## 30.8 Perimetre des fonctions utilisees
+## 30.8 périmètre des fonctions utilisees
 
 Toutes les fonctions de session employees sont des fonctions PHP standard
-citees dans le perimetre du sujet : `session_start`, `session_destroy`,
+citees dans le périmètre du sujet : `session_start`, `session_destroy`,
 `session_regenerate_id`, `session_set_cookie_params`,
 `session_get_cookie_params`, `session_name`, `setcookie`, `ini_get`, plus
 la superglobale `$_SESSION`. Aucune bibliotheque externe de gestion de

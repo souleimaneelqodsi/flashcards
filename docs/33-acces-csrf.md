@@ -1,8 +1,8 @@
-# 33. Regles d'acces, middleware et protection CSRF
+# 33. règles d'accès, middleware et protection CSRF
 
-Cette section documente la couche de controle d'acces de FlashCards
-MIAGE : le middleware d'authentification, les regles d'autorisation par
-ressource (proprietaire vs destinataire), la protection CSRF de bout en
+Cette section documente la couche de contrôle d'accès de FlashCards
+MIAGE : le middleware d'authentification, les règles d'autorisation par
+ressource (propriétaire vs destinataire), la protection CSRF de bout en
 bout, et les defenses transverses (injection SQL, XSS, fuite d'erreurs).
 Elle s'appuie sur les sessions documentees en
 [30-sessions.md](30-sessions.md).
@@ -11,17 +11,17 @@ Elle s'appuie sur les sessions documentees en
 
 Deux questions distinctes, traitees a deux niveaux :
 
-- **Authentification** ("qui es-tu ?") : verifiee par le middleware
-  `verifier_authentifie()`, qui controle la presence de
-  `$_SESSION['id_user']`. Reponse **401** si absent.
-- **Autorisation** ("as-tu le droit sur CETTE ressource ?") : verifiee
-  dans chaque action, en comparant l'utilisateur connecte au proprietaire
-  du paquet ou a la liste des destinataires. Reponse **403** si interdit.
+- **Authentification** ("qui es-tu ?") : vérifiée par le middleware
+  `verifier_authentifie()`, qui contrôle la presence de
+  `$_SESSION['id_user']`. réponse **401** si absent.
+- **Autorisation** ("as-tu le droit sur CETTE ressource ?") : vérifiée
+  dans chaque action, en comparant l'utilisateur connecte au propriétaire
+  du paquet ou a la liste des destinataires. réponse **403** si interdit.
 
 ## 33.2 Le middleware d'authentification (`checkAuth`)
 
-Defini dans [src/core/BaseController.php](../src/core/BaseController.php) et
-herite par tous les controleurs :
+défini dans [src/core/BaseController.php](../src/core/BaseController.php) et
+hérite par tous les controleurs :
 
 ```php
 protected function verifier_authentifie()
@@ -33,7 +33,7 @@ protected function verifier_authentifie()
 }
 ```
 
-Chaque endpoint protege l'appelle **en premiere ligne**. Exemple type :
+Chaque endpoint protégé l'appelle **en premiere ligne**. Exemple type :
 
 ```php
 public function lister_mes_paquets()
@@ -44,33 +44,33 @@ public function lister_mes_paquets()
 }
 ```
 
-Cote front, l'intercepteur 401 de
+côté front, l'intercepteur 401 de
 [src/public/js/ajax.js](../src/public/js/ajax.js) redirige automatiquement
-vers `#login` quand un endpoint protege renvoie 401 (session expiree), sauf
-quand l'appelant gere lui-meme le 401 (cas du login, ou un 401 signifie
+vers `#login` quand un endpoint protégé renvoie 401 (session expiree), sauf
+quand l'appelant gere lui-même le 401 (cas du login, ou un 401 signifie
 "identifiants invalides", pas "session expiree").
 
-## 33.3 Les regles d'autorisation par ressource
+## 33.3 Les règles d'autorisation par ressource
 
-Le sujet (CLAUDE.md sec. 4) pose une regle metier centrale : **le partage
-transfere l'acces au contenu, pas la progression**. Les scores (`last_score`,
-`best_score`) sont strictement personnels au proprietaire. On en deduit
+Le sujet (CLAUDE.md sec. 4) pose une règle metier centrale : **le partage
+transfere l'accès au contenu, pas la progression**. Les scores (`last_score`,
+`best_score`) sont strictement personnels au propriétaire. On en deduit
 deux niveaux de droits, appliques dans
 [src/controllers/PaquetController.php](../src/controllers/PaquetController.php) :
 
-| Action                              | Proprietaire | Destinataire | Autre |
+| Action                              | propriétaire | Destinataire | Autre |
 |-------------------------------------|--------------|--------------|-------|
 | Voir un paquet (`afficher`)         | oui          | oui          | 403   |
-| Lister les questions / reviser      | oui          | oui          | 403   |
-| Editer / supprimer le paquet        | oui          | 403          | 403   |
-| Ajouter / editer / supprimer une question | oui    | 403          | 403   |
+| Lister les questions / réviser      | oui          | oui          | 403   |
+| éditer / supprimer le paquet        | oui          | 403          | 403   |
+| Ajouter / éditer / supprimer une question | oui    | 403          | 403   |
 | Enregistrer un score                | oui          | 403          | 403   |
 | Partager / retirer un partage       | oui          | 403          | 403   |
 
-Le motif de controle est systematique : charger le paquet, 404 s'il
-n'existe pas, puis comparer le proprietaire a l'utilisateur courant.
+Le motif de contrôle est systematique : charger le paquet, 404 s'il
+n'existe pas, puis comparer le propriétaire a l'utilisateur courant.
 
-### Lecture : proprietaire OU destinataire
+### Lecture : propriétaire OU destinataire
 
 ```php
 // PaquetController::afficher (extrait)
@@ -84,11 +84,11 @@ if (!$est_proprietaire) {
 }
 ```
 
-Optimisation lisible : on ne fait la requete `partages->existe(...)` que si
-l'utilisateur n'est **pas** deja proprietaire (inutile de verifier le
+Optimisation lisible : on ne fait la requête `partages->existe(...)` que si
+l'utilisateur n'est **pas** déjà propriétaire (inutile de vérifier le
 partage dans ce cas).
 
-### Ecriture : proprietaire uniquement
+### Ecriture : propriétaire uniquement
 
 ```php
 // PaquetController::mettre_a_jour / supprimer / enregistrer_score / partager
@@ -98,12 +98,12 @@ if ($paquet->getIdProprietaire() !== $id_user) {
 }
 ```
 
-Pour l'enregistrement du score, le controle proprietaire applique
-directement la regle metier : un destinataire peut **reviser** un paquet
-partage, mais sa session ne doit jamais ecrire `last_score`/`best_score`,
-qui appartiennent au proprietaire. Le front masque le bouton concerne via
-le flag `est_proprietaire`, mais **le serveur refuse de toute facon** (403)
-si la requete arrive malgre tout : la securite ne repose jamais sur l'UI.
+Pour l'enregistrement du score, le contrôle propriétaire applique
+directement la règle metier : un destinataire peut **réviser** un paquet
+partage, mais sa session ne doit jamais écrire `last_score`/`best_score`,
+qui appartiennent au propriétaire. Le front masque le bouton concerne via
+le flag `est_proprietaire`, mais **le serveur refuse de toute façon** (403)
+si la requête arrive malgre tout : la sécurité ne repose jamais sur l'UI.
 
 ### Semantique des codes
 
@@ -111,8 +111,8 @@ si la requete arrive malgre tout : la securite ne repose jamais sur l'UI.
 - **403** : connecte, mais pas le droit sur cette ressource.
 - **404** : ressource inexistante.
 
-Pour les actions reservees au proprietaire, on choisit de repondre 403
-(et non 404) quand l'utilisateur n'est pas proprietaire d'un paquet
+Pour les actions reservees au propriétaire, on choisit de répondre 403
+(et non 404) quand l'utilisateur n'est pas propriétaire d'un paquet
 existant : le comportement est documente dans le code action par action.
 
 ## 33.4 La protection CSRF
@@ -120,13 +120,13 @@ existant : le comportement est documente dans le code action par action.
 ### Qu'est-ce qu'une attaque CSRF
 
 Le **Cross-Site Request Forgery** exploite le fait que le navigateur
-envoie automatiquement le cookie de session sur toute requete vers notre
-domaine. Un site malveillant peut donc declencher, a l'insu de la victime
-connectee, une requete mutante (ex : suppression d'un paquet) qui partira
+envoie automatiquement le cookie de session sur toute requête vers notre
+domaine. Un site malveillant peut donc déclencher, a l'insu de la victime
+connectee, une requête mutante (ex : suppression d'un paquet) qui partira
 avec le cookie valide. Le cookie seul ne prouve donc pas l'intention de
 l'utilisateur.
 
-La parade : exiger, sur chaque requete mutante, un **jeton secret** que
+La parade : exiger, sur chaque requête mutante, un **jeton secret** que
 seul notre propre front connait (un site tiers ne peut pas le lire, grace a
 la *same-origin policy*).
 
@@ -145,10 +145,10 @@ la *same-origin policy*).
   Csrf::verifier_requete() : compare l'en-tete recu au jeton en session (hash_equals)
 ```
 
-### 1. Generation et exposition
+### 1. génération et exposition
 
 [src/public/index.php](../src/public/index.php) appelle
-`Csrf::generer_si_absent()` des le demarrage de session :
+`Csrf::generer_si_absent()` des le démarrage de session :
 
 ```php
 public static function generer_si_absent()
@@ -161,7 +161,7 @@ public static function generer_si_absent()
 ```
 
 Le jeton est expose au front dans [src/views/app.php](../src/views/app.php),
-**echappe** pour eviter toute injection dans l'attribut HTML :
+**échappé** pour eviter toute injection dans l'attribut HTML :
 
 ```php
 <meta name="csrf-token" content="<?php echo htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8'); ?>">
@@ -171,7 +171,7 @@ Le jeton est expose au front dans [src/views/app.php](../src/views/app.php),
 
 Le wrapper AJAX unique
 ([src/public/js/ajax.js](../src/public/js/ajax.js)) lit la balise et pose
-l'en-tete sur **toutes** les requetes, de facon transparente :
+l'en-tête sur **toutes** les requêtes, de façon transparente :
 
 ```js
 function construire_entetes() {
@@ -187,11 +187,11 @@ function construire_entetes() {
 Aucun code metier n'a a se soucier du CSRF : il suffit de passer par
 `AjaxService`.
 
-### 3. Verification cote serveur
+### 3. vérification côté serveur
 
 `Csrf::verifier_requete()` ([src/core/Csrf.php](../src/core/Csrf.php)) est
-appele en tete de chaque action **mutante** (POST/PUT/DELETE) :
-inscription, connexion, deconnexion, creation/edition/suppression de
+appele en tête de chaque action **mutante** (POST/PUT/DELETE) :
+inscription, connexion, déconnexion, création/édition/suppression de
 paquet, partage, questions, profil, mot de passe, avatar.
 
 ```php
@@ -213,16 +213,16 @@ mesure de temps (*timing attack*) qui pourraient, avec un `===` classique,
 laisser deviner le jeton caractere par caractere.
 
 Les endpoints en **lecture seule** (GET : `moi`, `users/search`, liste des
-paquets...) ne verifient pas le CSRF : une requete GET ne doit, par
-convention, jamais modifier l'etat, donc le risque CSRF ne s'y applique
+paquets...) ne verifient pas le CSRF : une requête GET ne doit, par
+convention, jamais modifier l'état, donc le risque CSRF ne s'y applique
 pas. Ils restent neanmoins proteges par l'authentification.
 
-### 4. Regeneration a la connexion
+### 4. régénération a la connexion
 
-`AuthController::connexion` appelle `Csrf::regenerer()` apres
-`session_regenerate_id(true)`, et renvoie le nouveau jeton dans la reponse
+`AuthController::connexion` appelle `Csrf::regenerer()` après
+`session_regenerate_id(true)`, et renvoie le nouveau jeton dans la réponse
 (`csrf_token`). Comme la SPA ne recharge pas la page, le front met a jour
-la balise `<meta>` lui-meme (`soumettre_login` dans `auth.js`) :
+la balise `<meta>` lui-même (`soumettre_login` dans `auth.js`) :
 
 ```js
 if (reponse && typeof reponse.csrf_token === "string") {
@@ -231,67 +231,67 @@ if (reponse && typeof reponse.csrf_token === "string") {
 ```
 
 Sans cela, un jeton capture sur la page de login resterait valide
-apres connexion, et les requetes mutantes suivantes enverraient l'ancien
+après connexion, et les requêtes mutantes suivantes enverraient l'ancien
 jeton (rejet en 403).
 
-## 33.5 Ordre des controles dans une action mutante
+## 33.5 Ordre des contrôles dans une action mutante
 
-Une action qui modifie l'etat enchaine, en tete de methode :
+Une action qui modifie l'état enchaine, en tête de méthode :
 
-1. `Csrf::verifier_requete()` — origine legitime de la requete (403 sinon) ;
+1. `Csrf::verifier_requete()` — origine legitime de la requête (403 sinon) ;
 2. `verifier_authentifie()` — utilisateur connecte (401 sinon) ;
-3. controle d'autorisation sur la ressource (proprietaire/destinataire, 403/404) ;
+3. contrôle d'autorisation sur la ressource (propriétaire/destinataire, 403/404) ;
 4. validation des donnees (cf. [32-validation.md](32-validation.md)) ;
-5. acces a la base via le Repository.
+5. accès a la base via le Repository.
 
 ## 33.6 Defenses transverses
 
-La couche d'acces s'appuie aussi sur trois protections documentees
-ailleurs mais rappelees ici car indissociables de la securite :
+La couche d'accès s'appuie aussi sur trois protections documentees
+ailleurs mais rappelees ici car indissociables de la sécurité :
 
-- **Injection SQL** : 100 % de requetes preparees PDO. Tous les
+- **Injection SQL** : 100 % de requêtes preparees PDO. Tous les
   Repositories passent par `DB::executer($sql, $params)`
   ([src/core/DB.php](../src/core/DB.php)), qui prepare puis lie les
   parametres. Aucune concatenation de valeur utilisateur dans une chaine
-  SQL. Meme la recherche `LIKE` du partage echappe `%`, `_` et `\` avant de
+  SQL. même la recherche `LIKE` du partage échappé `%`, `_` et `\` avant de
   parametrer le motif (`UtilisateurRepository::rechercher_par_email_partiel`).
-- **XSS** : echappement `htmlspecialchars(..., ENT_QUOTES, 'UTF-8')` cote
+- **XSS** : echappement `htmlspecialchars(..., ENT_QUOTES, 'UTF-8')` côté
   PHP pour toute valeur injectee dans le HTML servi (ex : le jeton CSRF
-  dans `app.php`) ; cote front, le contenu utilisateur est insere avec
+  dans `app.php`) ; côté front, le contenu utilisateur est insere avec
   `.text()` plutot que `.html()`, ce qui empeche l'interpretation de
   balises.
 - **Pas de fuite d'erreur** : `ErrorHandler`
   ([src/core/ErrorHandler.php](../src/core/ErrorHandler.php)) coupe
-  `display_errors`, journalise cote serveur (via `Logger`) et renvoie un
+  `display_errors`, journalise côté serveur (via `Logger`) et renvoie un
   JSON neutre `{ "erreur": "Une erreur interne est survenue." }` en 500.
   Aucune stack trace, aucun chemin de fichier n'est expose au client. De
-  meme, `DB::executer` capture les `PDOException`, log le detail et leve une
+  même, `DB::executer` capture les `PDOException`, log le detail et leve une
   `RuntimeException` au message generique.
 
-## 33.7 Choix d'implementation : pourquoi `Csrf` en methodes statiques
+## 33.7 Choix d'implémentation : pourquoi `Csrf` en méthodes statiques
 
 `Csrf` n'est pas une instance de classe : ce sont des helpers statiques
 operant sur `$_SESSION`. C'est volontaire — le projet limite les patrons a
 trois (Singleton, Repository, Factory, cf. dossier de conception) ; faire
-de `Csrf` un quatrieme objet a etat n'apporterait rien. Un namespace de
+de `Csrf` un quatrieme objet a état n'apporterait rien. Un namespace de
 fonctions statiques autour d'une valeur de session est la solution la plus
 simple et la plus lisible.
 
 ## 33.8 Conformite au sujet
 
-| Exigence (CLAUDE.md sec. 7) | Implementation |
+| Exigence (CLAUDE.md sec. 7) | implémentation |
 |------------------------------|----------------|
-| Verifier `$_SESSION['id_user']` avant toute action metier | `verifier_authentifie()` en premiere ligne |
-| Token CSRF en session, envoye via AJAX sur les endpoints mutants | `Csrf` + en-tete `X-CSRF-Token` pose par `ajax.js` |
-| SQL : 100 % requetes preparees, zero concatenation | `DB::executer` + Repositories |
-| XSS : `htmlspecialchars` cote PHP, `.text()` cote jQuery | `app.php`, helpers d'affichage |
-| Erreurs PHP : pas de stack trace dans la reponse | `ErrorHandler` + `DB::executer` |
+| vérifier `$_SESSION['id_user']` avant toute action metier | `verifier_authentifie()` en premiere ligne |
+| Token CSRF en session, envoye via AJAX sur les endpoints mutants | `Csrf` + en-tête `X-CSRF-Token` pose par `ajax.js` |
+| SQL : 100 % requêtes preparees, zero concatenation | `DB::executer` + Repositories |
+| XSS : `htmlspecialchars` côté PHP, `.text()` côté jQuery | `app.php`, helpers d'affichage |
+| Erreurs PHP : pas de stack trace dans la réponse | `ErrorHandler` + `DB::executer` |
 
-## 33.9 Perimetre des APIs utilisees
+## 33.9 périmètre des APIs utilisees
 
 `random_bytes`, `bin2hex` et `hash_equals` sont des fonctions PHP standard
-liees a la securite. Bien que peu detaillees dans les PDFs de cours, elles
-sont citees par le sujet TER au titre des bonnes pratiques de securite
+liees a la sécurité. Bien que peu detaillees dans les PDFs de cours, elles
+sont citees par le sujet TER au titre des bonnes pratiques de sécurité
 (auto-formation assumee), et leur usage est commente dans
 [src/core/Csrf.php](../src/core/Csrf.php). Le reste (superglobales,
-`isset`, `header` via `Response`) est dans le perimetre du cours.
+`isset`, `header` via `Response`) est dans le périmètre du cours.

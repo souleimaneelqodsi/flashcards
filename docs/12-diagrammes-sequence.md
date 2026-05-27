@@ -3,10 +3,10 @@
 Cette section decrit les flux dynamiques principaux de l'application sous
 forme de diagrammes de sequence UML 2. Trois scenarios sont documentes :
 la **connexion** d'un utilisateur, le **partage** d'un paquet, et une
-**session de revision** Anki. Le diagramme de reference se trouve dans
+**session de révision** Anki. Le diagramme de référence se trouve dans
 `project-files/sequence_diagram.jpeg`.
 
-> References d'implementation : `src/controllers/AuthController.php`,
+> références d'implémentation : `src/controllers/AuthController.php`,
 > `src/controllers/PaquetController.php`, `src/public/js/auth.js`,
 > `src/public/js/study.js`, `src/public/js/share-modal.js`.
 
@@ -53,18 +53,18 @@ Utilisateur          Interface JS         AuthController         SQLite
     |<-- affiche dashboard|                     |                    |
 ```
 
-**Points cles de securite** :
+**Points cles de sécurité** :
 
-- Le jeton CSRF est verifie **avant** tout acces a la base de donnees. Un
-  appel sans jeton valide recoit 403 et ne va pas plus loin.
-- En cas d'echec (email inconnu ou mot de passe incorrect), la reponse 401
-  utilise toujours le meme message generique "Identifiants invalides" pour ne
+- Le jeton CSRF est vérifié **avant** tout accès a la base de donnees. Un
+  appel sans jeton valide reçoit 403 et ne va pas plus loin.
+- En cas d'echec (email inconnu ou mot de passe incorrect), la réponse 401
+  utilise toujours le même message generique "Identifiants invalides" pour ne
   pas indiquer quel champ est faux.
-- `session_regenerate_id(true)` est appele **apres** la verification du mot de
+- `session_regenerate_id(true)` est appele **après** la vérification du mot de
   passe et **avant** de poser `$_SESSION['id_user']`. Cela empeche les
   attaques de fixation de session.
-- Le nouveau jeton CSRF est renvoye dans la reponse JSON parce que la SPA ne
-  recharge pas la page : sans ce renvoi, les requetes suivantes utiliseraient
+- Le nouveau jeton CSRF est renvoye dans la réponse JSON parce que la SPA ne
+  recharge pas la page : sans ce renvoi, les requêtes suivantes utiliseraient
   l'ancien jeton, desormais invalide, et seraient rejetees en 403.
 
 ---
@@ -122,22 +122,22 @@ Utilisateur          Interface JS         PaquetController       SQLite
 
 **Points cles** :
 
-- L'auto-completion (`GET /api/users/search`) est une requete GET sans
-  modification de donnees : elle ne necessite pas de jeton CSRF.
-- Le controleur verifie dans l'ordre : CSRF, authentification, existence du
-  paquet, appartenance au proprietaire, existence du destinataire, non
-  auto-partage, absence de doublon. Chaque verification echoue avec un code
+- L'auto-completion (`GET /api/users/search`) est une requête GET sans
+  modification de donnees : elle ne nécessite pas de jeton CSRF.
+- Le controleur vérifié dans l'ordre : CSRF, authentification, existence du
+  paquet, appartenance au propriétaire, existence du destinataire, non
+  auto-partage, absence de doublon. Chaque vérification échoué avec un code
   HTTP distinct (400, 403, 404, 409), ce qui permet au front d'afficher un
   message cible.
 - `last_score` et `best_score` du paquet ne sont pas transmis au destinataire :
-  le partage donne acces au **contenu** (questions/reponses), pas a la
-  progression personnelle du proprietaire.
+  le partage donne accès au **contenu** (questions/réponses), pas a la
+  progression personnelle du propriétaire.
 
 ---
 
-## 3. Sequence : session de revision (mode Anki)
+## 3. Sequence : session de révision (mode Anki)
 
-Ce scenario couvre le flux depuis le demarrage d'une session de revision
+Ce scenario couvre le flux depuis le démarrage d'une session de révision
 jusqu'a l'enregistrement du score final.
 
 **Acteurs** : Utilisateur, Interface JS/jQuery (`study.js`), Controleur PHP
@@ -205,20 +205,20 @@ Utilisateur          Interface JS         PaquetController       SQLite
 
 **Points cles** :
 
-- Le chargement (`GET /api/paquets/:id/study`) ne necessite pas de jeton CSRF
-  car c'est une lecture (methode GET).
-- Le flag `est_proprietaire` est renvoye dans la reponse de chargement. Le
+- Le chargement (`GET /api/paquets/:id/study`) ne nécessite pas de jeton CSRF
+  car c'est une lecture (méthode GET).
+- Le flag `est_proprietaire` est renvoye dans la réponse de chargement. Le
   front (`study.js`) n'appelle `POST /api/paquets/:id/score` que si ce flag
-  est `true`. Le serveur verifie **independamment** que l'appelant est bien le
-  proprietaire (double protection : front et back).
-- Le score est calcule **entierement cote client** pendant la session (comptage
-  des "Check" / total). Seul le resultat final est envoye au serveur une seule
+  est `true`. Le serveur vérifié **indépendamment** que l'appelant est bien le
+  propriétaire (double protection : front et back).
+- Le score est calcule **entierement côté client** pendant la session (comptage
+  des "Check" / total). Seul le résultat final est envoye au serveur une seule
   fois, en fin de session, pour minimiser les allers-retours reseau.
 - `best_score` ne diminue jamais : `UPDATE ... SET best_score = max(best_score,
   ?)` garantit que seul un meilleur score ecrase l'ancien.
 - Un destinataire qui revise un paquet partage ne peut pas modifier
-  `last_score` ni `best_score` (refus 403 cote serveur). La progression reste
-  strictement personnelle au proprietaire.
+  `last_score` ni `best_score` (refus 403 côté serveur). La progression reste
+  strictement personnelle au propriétaire.
 
 ---
 
@@ -228,10 +228,10 @@ Utilisateur          Interface JS         PaquetController       SQLite
 |---|---|---|---|---|
 | Connexion | `POST /api/auth/connexion` | Non (pas encore connecte) | Oui | `AuthController` |
 | Partage | `POST /api/paquets/:id/share` | Oui | Oui | `PaquetController` |
-| Revision - chargement | `GET /api/paquets/:id/study` | Oui | Non (GET) | `PaquetController` |
-| Revision - score | `POST /api/paquets/:id/score` | Oui (proprietaire) | Oui | `PaquetController` |
+| révision - chargement | `GET /api/paquets/:id/study` | Oui | Non (GET) | `PaquetController` |
+| révision - score | `POST /api/paquets/:id/score` | Oui (propriétaire) | Oui | `PaquetController` |
 
 Les trois scenarios illustrent comment les couches MVC cooperent a chaque
-requete : la **Vue** (jQuery) initie un appel AJAX, le **Controleur** (PHP)
-orchestre la validation et la logique metier, le **Modele** (Repository +
-entite) persiste ou recupere les donnees via le Singleton PDO.
+requête : la **Vue** (jQuery) initie un appel AJAX, le **Controleur** (PHP)
+orchestre la validation et la logique metier, le **modèle** (Repository +
+entité) persiste ou récupéré les donnees via le Singleton PDO.
