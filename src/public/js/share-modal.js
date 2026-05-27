@@ -179,8 +179,16 @@
 
         var avatar = $("<span></span>")
             .addClass("partage-avatar")
-            .addClass(classe_avatar(utilisateur.id_user))
             .text(calculer_initiales(utilisateur.prenom, utilisateur.nom));
+        // Couleur d'avatar reelle choisie par l'utilisateur (fonctionnalite
+        // F, stockee dans la colonne avatar et renvoyee par /users/search).
+        // Repli sur un degrade deterministe id_user % 3 si l'utilisateur
+        // n'a pas encore choisi de couleur (conforme share_bag.png).
+        if (typeof utilisateur.avatar === "string" && utilisateur.avatar.charAt(0) === "#") {
+            avatar.attr("style", "background: " + utilisateur.avatar + ";");
+        } else {
+            avatar.addClass(classe_avatar(utilisateur.id_user));
+        }
         ligne.append(avatar);
 
         var bloc_info = $("<span></span>").addClass("partage-info");
