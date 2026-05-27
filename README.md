@@ -1,32 +1,37 @@
-# 🗂️ FlashCards MIAGE (Anki-style)
+# FlashCards MIAGE (Anki-style)
 
-[![Project Status: Active](https://img.shields.io/badge/Project%20Status-Active-brightgreen.svg)](https://github.com/votre-repo)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Stack: PHP/JS](https://img.shields.io/badge/Stack-PHP%20%7C%20JS%20%7C%20SQLite-blue.svg)]()
+> Application Web SPA (Single Page Application) de révision collaborative inspirée de la méthode Anki, réalisée dans le cadre du TER M1 MIAGE.
 
-> Une application Web SPA (Single Page Application) de révision collaborative inspirée de la méthode Anki.
+## Présentation du projet
 
-![PLACEHOLDER_LOGO](https://via.placeholder.com/150?text=LOGO)
+Ce projet permet aux utilisateurs de créer des paquets de questions (flashcards), de s'auto-évaluer en mode révision et de partager leurs ressources avec d'autres étudiants.
 
-## 📌 Présentation du Projet
-Ce projet, réalisé dans le cadre du M1 MIAGE, permet aux utilisateurs de créer des paquets de questions (flashcards), de s'auto-évaluer et de partager leurs ressources avec d'autres étudiants.
+Les maquettes de référence de l'interface se trouvent dans `project-files/interface/`.
 
-![PLACEHOLDER_ILLUSTRATION](https://via.placeholder.com/800x400?text=Illustration+Interface+Flashcards)
+## Fonctionnalités clés
 
-## 🚀 Fonctionnalités Clés
-- **Révision Intelligente :** Mode étude avec retournement de carte (Flip) et système de score (Check/Bad).
-- **Dashboard Dual :** Séparation claire entre "Mes Flashcards" et "Partagées avec moi".
-- **Statistiques :** Suivi du dernier score et du record personnel (Best score) par paquet.
-- **Gestion Collaborative :** Partage de paquets entre utilisateurs via un système d'auto-complétion.
-- **Expérience Utilisateur :** Mode Sombre/Clair, gestion de profil (avatar) et interface SPA fluide avec jQuery.
+- **Révision style Anki :** mode étude avec retournement de carte (flip) et évaluation (Je savais / À revoir), score de session.
+- **Tableau de bord en deux colonnes :** « Mes paquets » et « Partagés avec moi » côte à côte, avec des indicateurs (KPI) en tête.
+- **Statistiques :** dernier score et record (best score) par paquet, mis à jour à la fin de chaque session par le propriétaire.
+- **Partage collaboratif :** partage de paquets entre utilisateurs avec auto-complétion par email ; l'écran de visualisation affiche les destinataires.
+- **Expérience utilisateur :** mode sombre / clair, profil utilisateur (avatar à initiales colorées), interface SPA fluide en jQuery.
 
-## 🛠️ Stack Technique
-- **Frontend :** ![HTML5](https://img.shields.io/badge/-HTML5-E34F26?logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/-CSS3-1572B6?logo=css3&logoColor=white) ![jQuery](https://img.shields.io/badge/-jQuery-0769AD?logo=jquery&logoColor=white)
-- **Backend :** ![PHP](https://img.shields.io/badge/-PHP-777BB4?logo=php&logoColor=white) (Architecture MVC / API REST)
-- **Base de données :** ![SQLite](https://img.shields.io/badge/-SQLite-003B57?logo=sqlite&logoColor=white) (Fichier local)
+## Stack technique
 
-## 🔧 Installation
-Veuillez vous référer au fichier [INSTALLATION.txt](./INSTALLATION.txt) pour les instructions détaillées sur la mise en place du serveur local (XAMPP/WAMP) et l'initialisation de la base de données SQLite via `install.php`.
+- **Frontend :** HTML5, CSS, jQuery
+- **Backend :** PHP (architecture MVC, API JSON)
+- **Base de données :** SQLite (fichier local, accès via PDO)
 
-## 📜 License
-Distribué sous la licence MIT. Voir le fichier [LICENSE](./LICENSE) pour plus d'informations.
+Stack imposée par le sujet : pas de framework JavaScript (React / Vue / Angular) ni de framework PHP, pas de Node.js.
+
+## Installation
+
+Voir le fichier `installation.txt` pour la mise en place du serveur local et l'initialisation de la base de données SQLite via `install.php`.
+
+## Documentation et rapport
+
+La documentation est organisée dans le dossier `docs/` (un fichier markdown par section, voir `docs/README.md`). Le `rapport.pdf` final est assemblé à partir de ces fichiers (tâche QA-11).
+
+## Licence
+
+Projet académique (TER M1 MIAGE) — usage pédagogique.
