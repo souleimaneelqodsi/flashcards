@@ -40,25 +40,214 @@ var ETAT_REPONSE = "R_revelee";
 var ETAT_FINIE = "Session_finie";
 var etat_session = ETAT_QUESTION;
 
-// Compteurs de score partages entre les micro-taches.
-var nb_correctes = 6;
-var nb_mauvaises = 2;
+// Compteurs de score (remis a zero a chaque entree dans la vue par
+// reinitialiser_session, STUDY-1.3).
+var nb_correctes = 0;
+var nb_mauvaises = 0;
 
 // Index de la question courante dans la liste laterale (FRONT-2.9).
-// Les vraies donnees viendront en FULL-2 ; pour l'instant on parcourt
-// les items DOM .study-liste-item dans l'ordre.
-var index_question_courante = 3;
+var index_question_courante = 0;
 
-// Identifiant du paquet en cours d'etude. Sera renseigne par la route
-// SPA (ex : #study-3 -> id_paquet_session = 3). Pour FRONT-2.12 on
-// stocke une valeur par defaut servant au stub.
-var id_paquet_session = 1;
+// Identifiant du paquet en cours d'etude, lu depuis le hash
+// (ex : #study-3 -> id_paquet_session = 3). Renseigne par
+// afficher_etude_paquet() au demarrage de la session.
+var id_paquet_session = null;
 
-// Indique si l'utilisateur est proprietaire du paquet en cours. Le
+// Liste des questions de la session (chargee depuis l'API en STUDY-1.3).
+// Format : tableau d'objets { id_question, contenu_question,
+// contenu_reponse, id_paquet, id_difficulte }.
+var questions_session = [];
+
+// Indique si l'utilisateur est proprietaire du paquet en cours. Lu
+// depuis la reponse de GET /api/paquets/:id/study (STUDY-1.1). Le
 // sujet TER precise que last_score / best_score ne sont mis a jour
-// que pour le proprietaire (et pas pour les destinataires d'un
-// partage) - cf. CLAUDE.md §4 et FULL-2.12.
-var utilisateur_est_proprietaire = true;
+// que pour le proprietaire (CLAUDE.md §4) - le front ne tente meme
+// pas l'appel POST score quand ce flag est faux.
+var utilisateur_est_proprietaire = false;
+
+// ── Conversion id_difficulte <-> libelle (STUDY-1.3) ─────────
+// Le serveur renvoie un id_difficulte numerique (1=Facile, 2=Moyen,
+// 3=Difficile, seedee dans cet ordre par install.php). On a besoin
+// du libelle pour l'afficher dans le badge ".study-badge-difficulte",
+// et de la classe CSS de couleur (badge-warn / badge-success /
+// badge-danger) pour matcher la palette du mockup.
+function libelle_difficulte(id_difficulte) {
+    if (id_difficulte === 2) {
+        return "Moyen";
+    }
+    if (id_difficulte === 3) {
+        return "Difficile";
+    }
+    return "Facile";
+}
+
+function classe_badge_difficulte(id_difficulte) {
+    if (id_difficulte === 2) {
+        return "badge-warn";
+    }
+    if (id_difficulte === 3) {
+        return "badge-err";
+    }
+    return "badge-ok";
+}
+
+// ── Lecture de l'id_paquet depuis le hash (STUDY-1.3) ────────
+// Hash attendu : #study-<id>. Renvoie null si le hash n'a pas la
+// bonne forme (id non numerique).
+function extraire_id_etude_depuis_hash() {
+    var hash = window.location.hash;
+    var prefixe = "#study-";
+    if (hash.indexOf(prefixe) !== 0) {
+        return null;
+    }
+    var suffixe = hash.substring(prefixe.length);
+    if (!suffixe.match(/^[0-9]+$/)) {
+        return null;
+    }
+    return parseInt(suffixe, 10);
+}
+
+// ── Reinitialisation de l'etat de session (STUDY-1.3) ────────
+// Vide les compteurs, l'index, les questions, la liste laterale, le
+// recto/verso. Appelee en entree de afficher_etude_paquet() pour ne
+// pas heriter des donnees d'une session precedente.
+function reinitialiser_session() {
+    nb_correctes = 0;
+    nb_mauvaises = 0;
+    index_question_courante = 0;
+    questions_session = [];
+    etat_session = ETAT_QUESTION;
+    $("#study-liste-questions").empty();
+    $("#study-question").text("");
+    $("#study-reponse").text("");
+    $("#study-badge-difficulte")
+        .removeClass("badge-ok badge-warn badge-err")
+        .text("");
+    $("#study-correctes").text("0");
+    $("#study-mauvaises").text("0");
+    $("#study-score-pct").text("0");
+    $("#study-best").text("0");
+    $("#study-numero-courant").text("0");
+    $("#study-total").text("0");
+    $("#study-progress-fill").attr("style", "width: 0%");
+}
+
+// ── Affichage d'une question dans la carte courante (STUDY-1.3) ──
+// Met a jour le recto (contenu_question), le verso (contenu_reponse),
+// le badge de difficulte. Remet systematiquement sur la face recto.
+function rendre_question_courante() {
+    if (questions_session.length === 0) {
+        return;
+    }
+    if (index_question_courante < 0 || index_question_courante >= questions_session.length) {
+        return;
+    }
+    var q = questions_session[index_question_courante];
+
+    $("#study-question").text(q.contenu_question);
+    $("#study-reponse").text(q.contenu_reponse);
+
+    var badge = $("#study-badge-difficulte");
+    badge.removeClass("badge-ok badge-warn badge-err");
+    badge.addClass(classe_badge_difficulte(q.id_difficulte));
+    badge.text(libelle_difficulte(q.id_difficulte));
+
+    // Met a jour le compteur du header "X / N".
+    $("#study-numero-courant").text(index_question_courante + 1);
+
+    afficher_face_recto();
+}
+
+// ── Construction de la liste laterale (STUDY-1.3) ────────────
+// Cree un <li> par question (avec son numero et le debut du contenu).
+// L'item correspondant a l'index courant recoit la classe .active.
+function construire_side_list() {
+    var liste = $("#study-liste-questions");
+    liste.empty();
+    var i;
+    for (i = 0; i < questions_session.length; i = i + 1) {
+        var q = questions_session[i];
+        var item = $("<li></li>").addClass("study-liste-item");
+        if (i === index_question_courante) {
+            item.addClass("active");
+        }
+        item.append($("<span></span>").addClass("study-liste-numero").text(i + 1));
+        // On utilise contenu_question comme intitule abrege dans la
+        // liste laterale (le mockup met une courte description).
+        item.append($("<span></span>").addClass("study-liste-titre-question").text(q.contenu_question));
+        liste.append(item);
+    }
+}
+
+// ── Etats : aucune question, erreur de chargement ────────────
+function afficher_etat_vide() {
+    $("#study-question").text("Ce paquet ne contient aucune question pour le moment.");
+    $("#study-reponse").text("");
+    $("#study-evaluation").hide().attr("hidden", "hidden");
+}
+
+function afficher_etat_erreur(message) {
+    $("#study-question").text("Impossible de charger la session : " + message);
+    $("#study-reponse").text("");
+    $("#study-evaluation").hide().attr("hidden", "hidden");
+}
+
+// ── Entree principale : appelee par le router au changement de hash ──
+// 1. Lit id_paquet depuis le hash.
+// 2. Reinitialise l'etat.
+// 3. Appelle GET /api/paquets/:id/study.
+// 4. Sur succes : renseigne questions_session + est_proprietaire,
+//    construit la side list, rend la 1ere question.
+// 5. Sur erreur : message d'erreur dans la carte.
+function afficher_etude_paquet() {
+    reinitialiser_session();
+    var id = extraire_id_etude_depuis_hash();
+    if (id === null) {
+        afficher_etat_erreur("identifiant de paquet invalide.");
+        return;
+    }
+    id_paquet_session = id;
+
+    AjaxService.get("paquets/" + id + "/study", undefined, {
+        succes: function (reponse) {
+            if (!reponse || !reponse.paquet) {
+                afficher_etat_erreur("reponse serveur invalide.");
+                return;
+            }
+            questions_session = (reponse.questions) ? reponse.questions : [];
+            utilisateur_est_proprietaire = (reponse.est_proprietaire === true);
+
+            // Header de session : titre + nombre de cartes.
+            $("#study-titre").text(reponse.paquet.titre || "");
+            $("#study-sous-titre").text(
+                (reponse.paquet.theme || "")
+                + ((reponse.paquet.theme && questions_session.length > 0) ? " - " : "")
+                + questions_session.length + " cartes"
+            );
+            $("#study-total").text(questions_session.length);
+
+            if (questions_session.length === 0) {
+                afficher_etat_vide();
+                return;
+            }
+
+            construire_side_list();
+            rendre_question_courante();
+            rafraichir_pastilles_score();
+        },
+        erreur: function (xhr, message) {
+            if (xhr.status === 404) {
+                afficher_etat_erreur("ce paquet n'existe pas.");
+            } else if (xhr.status === 403) {
+                afficher_etat_erreur("vous n'avez pas acces a ce paquet.");
+            } else {
+                afficher_etat_erreur(message);
+            }
+        }
+    });
+}
+
+window.afficher_etude_paquet = afficher_etude_paquet;
 
 // ── Bascule de la face recto <-> verso ────────────────────────
 // Utilise jQuery .show()/.hide() qui modifient l'attribut display
@@ -122,13 +311,12 @@ function rafraichir_pastilles_score() {
     $("#study-total").text(nb_total_session);
 }
 
-// ── Navigation entre questions (FRONT-2.9) ───────────────────
+// ── Navigation entre questions (FRONT-2.9 + STUDY-1.3) ───────
 // Selectionne la question d'index donne dans la liste laterale,
-// met a jour l'item .active, le compteur "X / N" du header et
-// remet la carte sur la face question.
+// met a jour l'item .active et rend le contenu de la nouvelle
+// question (recto/verso) via rendre_question_courante.
 function aller_a_question(nouvel_index) {
-    var items = $("#study-liste-questions .study-liste-item");
-    var total = items.length;
+    var total = questions_session.length;
     if (total === 0) {
         return;
     }
@@ -138,17 +326,15 @@ function aller_a_question(nouvel_index) {
     if (nouvel_index >= total) {
         nouvel_index = total - 1;
     }
-    items.removeClass("active");
-    items.eq(nouvel_index).addClass("active");
     index_question_courante = nouvel_index;
 
-    // Met a jour le compteur du header. On reprend le numero affiche
-    // dans le pastille de l'item (visuel : "1", "2", ..., "9", ...).
-    var numero = items.eq(nouvel_index).find(".study-liste-numero").text();
-    $("#study-numero-courant").text(numero);
+    // Met a jour la classe active sur la liste laterale.
+    var items = $("#study-liste-questions .study-liste-item");
+    items.removeClass("active");
+    items.eq(nouvel_index).addClass("active");
 
-    // Retour systematique sur la face question apres navigation.
-    afficher_face_recto();
+    // Rend la question + reset la carte sur la face recto.
+    rendre_question_courante();
 }
 
 function aller_question_precedente() {
@@ -228,15 +414,17 @@ $(function () {
         }
     });
 
-    // ── Boutons d'evaluation (FRONT-2.8) ──
+    // ── Boutons d'evaluation (FRONT-2.8 + STUDY-1.3) ──
     // Helper interne : apres evaluation, avance d'une question OU
     // bascule vers la fin de session si on etait sur la derniere.
     // Transition R_revelee -> Q_affichee (suivante) OU -> Session_finie.
+    // On utilise questions_session.length plutot que la taille du DOM
+    // pour rester source-de-verite.
     function avancer_apres_evaluation() {
-        var total = $("#study-liste-questions .study-liste-item").length;
+        var total = questions_session.length;
         if (index_question_courante >= total - 1) {
             // Derniere question : transition vers Session_finie. On
-            // envoie le score au serveur (FRONT-2.12) avant la bascule
+            // envoie le score au serveur (STUDY-1.4) avant la bascule
             // de vue (faite dans le callback success/error).
             etat_session = ETAT_FINIE;
             envoyer_resultat_session();

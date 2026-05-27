@@ -201,8 +201,13 @@ function enregistrer_routes() {
     Router.ajouter_avec_id("#edit-paquet");
 
     // Mode revision : #study-<id> (l'id du paquet est lu par study.js).
+    // afficher_etude_paquet() charge le paquet+questions via API
+    // (STUDY-1.1 / STUDY-1.3) et rend la carte courante.
     Router.ajouter("#study", function () {
         afficher_vue(VUE_STUDY);
+        if (typeof window.afficher_etude_paquet === "function") {
+            window.afficher_etude_paquet();
+        }
     });
     Router.ajouter_avec_id("#study");
 
