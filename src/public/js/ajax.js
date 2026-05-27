@@ -123,6 +123,12 @@ var AjaxService = (function () {
         }
         var callback_succes = callbacks.succes;
         var callback_erreur = callbacks.erreur;
+        // Par defaut, un 401 declenche la redirection automatique vers la
+        // page de connexion (session expiree sur un endpoint protege).
+        // L'appelant peut desactiver ce comportement avec
+        // `rediriger_si_401: false` quand un 401 est un cas NORMAL qu'il
+        // veut traiter lui-meme (ex : login -> "Identifiants invalides").
+        var rediriger_si_401 = (callbacks.rediriger_si_401 !== false);
 
         // Pre-traitement des donnees : pour GET/DELETE, jQuery les serialise
         // en query string ; pour POST/PUT on envoie du JSON dans le corps.
@@ -152,8 +158,9 @@ var AjaxService = (function () {
         };
         options.error = function (xhr) {
             decrementer_loader();
-            // 401 : redirection automatique vers la page de connexion.
-            if (intercepter_401(xhr) === true) {
+            // 401 : redirection automatique vers la page de connexion,
+            // sauf si l'appelant a demande a gerer le 401 lui-meme.
+            if (rediriger_si_401 && intercepter_401(xhr) === true) {
                 return;
             }
             if (typeof callback_erreur === "function") {

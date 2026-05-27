@@ -18,10 +18,15 @@ ErrorHandler::enregistrer();
 // Cookie de session durci avant le demarrage : HttpOnly (le cookie n'est pas
 // lisible en JavaScript -> protege le vol de session par XSS) et SameSite Lax
 // (limite l'envoi du cookie sur les requetes cross-site -> defense CSRF).
+// Le flag Secure est active uniquement en HTTPS : ainsi le cookie n'est jamais
+// envoye en clair sur une connexion chiffree, tout en restant fonctionnel en
+// developpement local (HTTP), ou la condition vaut false.
 if (!isset($_SESSION)) {
+    $connexion_https = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
     session_set_cookie_params(array(
         'lifetime' => 0,
         'path'     => '/',
+        'secure'   => $connexion_https,
         'httponly' => true,
         'samesite' => 'Lax'
     ));
@@ -60,27 +65,84 @@ if ($est_appel_api) {
     require_once __DIR__ . '/../core/Response.php';
     require_once __DIR__ . '/../core/Router.php';
     require_once __DIR__ . '/../controllers/AuthController.php';
+    require_once __DIR__ . '/../controllers/PaquetController.php';
+    require_once __DIR__ . '/../controllers/UtilisateurController.php';
+    require_once __DIR__ . '/../controllers/QuestionController.php';
 
     // Methode HTTP de la requete (GET, POST, ...).
     $methode = $_SERVER['REQUEST_METHOD'];
 
-    // Construction du routeur et enregistrement des routes. Les routes d'auth
-    // (AUTH-1) delegüent a AuthController : ce sont encore des mocks (pas de
-    // BD ni de BCRYPT), ils respectent juste le contrat d'API attendu par le
-    // front. Les autres routes restent des stubs inline pour l'instant.
+    // Construction du routeur et enregistrement des routes.
+    //  - routes d'auth (AUTH-2) : delegue a AuthController.
+    //  - routes paquets (PAQ-1) : CRUD delegue a PaquetController.
+    //  - route profil : stub en attendant la macro suivante.
     $routeur = new Router();
     $auth_controleur = new AuthController();
+    $paquet_controleur = new PaquetController();
+    $utilisateur_controleur = new UtilisateurController();
+    $question_controleur = new QuestionController();
 
     $routeur->ajouter('POST', '/api/auth/inscription', array($auth_controleur, 'inscription'));
     $routeur->ajouter('POST', '/api/auth/connexion', array($auth_controleur, 'connexion'));
     $routeur->ajouter('POST', '/api/auth/deconnexion', array($auth_controleur, 'deconnexion'));
     $routeur->ajouter('GET', '/api/auth/moi', array($auth_controleur, 'moi'));
-    $routeur->ajouter('GET', '/api/paquets', function () {
-        Response::json(array('message' => 'stub liste des paquets', 'paquets' => array()), 200);
-    });
-    $routeur->ajouter('GET', '/api/profil', function () {
-        Response::json(array('message' => 'stub profil'), 200);
-    });
+
+    // PAQ-1.1 : liste des paquets de l'utilisateur courant.
+    $routeur->ajouter('GET', '/api/paquets', array($paquet_controleur, 'lister_mes_paquets'));
+
+    // DASH-2.1 : liste des paquets partages avec l'utilisateur courant.
+    // Doit etre enregistre AVANT toute route a placeholders sur /api/paquets/:id :
+    // la table des routes exactes est verifiee en premier par le routeur,
+    // donc "/api/paquets/shared" tombera bien ici et pas dans le PUT/DELETE :id.
+    $routeur->ajouter('GET', '/api/paquets/shared', array($paquet_controleur, 'lister_partages_avec_moi'));
+
+    // PAQ-1.2 : creation d'un nouveau paquet.
+    $routeur->ajouter('POST', '/api/paquets', array($paquet_controleur, 'creer'));
+
+    // VIEW-1.2 : ecran de visualisation d'un paquet (titre + proprietaire + destinataires).
+    $routeur->ajouter('GET', '/api/paquets/:id', array($paquet_controleur, 'afficher'));
+
+    // PAQ-1.3 : edition d'un paquet (controle proprietaire dans l'action).
+    $routeur->ajouter('PUT', '/api/paquets/:id', array($paquet_controleur, 'mettre_a_jour'));
+
+    // PAQ-1.4 : suppression en cascade (questions + partages + paquet).
+    $routeur->ajouter('DELETE', '/api/paquets/:id', array($paquet_controleur, 'supprimer'));
+
+    // SHARE-1.1 : auto-completion d'email pour le partage de paquet.
+    $routeur->ajouter('GET', '/api/users/search', array($utilisateur_controleur, 'search'));
+
+    // SHARE-1.2 : ajout d'un destinataire au partage d'un paquet.
+    $routeur->ajouter('POST', '/api/paquets/:id/share', array($paquet_controleur, 'partager'));
+
+    // SHARE-1.3 : retire un destinataire du partage (controle proprietaire).
+    $routeur->ajouter('DELETE', '/api/paquets/:id/share/:userId', array($paquet_controleur, 'retirer_partage'));
+
+    // QST-1.1 : creation d'une question dans un paquet.
+    $routeur->ajouter('POST', '/api/paquets/:id/questions', array($question_controleur, 'creer'));
+
+    // QST-1.2 : edition d'une question (controle proprietaire via paquet parent).
+    $routeur->ajouter('PUT', '/api/questions/:id', array($question_controleur, 'mettre_a_jour'));
+
+    // QST-1.3 : suppression d'une question (controle proprietaire via paquet parent).
+    $routeur->ajouter('DELETE', '/api/questions/:id', array($question_controleur, 'supprimer'));
+
+    // QST-1.4 : liste des questions d'un paquet (acces proprietaire-ou-destinataire).
+    $routeur->ajouter('GET', '/api/paquets/:id/questions', array($question_controleur, 'lister_par_paquet'));
+
+    // STUDY-1.1 : charge un paquet pour une session de revision (paquet + questions + flag proprietaire).
+    $routeur->ajouter('GET', '/api/paquets/:id/study', array($paquet_controleur, 'charger_pour_study'));
+
+    // STUDY-1.2 : enregistre le score d'une session de revision (proprietaire uniquement).
+    $routeur->ajouter('POST', '/api/paquets/:id/score', array($paquet_controleur, 'enregistrer_score'));
+
+    // D (edition profil) : mise a jour des informations du compte.
+    $routeur->ajouter('PUT', '/api/profil', array($utilisateur_controleur, 'mettre_a_jour_profil'));
+
+    // E (OPT-1.3) : changement de mot de passe.
+    $routeur->ajouter('POST', '/api/profil/mot-de-passe', array($utilisateur_controleur, 'changer_mot_de_passe'));
+
+    // F (OPT-1.4, variante initiales colorees) : couleur d'avatar.
+    $routeur->ajouter('POST', '/api/profil/avatar', array($utilisateur_controleur, 'mettre_a_jour_avatar'));
 
     $routeur->dispatcher($methode, $chemin);
     exit;

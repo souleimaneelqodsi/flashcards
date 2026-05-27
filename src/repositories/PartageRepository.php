@@ -19,6 +19,25 @@ require_once __DIR__ . '/../models/Utilisateur.php';
 class PartageRepository
 {
     /**
+     * Verifie qu'un partage existe deja pour un couple (paquet, destinataire).
+     * Utilise par PaquetController::partager (SHARE-1.2) pour repondre 409
+     * Conflict de maniere explicite avant meme d'essayer un INSERT, plutot
+     * que de se reposer sur l'idempotence d'INSERT OR IGNORE.
+     *
+     * @param int $id_paquet
+     * @param int $id_destinataire
+     * @return bool
+     */
+    public function existe($id_paquet, $id_destinataire)
+    {
+        $statement = DB::getInstance()->executer(
+            'SELECT 1 FROM partages WHERE id_paquet = ? AND id_destinataire = ?',
+            array($id_paquet, $id_destinataire)
+        );
+        return $statement->fetch() !== false;
+    }
+
+    /**
      * Cree un nouveau partage (idempotent : si le partage existe deja, le
      * INSERT echoue silencieusement grace a INSERT OR IGNORE, ce qui evite
      * un doublon sur la cle primaire composite).
@@ -103,6 +122,22 @@ class PartageRepository
         DB::getInstance()->executer(
             'DELETE FROM partages WHERE id_paquet = ? AND id_destinataire = ?',
             array($id_paquet, $id_destinataire)
+        );
+    }
+
+    /**
+     * Revoque tous les partages d'un paquet (tous destinataires confondus).
+     * Utilise par PaquetRepository::supprimer_avec_cascade (PAQ-1.4) :
+     * SQLite n'a pas d'`ON DELETE CASCADE` actif par defaut sur les FK
+     * declarees en install.php, on assure donc la cascade manuellement.
+     *
+     * @param int $id_paquet
+     */
+    public function revoquer_toutes_par_paquet($id_paquet)
+    {
+        DB::getInstance()->executer(
+            'DELETE FROM partages WHERE id_paquet = ?',
+            array($id_paquet)
         );
     }
 }

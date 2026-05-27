@@ -121,6 +121,8 @@
 .profil-info-card,
 .profil-reglages-card {
     padding: 0;
+    /* Clippe le fond de survol des lignes-boutons aux coins arrondis. */
+    overflow: hidden;
 }
 
 .profil-info-row,
@@ -223,6 +225,50 @@
 
 .profil-btn-supprimer:hover {
     background: var(--erreur-clair);
+}
+
+/* Lignes d'info cliquables : ouvrent la modale d'edition (D). Reset du
+   style bouton pour conserver l'apparence d'une ligne, + chevron a droite. */
+.profil-info-bouton {
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+}
+
+.profil-info-bouton:hover {
+    background: var(--surface-2);
+}
+
+.profil-info-bouton .profil-chevron {
+    margin-left: auto;
+}
+
+/* ── Palette de couleurs d'avatar (modale F) ───────────────────── */
+.avatar-modale-info {
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--texte-tertiaire);
+}
+
+.avatar-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.avatar-swatch {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--bordure);
+    cursor: pointer;
+}
+
+.avatar-swatch:hover {
+    box-shadow: 0 0 0 3px var(--primaire-clair);
 }
 
 /* ── Responsive : passage en colonne sur petit ecran ───────────── */

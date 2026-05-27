@@ -109,12 +109,35 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    transition: transform .15s, box-shadow .15s;
+    transition: transform .2s ease, box-shadow .15s, opacity .2s ease;
 }
 
 .study-carte:hover {
     transform: translateY(-2px);
     box-shadow: 0 24px 48px rgba(124, 77, 255, .35);
+}
+
+/* Animations d'entree de la carte (transition simple, perimetre cours :
+   opacity + transform 2D, pas de rotation 3D). Chaque classe decrit
+   l'ETAT DE DEPART ; study.js l'applique avant d'afficher la face, force
+   le reflow, puis la retire -> la carte revient a son etat normal via la
+   transition ci-dessus.
+     - flip    : leger pivot horizontal (scaleX) au retournement recto/verso ;
+     - droite  : glissement depuis la droite (question suivante) ;
+     - gauche  : glissement depuis la gauche (question precedente). */
+.study-carte-entre-flip {
+    opacity: 0;
+    transform: scaleX(0.9);
+}
+
+.study-carte-entre-droite {
+    opacity: 0;
+    transform: translateX(28px);
+}
+
+.study-carte-entre-gauche {
+    opacity: 0;
+    transform: translateX(-28px);
 }
 
 .study-carte-recto {

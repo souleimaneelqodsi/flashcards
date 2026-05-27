@@ -101,6 +101,10 @@ var Session = (function () {
         $("#chip-nom").text(nom_complet);
         $("#chip-initiales").text(initiales);
         $("#topbar-initiales").text(initiales);
+        // Applique la couleur d'avatar choisie (F), si profil.js est charge.
+        if (typeof window.appliquer_couleur_avatar === "function") {
+            window.appliquer_couleur_avatar(u.avatar);
+        }
     }
 
     // ── Deconnexion ─────────────────────────────────────────────────
@@ -112,7 +116,7 @@ var Session = (function () {
         AjaxService.post("auth/deconnexion", {}, {
             succes: function () {
                 utilisateur_courant = null;
-                Toast.succes("Vous etes deconnecte.");
+                Toast.succes("Vous êtes déconnecté.");
                 window.location.reload();
             },
             erreur: function (xhr, message) {

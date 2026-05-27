@@ -121,4 +121,46 @@ class UtilisateurRepository
             array($id_user)
         );
     }
+
+    /**
+     * Recherche des utilisateurs dont l'email commence par un prefixe
+     * donne (utilise par l'auto-completion du partage - SHARE-1.1).
+     *
+     * Echappement LIKE : SQLite traite `%` et `_` comme wildcards et `\`
+     * comme echappement quand on declare `ESCAPE '\'`. On echappe ces
+     * trois caracteres dans la saisie utilisateur avant de concatener
+     * le `%` final, pour qu'une recherche de "100%" reste litterale.
+     *
+     * @param string $prefixe   Debut d'email saisi par l'utilisateur.
+     * @param int    $id_exclu  Id d'utilisateur a exclure du resultat
+     *                          (typiquement l'utilisateur courant : on
+     *                          ne se propose pas a soi-meme).
+     * @param int    $limite    Nombre max de resultats (defaut 10).
+     * @return Utilisateur[]
+     */
+    public function rechercher_par_email_partiel($prefixe, $id_exclu, $limite = 10)
+    {
+        $echappe = str_replace(
+            array('\\', '%', '_'),
+            array('\\\\', '\\%', '\\_'),
+            $prefixe
+        );
+        $motif = $echappe . '%';
+
+        $statement = DB::getInstance()->executer(
+            'SELECT id_user, email, nom, prenom, date_naissance, avatar
+             FROM utilisateurs
+             WHERE email LIKE ? ESCAPE \'\\\'
+               AND id_user != ?
+             ORDER BY email ASC
+             LIMIT ?',
+            array($motif, $id_exclu, $limite)
+        );
+        $lignes = $statement->fetchAll();
+        $utilisateurs = array();
+        foreach ($lignes as $ligne) {
+            $utilisateurs[] = Utilisateur::fromRow($ligne);
+        }
+        return $utilisateurs;
+    }
 }
