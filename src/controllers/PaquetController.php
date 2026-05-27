@@ -6,6 +6,7 @@ require_once __DIR__ . '/../core/Csrf.php';
 require_once __DIR__ . '/../repositories/PaquetRepository.php';
 require_once __DIR__ . '/../repositories/UtilisateurRepository.php';
 require_once __DIR__ . '/../repositories/PartageRepository.php';
+require_once __DIR__ . '/../repositories/QuestionRepository.php';
 require_once __DIR__ . '/../models/Paquet.php';
 require_once __DIR__ . '/../models/Partage.php';
 
@@ -40,11 +41,15 @@ class PaquetController extends BaseController
     /** @var PartageRepository */
     private $partages;
 
+    /** @var QuestionRepository */
+    private $questions;
+
     public function __construct()
     {
         $this->paquets      = new PaquetRepository();
         $this->utilisateurs = new UtilisateurRepository();
         $this->partages     = new PartageRepository();
+        $this->questions    = new QuestionRepository();
     }
 
     /**
@@ -190,6 +195,72 @@ class PaquetController extends BaseController
                 'paquet'           => $paquet->toArray(),
                 'proprietaire'     => $proprietaire_array,
                 'destinataires'    => $destinataires_array,
+                'est_proprietaire' => $est_proprietaire
+            ),
+            200
+        );
+    }
+
+    /**
+     * GET /api/paquets/:id/study (STUDY-1.1).
+     *
+     * Charge tout ce qu'il faut pour demarrer une session de revision
+     * style Anki : le paquet (pour le header de session : titre,
+     * theme), les questions ordonnees par id_question ASC (ordre d'ajout)
+     * et un flag `est_proprietaire` qui dit au front s'il faut mettre
+     * a jour `last_score/best_score` a la fin (CLAUDE.md sec. 4 : la
+     * progression est strictement personnelle au proprietaire).
+     *
+     * Acces : proprietaire OU destinataire de partage. Un destinataire
+     * peut reviser un paquet partage avec lui (sinon le partage perdrait
+     * son interet), mais ses scores ne sont pas comptabilises sur le
+     * paquet (regle de progression personnelle).
+     *
+     *  1. Auth (sinon 401). GET donc pas de CSRF.
+     *  2. id_paquet valide (route).
+     *  3. Paquet existe (404).
+     *  4. Acces : proprietaire OU destinataire (sinon 403).
+     *  5. Charge les questions via QuestionRepository (deja triees par
+     *     id_question ASC).
+     *  6. Repond 200 avec { paquet, questions, est_proprietaire }.
+     *
+     * @param array $params Parametres extraits du chemin (`id`).
+     */
+    public function charger_pour_study($params)
+    {
+        $id_user = $this->verifier_authentifie();
+
+        $id_paquet = $this->lire_id_paquet($params);
+        if ($id_paquet === null) {
+            $this->repondre(array('erreur' => 'Identifiant de paquet invalide.'), 400);
+            return;
+        }
+
+        $paquet = $this->paquets->trouver_par_id($id_paquet);
+        if ($paquet === null) {
+            $this->repondre(array('erreur' => 'Paquet introuvable.'), 404);
+            return;
+        }
+
+        $est_proprietaire = ($paquet->getIdProprietaire() === $id_user);
+        if (!$est_proprietaire) {
+            $est_destinataire = $this->partages->existe($id_paquet, $id_user);
+            if (!$est_destinataire) {
+                $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+                return;
+            }
+        }
+
+        $questions = $this->questions->trouver_par_paquet($id_paquet);
+        $questions_array = array();
+        foreach ($questions as $q) {
+            $questions_array[] = $q->toArray();
+        }
+
+        $this->repondre(
+            array(
+                'paquet'           => $paquet->toArray(),
+                'questions'        => $questions_array,
                 'est_proprietaire' => $est_proprietaire
             ),
             200

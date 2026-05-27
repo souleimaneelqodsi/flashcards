@@ -124,6 +124,9 @@ if ($est_appel_api) {
     // QST-1.4 : liste des questions d'un paquet (acces proprietaire-ou-destinataire).
     $routeur->ajouter('GET', '/api/paquets/:id/questions', array($question_controleur, 'lister_par_paquet'));
 
+    // STUDY-1.1 : charge un paquet pour une session de revision (paquet + questions + flag proprietaire).
+    $routeur->ajouter('GET', '/api/paquets/:id/study', array($paquet_controleur, 'charger_pour_study'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });
