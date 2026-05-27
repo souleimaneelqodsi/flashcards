@@ -127,6 +127,9 @@ if ($est_appel_api) {
     // STUDY-1.1 : charge un paquet pour une session de revision (paquet + questions + flag proprietaire).
     $routeur->ajouter('GET', '/api/paquets/:id/study', array($paquet_controleur, 'charger_pour_study'));
 
+    // STUDY-1.2 : enregistre le score d'une session de revision (proprietaire uniquement).
+    $routeur->ajouter('POST', '/api/paquets/:id/score', array($paquet_controleur, 'enregistrer_score'));
+
     $routeur->ajouter('GET', '/api/profil', function () {
         Response::json(array('message' => 'stub profil'), 200);
     });

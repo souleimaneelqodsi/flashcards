@@ -268,6 +268,86 @@ class PaquetController extends BaseController
     }
 
     /**
+     * POST /api/paquets/:id/score (STUDY-1.2).
+     *
+     * Enregistre le score d'une session de revision. Met a jour
+     * `last_score` (toujours) et `best_score` (uniquement si meilleur
+     * que l'existant).
+     *
+     * **Acces strictement reserve au proprietaire** (CLAUDE.md sec. 4) :
+     * `last_score` et `best_score` sont strictement personnels au
+     * proprietaire ; un destinataire qui revise ne doit pas pouvoir
+     * modifier ces compteurs. Le front (STUDY-1.4) ne doit pas appeler
+     * cet endpoint si `est_proprietaire` est faux ; le serveur refuse
+     * de toute facon (403).
+     *
+     *  1. CSRF + auth.
+     *  2. id_paquet valide (route).
+     *  3. Paquet existe (404).
+     *  4. Proprietaire (sinon 403).
+     *  5. Lit + valide le score (entier 0..100).
+     *  6. Met a jour last_score = score, et best_score = max(best, score).
+     *  7. Persiste via le Repository.
+     *  8. Repond 200 avec le paquet mis a jour.
+     *
+     * @param array $params Parametres extraits du chemin (`id`).
+     */
+    public function enregistrer_score($params)
+    {
+        Csrf::verifier_requete();
+        $id_user = $this->verifier_authentifie();
+
+        $id_paquet = $this->lire_id_paquet($params);
+        if ($id_paquet === null) {
+            $this->repondre(array('erreur' => 'Identifiant de paquet invalide.'), 400);
+            return;
+        }
+
+        $paquet = $this->paquets->trouver_par_id($id_paquet);
+        if ($paquet === null) {
+            $this->repondre(array('erreur' => 'Paquet introuvable.'), 404);
+            return;
+        }
+        if ($paquet->getIdProprietaire() !== $id_user) {
+            // Cas explicite "destinataire qui essaye d'ecrire un score" :
+            // refus strict, conforme a la regle de progression personnelle.
+            $this->repondre(
+                array('erreur' => 'Acces refuse : seul le proprietaire peut enregistrer un score.'),
+                403
+            );
+            return;
+        }
+
+        // Lecture + validation du score (entier 0..100).
+        $donnees = $this->lire_corps_json();
+        $score = $this->lire_score_corps($donnees);
+        if ($score === null) {
+            $this->repondre(
+                array('erreurs' => array('score' => 'Score invalide : attendu un entier entre 0 et 100.')),
+                400
+            );
+            return;
+        }
+
+        // Met a jour last_score (systematique) et best_score (max).
+        $paquet->setLastScore($score);
+        $best_precedent = $paquet->getBestScore();
+        if ($best_precedent === null || $score > $best_precedent) {
+            $paquet->setBestScore($score);
+        }
+
+        $this->paquets->mettre_a_jour($paquet);
+
+        $this->repondre(
+            array(
+                'message' => 'Score enregistre.',
+                'paquet'  => $paquet->toArray()
+            ),
+            200
+        );
+    }
+
+    /**
      * POST /api/paquets (PAQ-1.2).
      *
      * Cree un nouveau paquet pour l'utilisateur courant.
@@ -642,6 +722,33 @@ class PaquetController extends BaseController
     private function lire_id_paquet($params)
     {
         return $this->lire_id_route($params, 'id');
+    }
+
+    /**
+     * Lit le score (cle `score`) depuis le corps JSON et le borne en
+     * 0..100. Accepte int ou string-numerique. Renvoie null si absent,
+     * mauvais type, ou hors borne.
+     *
+     * @param array $donnees Corps JSON deja decode.
+     * @return int|null
+     */
+    private function lire_score_corps($donnees)
+    {
+        if (!isset($donnees['score'])) {
+            return null;
+        }
+        $valeur = $donnees['score'];
+        if (is_int($valeur)) {
+            $score = $valeur;
+        } else if (is_string($valeur) && preg_match('/^[0-9]+$/', $valeur)) {
+            $score = (int) $valeur;
+        } else {
+            return null;
+        }
+        if ($score < 0 || $score > 100) {
+            return null;
+        }
+        return $score;
     }
 
     /**
