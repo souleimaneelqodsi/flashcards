@@ -2,10 +2,12 @@
 // Comportement de la vue de session d'etude (FRONT-2.7 a 2.14).
 //
 // FRONT-2.7 : bascule entre la face recto (question) et la face verso
-// (reponse) au clic sur la carte. Implementation par .toggle() jQuery
-// (alternance show/hide) plutot que via une transformation 3D CSS
+// (reponse) au clic sur la carte. Implementation par show/hide jQuery +
+// une petite animation d'entree CSS (opacity + transform 2D, cf.
+// montrer_face et study.css), plutot que via une rotation 3D CSS
 // (transform: rotateY) : la perspective 3D n'est pas garantie dans le
-// perimetre du cours initiation-HTML-CSS.pdf.
+// perimetre du cours initiation-HTML-CSS.pdf. La navigation entre
+// questions joue un glissement lateral (gauche/droite) selon le sens.
 //
 // Les fonctionnalites suivantes seront ajoutees au fil des micro-taches :
 //   - FRONT-2.8  : boutons Check / Bad apres flip
@@ -47,6 +49,11 @@ var nb_mauvaises = 0;
 
 // Index de la question courante dans la liste laterale (FRONT-2.9).
 var index_question_courante = 0;
+
+// Classe d'animation d'entree a jouer au prochain affichage d'une face
+// (cf. montrer_face). "flip" par defaut (retournement recto/verso) ;
+// la navigation positionne "droite"/"gauche" selon le sens.
+var prochaine_anim_entree = "study-carte-entre-flip";
 
 // Identifiant du paquet en cours d'etude, lu depuis le hash
 // (ex : #study-3 -> id_paquet_session = 3). Renseigne par
@@ -249,22 +256,47 @@ function afficher_etude_paquet() {
 
 window.afficher_etude_paquet = afficher_etude_paquet;
 
+// ── Affichage anime d'une face ────────────────────────────────
+// Rend une face visible avec une petite animation d'entree (opacity +
+// transform 2D, pilotee par la CSS .study-carte / .study-carte-entre-*).
+// Technique : on applique la classe d'etat de depart AVANT show() (pour
+// eviter un flash), on force un reflow, puis on retire la classe -> la
+// carte transitionne vers son etat normal. Pas de rotation 3D (perimetre
+// du cours, CLAUDE.md §2bis).
+function montrer_face(id_face) {
+    var face = $("#" + id_face);
+    var classe_entree = prochaine_anim_entree;
+    // On applique l'etat de depart AVANT d'afficher (evite un flash), puis
+    // on affiche la face.
+    face.addClass(classe_entree);
+    face.show().removeAttr("hidden");
+    // Retrait differe de la classe : le court delai laisse le navigateur
+    // peindre l'etat de depart, puis la transition CSS s'execute vers
+    // l'etat normal. setTimeout est deja utilise dans le projet (toast.js)
+    // et reste dans le perimetre du cours.
+    setTimeout(function () {
+        face.removeClass(classe_entree);
+    }, 20);
+    // Retour au flip par defaut pour le prochain affichage (la navigation
+    // repositionnera "droite"/"gauche" si besoin).
+    prochaine_anim_entree = "study-carte-entre-flip";
+}
+
 // ── Bascule de la face recto <-> verso ────────────────────────
-// Utilise jQuery .show()/.hide() qui modifient l'attribut display
-// sur les deux faces. L'attribut HTML5 hidden est synchronise pour
-// rester semantiquement coherent (CLAUDE.md §6 sur l'accessibilite).
-// La zone d'evaluation (boutons Check/Bad) n'apparait qu'apres flip
-// vers la face verso (FRONT-2.8).
+// On masque l'autre face puis on affiche la face cible via montrer_face
+// (animation d'entree). L'attribut HTML5 hidden est synchronise pour
+// rester semantiquement coherent (accessibilite). La zone d'evaluation
+// (boutons Check/Bad) n'apparait qu'apres flip vers la face verso.
 function afficher_face_recto() {
-    $("#study-carte-recto").show().removeAttr("hidden");
     $("#study-carte-verso").hide().attr("hidden", "hidden");
     $("#study-evaluation").hide().attr("hidden", "hidden");
+    montrer_face("study-carte-recto");
     etat_session = ETAT_QUESTION;
 }
 
 function afficher_face_verso() {
     $("#study-carte-recto").hide().attr("hidden", "hidden");
-    $("#study-carte-verso").show().removeAttr("hidden");
+    montrer_face("study-carte-verso");
     $("#study-evaluation").show().removeAttr("hidden");
     etat_session = ETAT_REPONSE;
 }
@@ -325,6 +357,13 @@ function aller_a_question(nouvel_index) {
     }
     if (nouvel_index >= total) {
         nouvel_index = total - 1;
+    }
+    // Sens de l'animation d'entree : glissement depuis la droite si on
+    // avance, depuis la gauche si on recule (consomme par montrer_face).
+    if (nouvel_index > index_question_courante) {
+        prochaine_anim_entree = "study-carte-entre-droite";
+    } else if (nouvel_index < index_question_courante) {
+        prochaine_anim_entree = "study-carte-entre-gauche";
     }
     index_question_courante = nouvel_index;
 
