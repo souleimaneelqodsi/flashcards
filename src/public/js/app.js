@@ -57,7 +57,6 @@ var titres_routes = {
     "#visualisation-paquet": "Visualisation du paquet",
     "#partages": "Partages avec moi",
     "#profil": "Mon profil",
-    "#parametres": "Parametres",
     "#login": "Connexion",
     "#register": "Inscription"
 };
@@ -236,10 +235,6 @@ function enregistrer_routes() {
     Router.ajouter("#profil", function () {
         afficher_vue(VUE_PROFIL);
         remplir_profil();
-    });
-    Router.ajouter("#parametres", function () {
-        afficher_vue(VUE_DASHBOARD);
-        afficher_vue_placeholder("Parametres", "Preferences de l'application.");
     });
     // Vues d'authentification : routes vers les vraies sections HTML
     // de app.php (AUTH-2.7, AUTH-2.8). La validation et la soumission
