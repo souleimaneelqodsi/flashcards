@@ -88,7 +88,7 @@ class QuestionController extends BaseController
             return;
         }
         if ($paquet->getIdProprietaire() !== $id_user) {
-            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            $this->repondre(array('erreur' => 'Accès refusé.'), 403);
             return;
         }
 
@@ -162,7 +162,7 @@ class QuestionController extends BaseController
             return;
         }
         if ($paquet->getIdProprietaire() !== $id_user) {
-            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            $this->repondre(array('erreur' => 'Accès refusé.'), 403);
             return;
         }
 
@@ -230,7 +230,7 @@ class QuestionController extends BaseController
             return;
         }
         if ($paquet->getIdProprietaire() !== $id_user) {
-            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            $this->repondre(array('erreur' => 'Accès refusé.'), 403);
             return;
         }
 
@@ -278,7 +278,7 @@ class QuestionController extends BaseController
         if (!$est_proprietaire) {
             $est_destinataire = $this->partages->existe($id_paquet, $id_user);
             if (!$est_destinataire) {
-                $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+                $this->repondre(array('erreur' => 'Accès refusé.'), 403);
                 return;
             }
         }
@@ -299,7 +299,7 @@ class QuestionController extends BaseController
      * Valide les champs d'une question (point d'entree unique utilise
      * par `creer` et `mettre_a_jour`). Helper centralise pour garantir
      * la parite des regles entre creation et edition : si on ajoute
-     * demain une regle (caracteres interdits, longueur min, etc.) elle
+     * demain une regle (caractères interdits, longueur min, etc.) elle
      * s'applique automatiquement aux deux endpoints (et a une future
      * import en masse si besoin).
      *
@@ -338,13 +338,13 @@ class QuestionController extends BaseController
         if ($contenu_question === '') {
             $erreurs['contenu_question'] = 'La question est obligatoire.';
         } else if (strlen($contenu_question) > 1000) {
-            $erreurs['contenu_question'] = 'La question est trop longue (1000 caracteres maximum).';
+            $erreurs['contenu_question'] = 'La question est trop longue (1000 caractères maximum).';
         }
 
         if ($contenu_reponse === '') {
-            $erreurs['contenu_reponse'] = 'La reponse est obligatoire.';
+            $erreurs['contenu_reponse'] = 'La réponse est obligatoire.';
         } else if (strlen($contenu_reponse) > 1000) {
-            $erreurs['contenu_reponse'] = 'La reponse est trop longue (1000 caracteres maximum).';
+            $erreurs['contenu_reponse'] = 'La réponse est trop longue (1000 caractères maximum).';
         }
 
         if ($id_difficulte === null) {

@@ -218,7 +218,7 @@ function afficher_etude_paquet() {
     AjaxService.get("paquets/" + id + "/study", undefined, {
         succes: function (reponse) {
             if (!reponse || !reponse.paquet) {
-                afficher_etat_erreur("reponse serveur invalide.");
+                afficher_etat_erreur("réponse serveur invalide.");
                 return;
             }
             questions_session = (reponse.questions) ? reponse.questions : [];
@@ -246,7 +246,7 @@ function afficher_etude_paquet() {
             if (xhr.status === 404) {
                 afficher_etat_erreur("ce paquet n'existe pas.");
             } else if (xhr.status === 403) {
-                afficher_etat_erreur("vous n'avez pas acces a ce paquet.");
+                afficher_etat_erreur("vous n'avez pas accès à ce paquet.");
             } else {
                 afficher_etat_erreur(message);
             }
@@ -550,7 +550,7 @@ $(function () {
         avancer_apres_evaluation();
     });
 
-    // "A revoir" : symetrique. Meme garde sur l'etat.
+    // "À revoir" : symetrique. Meme garde sur l'etat.
     $("#btn-revoir").on("click", function () {
         if (etat_session !== ETAT_REPONSE) {
             return;

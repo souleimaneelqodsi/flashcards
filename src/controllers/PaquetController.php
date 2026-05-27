@@ -170,7 +170,7 @@ class PaquetController extends BaseController
         if (!$est_proprietaire) {
             $est_destinataire = $this->partages->existe($id_paquet, $id_user);
             if (!$est_destinataire) {
-                $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+                $this->repondre(array('erreur' => 'Accès refusé.'), 403);
                 return;
             }
         }
@@ -246,7 +246,7 @@ class PaquetController extends BaseController
         if (!$est_proprietaire) {
             $est_destinataire = $this->partages->existe($id_paquet, $id_user);
             if (!$est_destinataire) {
-                $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+                $this->repondre(array('erreur' => 'Accès refusé.'), 403);
                 return;
             }
         }
@@ -312,7 +312,7 @@ class PaquetController extends BaseController
             // Cas explicite "destinataire qui essaye d'ecrire un score" :
             // refus strict, conforme a la regle de progression personnelle.
             $this->repondre(
-                array('erreur' => 'Acces refuse : seul le proprietaire peut enregistrer un score.'),
+                array('erreur' => 'Accès refusé : seul le propriétaire peut enregistrer un score.'),
                 403
             );
             return;
@@ -385,7 +385,7 @@ class PaquetController extends BaseController
 
         $this->repondre(
             array(
-                'message' => 'Paquet cree.',
+                'message' => 'Paquet créé.',
                 'paquet'  => $paquet->toArray()
             ),
             201
@@ -430,7 +430,7 @@ class PaquetController extends BaseController
         }
 
         if ($paquet->getIdProprietaire() !== $id_user) {
-            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            $this->repondre(array('erreur' => 'Accès refusé.'), 403);
             return;
         }
 
@@ -451,7 +451,7 @@ class PaquetController extends BaseController
 
         $this->repondre(
             array(
-                'message' => 'Paquet mis a jour.',
+                'message' => 'Paquet mis à jour.',
                 'paquet'  => $paquet->toArray()
             ),
             200
@@ -494,7 +494,7 @@ class PaquetController extends BaseController
         }
 
         if ($paquet->getIdProprietaire() !== $id_user) {
-            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            $this->repondre(array('erreur' => 'Accès refusé.'), 403);
             return;
         }
 
@@ -554,7 +554,7 @@ class PaquetController extends BaseController
             return;
         }
         if ($paquet->getIdProprietaire() !== $id_user) {
-            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            $this->repondre(array('erreur' => 'Accès refusé.'), 403);
             return;
         }
 
@@ -562,7 +562,7 @@ class PaquetController extends BaseController
         // pour eviter une requete inutile.
         if ($id_destinataire === $paquet->getIdProprietaire()) {
             $this->repondre(
-                array('erreur' => 'Vous ne pouvez pas partager un paquet avec vous-meme.'),
+                array('erreur' => 'Vous ne pouvez pas partager un paquet avec vous-même.'),
                 400
             );
             return;
@@ -581,7 +581,7 @@ class PaquetController extends BaseController
         // au niveau BD, mais on prefere une 409 explicite).
         if ($this->partages->existe($id_paquet, $id_destinataire)) {
             $this->repondre(
-                array('erreur' => 'Ce paquet est deja partage avec cet utilisateur.'),
+                array('erreur' => 'Ce paquet est déjà partagé avec cet utilisateur.'),
                 409
             );
             return;
@@ -593,7 +593,7 @@ class PaquetController extends BaseController
 
         $this->repondre(
             array(
-                'message' => 'Partage cree.',
+                'message' => 'Partage créé.',
                 'partage' => $partage->toArray(),
                 'destinataire' => $destinataire->toArray()
             ),
@@ -647,7 +647,7 @@ class PaquetController extends BaseController
             return;
         }
         if ($paquet->getIdProprietaire() !== $id_user) {
-            $this->repondre(array('erreur' => 'Acces refuse.'), 403);
+            $this->repondre(array('erreur' => 'Accès refusé.'), 403);
             return;
         }
 
@@ -788,12 +788,12 @@ class PaquetController extends BaseController
      * Valide les champs d'un paquet (utilise par `creer` et
      * `mettre_a_jour`). Helper unique pour garantir la coherence des
      * regles entre creation et edition : si on ajoute demain une regle
-     * (ex: caracteres interdits), elle s'applique automatiquement aux
+     * (ex: caractères interdits), elle s'applique automatiquement aux
      * deux endpoints.
      *
      * Regles (CLAUDE.md sec. 4 et sec. 6) :
-     *  - titre : obligatoire, <= 150 caracteres ;
-     *  - theme : facultatif, mais si fourni <= 100 caracteres.
+     *  - titre : obligatoire, <= 150 caractères ;
+     *  - theme : facultatif, mais si fourni <= 100 caractères.
      *
      * Renvoie un tableau "champ" => "message" pour que le client
      * puisse afficher chaque erreur sous le bon champ (pattern impose
@@ -811,11 +811,11 @@ class PaquetController extends BaseController
         if ($titre === '') {
             $erreurs['titre'] = 'Le titre est obligatoire.';
         } else if (strlen($titre) > 150) {
-            $erreurs['titre'] = 'Le titre est trop long (150 caracteres maximum).';
+            $erreurs['titre'] = 'Le titre est trop long (150 caractères maximum).';
         }
 
         if ($theme !== '' && strlen($theme) > 100) {
-            $erreurs['theme'] = 'Le theme est trop long (100 caracteres maximum).';
+            $erreurs['theme'] = 'Le theme est trop long (100 caractères maximum).';
         }
 
         return $erreurs;

@@ -152,17 +152,17 @@ function rendre_carte_paquet(paquet, est_proprietaire) {
     carte.append(barre);
 
     // Affichage Dernier / Record / Date (FRONT-2.13). Quand aucun score
-    // n'est encore enregistre, on remplace la ligne par "Jamais revise"
+    // n'est encore enregistre, on remplace la ligne par "Jamais révisé"
     // pour rester aligne avec le mockup dashboard.png (carte 3).
     var jamais_revise = (paquet.best_score === null || typeof paquet.best_score === "undefined")
         && (paquet.last_score === null || typeof paquet.last_score === "undefined");
     var scores = $("<div></div>").addClass("paquet-scores");
     if (jamais_revise) {
-        scores.append($("<span></span>").text("Jamais revise"));
+        scores.append($("<span></span>").text("Jamais révisé"));
     } else {
         scores.append($("<span></span>").text("Record : ").append($("<strong></strong>").text(score_record)));
         scores.append($("<span></span>").text("Dernier : ").append($("<strong></strong>").text(score_dernier)));
-        scores.append($("<span></span>").text("Cree : ").append($("<strong></strong>").text(formater_date_paquet(paquet.date_creation))));
+        scores.append($("<span></span>").text("Créé : ").append($("<strong></strong>").text(formater_date_paquet(paquet.date_creation))));
     }
     carte.append(scores);
 
@@ -170,7 +170,7 @@ function rendre_carte_paquet(paquet, est_proprietaire) {
     // Bouton Reviser : navigue vers #study-:id (WIRE-1.1). Disponible
     // pour tous (proprietaire ET destinataire), conforme a STUDY-1.1
     // qui autorise l'acces proprietaire-ou-destinataire.
-    var bouton_reviser = bouton_action("btn btn-primary btn-sm", SVG_BTN_PLAY, "Reviser");
+    var bouton_reviser = bouton_action("btn btn-primary btn-sm", SVG_BTN_PLAY, "Réviser");
     bouton_reviser.on("click", function (evenement) {
         evenement.stopPropagation();
         window.location.hash = "#study-" + paquet.id_paquet;
@@ -178,13 +178,13 @@ function rendre_carte_paquet(paquet, est_proprietaire) {
     actions.append(bouton_reviser);
 
     // Boutons Editer / Partager : reserves au proprietaire. La colonne
-    // "Partages avec moi" ne propose ni l'edition ni le re-partage : un
+    // "Partagés avec moi" ne propose ni l'edition ni le re-partage : un
     // destinataire est un consommateur du paquet, pas un co-proprietaire.
     if (est_proprietaire) {
         // Bouton Editer : navigue vers #edit-paquet-:id (WIRE-1.2).
         // edition-paquet.js detecte le mode edition et fetch les donnees
         // via GET /api/paquets/:id (cf. PAQ-2.2 + QST-1.6).
-        var bouton_editer = bouton_action("btn btn-secondary btn-sm", SVG_BTN_EDIT, "Editer");
+        var bouton_editer = bouton_action("btn btn-secondary btn-sm", SVG_BTN_EDIT, "Éditer");
         bouton_editer.on("click", function (evenement) {
             evenement.stopPropagation();
             window.location.hash = "#edit-paquet-" + paquet.id_paquet;
@@ -213,7 +213,7 @@ function rendre_carte_paquet(paquet, est_proprietaire) {
 // liste est vide. Le parametre `est_proprietaire` est passe au renderer
 // pour decider d'afficher ou non les actions reservees au proprietaire
 // (Editer, Partager) : true pour la colonne "Mes paquets", false pour
-// "Partages avec moi".
+// "Partagés avec moi".
 function afficher_paquets(paquets, id_conteneur, id_compteur, texte_vide, est_proprietaire) {
     var conteneur = $("#" + id_conteneur);
     conteneur.empty();
@@ -245,7 +245,7 @@ function construire_squelette_dashboard() {
     var entete = $("<div></div>").addClass("page-title-row");
     var bloc_titre = $("<div></div>");
     bloc_titre.append($("<h2></h2>").addClass("page-title").text("Tableau de bord"));
-    bloc_titre.append($("<p></p>").addClass("page-sub").text("Vos paquets et ceux qui vous ont ete partages."));
+    bloc_titre.append($("<p></p>").addClass("page-sub").text("Vos paquets et ceux qui vous ont été partagés."));
     entete.append(bloc_titre);
     var bouton_nouveau = $("<a></a>")
         .attr("href", "#nouveau-paquet")
@@ -261,7 +261,7 @@ function construire_squelette_dashboard() {
     var kpis = $("<div></div>").addClass("dashboard-kpis");
     kpis.append(carte_kpi("kpi-mes-paquets", "0", "Mes paquets", "kpi-ic-violet", SVG_KPI_PAQUETS));
     kpis.append(carte_kpi("kpi-meilleur-score", "—", "Meilleur score", "kpi-ic-vert", SVG_KPI_SCORE));
-    kpis.append(carte_kpi("kpi-partages", "0", "Partages avec moi", "kpi-ic-orange", SVG_KPI_PARTAGE));
+    kpis.append(carte_kpi("kpi-partages", "0", "Partagés avec moi", "kpi-ic-orange", SVG_KPI_PARTAGE));
     kpis.append(carte_kpi("kpi-total-cartes", "0", "Cartes au total", "kpi-ic-rose", SVG_KPI_CARTES));
     vue.append(kpis);
 
@@ -284,7 +284,7 @@ function construire_squelette_dashboard() {
         .attr("id", "col-partages")
         .attr("aria-labelledby", "titre-partages");
     var head_par = $("<div></div>").addClass("dashboard-col-head");
-    head_par.append($("<h3></h3>").addClass("dashboard-col-title").attr("id", "titre-partages").text("Partages avec moi"));
+    head_par.append($("<h3></h3>").addClass("dashboard-col-title").attr("id", "titre-partages").text("Partagés avec moi"));
     head_par.append($("<span></span>").addClass("dashboard-col-count").attr("id", "compteur-partages").text("0"));
     col_par.append(head_par);
     col_par.append($("<div></div>").addClass("dashboard-col-body").attr("id", "liste-partages"));
@@ -329,7 +329,7 @@ function maj_kpis_mes_paquets(paquets) {
     $("#kpi-meilleur-score").text(meilleur === null ? "—" : (meilleur + "%"));
 }
 
-// Met a jour le KPI "Partages avec moi" (nombre de paquets recus).
+// Met a jour le KPI "Partagés avec moi" (nombre de paquets recus).
 function maj_kpi_partages(nombre) {
     $("#kpi-partages").text(nombre);
 }
@@ -387,7 +387,7 @@ function charger_partages_avec_moi() {
                 paquets,
                 "liste-partages",
                 "compteur-partages",
-                "Aucun paquet partage.",
+                "Aucun paquet partagé.",
                 false
             );
             maj_kpi_partages(paquets.length);

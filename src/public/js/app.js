@@ -51,8 +51,8 @@ function afficher_vue(id_vue) {
 var titres_routes = {
     "#dashboard": "Tableau de bord",
     "#nouveau-paquet": "Nouveau paquet",
-    "#edit-paquet": "Editer un paquet",
-    "#study": "Mode revision",
+    "#edit-paquet": "Éditer un paquet",
+    "#study": "Mode révision",
     "#fin-session": "Fin de session",
     "#visualisation-paquet": "Visualisation du paquet",
     "#profil": "Mon profil",
@@ -133,13 +133,13 @@ function afficher_vue_404(hash_demande) {
     var bloc_titre = $("<div></div>");
     bloc_titre.append($("<h2></h2>").addClass("page-title").text("Page introuvable"));
     bloc_titre.append(
-        $("<p></p>").addClass("page-sub").text("La route demandee n'existe pas : " + hash_demande)
+        $("<p></p>").addClass("page-sub").text("La route demandée n'existe pas : " + hash_demande)
     );
     entete.append(bloc_titre);
     vue.append(entete);
 
     var carte = $("<div></div>").addClass("card");
-    carte.append($("<p></p>").text("L'adresse que vous avez saisie n'est associee a aucune vue de l'application."));
+    carte.append($("<p></p>").text("L'adresse que vous avez saisie n'est associée à aucune vue de l'application."));
     var lien_retour = $("<a></a>")
         .attr("href", "#dashboard")
         .addClass("btn btn-primary")

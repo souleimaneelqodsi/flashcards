@@ -116,7 +116,7 @@ var Session = (function () {
         AjaxService.post("auth/deconnexion", {}, {
             succes: function () {
                 utilisateur_courant = null;
-                Toast.succes("Vous etes deconnecte.");
+                Toast.succes("Vous êtes déconnecté.");
                 window.location.reload();
             },
             erreur: function (xhr, message) {

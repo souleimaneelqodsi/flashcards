@@ -21,8 +21,8 @@
 // Noms de mois (sans accents, comme le reste de l'UI) pour formater la
 // date de naissance "AAAA-MM-JJ" en "JJ mois AAAA" (ex : "15 mars 1999").
 var MOIS_FRANCAIS = [
-    "janvier", "fevrier", "mars", "avril", "mai", "juin",
-    "juillet", "aout", "septembre", "octobre", "novembre", "decembre"
+    "janvier", "février", "mars", "avril", "mai", "juin",
+    "juillet", "août", "septembre", "octobre", "novembre", "décembre"
 ];
 
 // Transforme "1999-03-15" en "15 mars 1999". Si la date est absente ou
@@ -264,10 +264,10 @@ function date_iso_vers_aaaammjj(iso) {
 // ── Validateurs de champ (renvoient "" si valide, sinon le message) ──
 function erreur_prenom(v) {
     if (v === "") {
-        return "Le prenom est obligatoire.";
+        return "Le prénom est obligatoire.";
     }
     if (v.length > 100) {
-        return "Le prenom est trop long (100 caracteres maximum).";
+        return "Le prénom est trop long (100 caractères maximum).";
     }
     return "";
 }
@@ -276,7 +276,7 @@ function erreur_nom(v) {
         return "Le nom est obligatoire.";
     }
     if (v.length > 100) {
-        return "Le nom est trop long (100 caracteres maximum).";
+        return "Le nom est trop long (100 caractères maximum).";
     }
     return "";
 }
@@ -285,7 +285,7 @@ function erreur_email(v) {
         return "L'email est obligatoire.";
     }
     if (v.length > 150) {
-        return "L'email est trop long (150 caracteres maximum).";
+        return "L'email est trop long (150 caractères maximum).";
     }
     if (!REGEX_EMAIL_PROFIL.test(v)) {
         return "Format d'email invalide.";
@@ -357,7 +357,7 @@ function soumettre_profil() {
             }
             fermer_modale_edition_profil();
             remplir_profil();
-            toast_succes("Profil mis a jour.");
+            toast_succes("Profil mis à jour.");
         },
         erreur: function (xhr, message) {
             traiter_erreur_serveur_profil(xhr, message);
@@ -398,7 +398,7 @@ function traiter_erreur_serveur_profil(xhr, message_par_defaut) {
     if (corps !== null && typeof corps.erreur === "string") {
         message = corps.erreur;
     }
-    toast_erreur("Impossible de mettre a jour le profil : " + message);
+    toast_erreur("Impossible de mettre à jour le profil : " + message);
 }
 
 // ── Modale de changement de mot de passe (E / OPT-1.3) ──────────────
@@ -429,7 +429,7 @@ function erreur_mdp_nouveau(v) {
         return "Le nouveau mot de passe est obligatoire.";
     }
     if (v.length < 6) {
-        return "Le mot de passe doit faire au moins 6 caracteres.";
+        return "Le mot de passe doit faire au moins 6 caractères.";
     }
     return "";
 }
@@ -467,7 +467,7 @@ function soumettre_mdp() {
     AjaxService.post("profil/mot-de-passe", payload, {
         succes: function () {
             fermer_modale_mot_de_passe();
-            toast_succes("Mot de passe mis a jour.");
+            toast_succes("Mot de passe mis à jour.");
         },
         erreur: function (xhr, message) {
             traiter_erreur_serveur_mdp(xhr, message);
@@ -522,7 +522,7 @@ function choisir_couleur_avatar(couleur) {
             }
             appliquer_couleur_avatar(couleur);
             fermer_modale_avatar();
-            toast_succes("Avatar mis a jour.");
+            toast_succes("Avatar mis à jour.");
         },
         erreur: function (xhr, message) {
             fermer_modale_avatar();
@@ -553,7 +553,7 @@ $(function () {
 
     // Suppression du compte : non implementee (hors-sujet OPT-1.5).
     $("#btn-supprimer-compte").on("click", function () {
-        Toast.info("Suppression du compte : fonctionnalite a venir.");
+        Toast.info("Suppression du compte : fonctionnalité à venir.");
     });
 
     // ── Edition du profil (D) ──

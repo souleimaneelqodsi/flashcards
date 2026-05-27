@@ -161,7 +161,7 @@
     function retirer_destinataire(paquet, utilisateur, element_chip) {
         var nom = utilisateur.prenom + " " + utilisateur.nom;
         var message_confirm = "Retirer " + nom + " du partage de \""
-            + paquet.titre + "\" ? Cette personne perdra l'acces au paquet.";
+            + paquet.titre + "\" ? Cette personne perdra l'accès au paquet.";
         if (!window.confirm(message_confirm)) {
             return;
         }
@@ -172,7 +172,7 @@
                 element_chip.remove();
                 mettre_a_jour_compteur_destinataires();
                 if (window.Toast && typeof window.Toast.succes === "function") {
-                    window.Toast.succes(nom + " a ete retire du partage.");
+                    window.Toast.succes(nom + " a été retiré du partage.");
                 }
             },
             erreur: function (xhr, message_erreur) {
@@ -203,7 +203,7 @@
             section.append(
                 $("<p></p>")
                     .addClass("vp-section-empty")
-                    .text("Ce paquet n'est partage avec personne pour l'instant.")
+                    .text("Ce paquet n'est partagé avec personne pour l'instant.")
             );
         }
     }
@@ -227,7 +227,7 @@
 
         if (destinataires.length === 0) {
             var texte_vide = est_proprietaire
-                ? "Ce paquet n'est partage avec personne pour l'instant."
+                ? "Ce paquet n'est partagé avec personne pour l'instant."
                 : "Vous etes la seule personne avec qui ce paquet est partage.";
             section.append(
                 $("<p></p>").addClass("vp-section-empty").text(texte_vide)
@@ -255,15 +255,15 @@
 
         var theme = paquet.theme;
         if (typeof theme !== "string" || theme === "") {
-            theme = "Aucun theme renseigne";
+            theme = "Aucun thème renseigné";
         }
         carte.append($("<p></p>").addClass("vp-theme").text(theme));
 
         var infos = $("<div></div>").addClass("vp-meta-row");
 
-        // Bloc "Cree le"
+        // Bloc "Créé le"
         var bloc_date = $("<div></div>").addClass("vp-meta-bloc");
-        bloc_date.append($("<span></span>").addClass("vp-meta-label").text("Cree le"));
+        bloc_date.append($("<span></span>").addClass("vp-meta-label").text("Créé le"));
         bloc_date.append(
             $("<span></span>")
                 .addClass("vp-meta-valeur")
@@ -271,10 +271,10 @@
         );
         infos.append(bloc_date);
 
-        // Bloc "Proprietaire"
+        // Bloc "Propriétaire"
         if (proprietaire !== null) {
             var bloc_prop = $("<div></div>").addClass("vp-meta-bloc");
-            bloc_prop.append($("<span></span>").addClass("vp-meta-label").text("Proprietaire"));
+            bloc_prop.append($("<span></span>").addClass("vp-meta-label").text("Propriétaire"));
             var bloc_prop_val = $("<span></span>").addClass("vp-meta-valeur vp-meta-personne");
             bloc_prop_val.append(
                 $("<span></span>")
@@ -319,7 +319,7 @@
             .attr("href", "#study-" + paquet.id_paquet)
             .addClass("btn btn-primary");
         bouton_reviser.append($("<span></span>").addClass("btn-ic").html(SVG_BTN_PLAY));
-        bouton_reviser.append($("<span></span>").text("Reviser"));
+        bouton_reviser.append($("<span></span>").text("Réviser"));
         actions.append(bouton_reviser);
 
         if (!est_proprietaire) {
@@ -331,7 +331,7 @@
             .attr("href", "#edit-paquet-" + paquet.id_paquet)
             .addClass("btn btn-secondary");
         bouton_editer.append($("<span></span>").addClass("btn-ic").html(SVG_BTN_EDIT));
-        bouton_editer.append($("<span></span>").text("Editer"));
+        bouton_editer.append($("<span></span>").text("Éditer"));
         actions.append(bouton_editer);
 
         var bouton_partager = bouton_action("btn btn-secondary", SVG_KPI_PARTAGE, "Partager");
@@ -364,7 +364,7 @@
         AjaxService.supprimer("paquets/" + paquet.id_paquet, {
             succes: function () {
                 if (window.Toast && typeof window.Toast.succes === "function") {
-                    window.Toast.succes("Paquet supprime.");
+                    window.Toast.succes("Paquet supprimé.");
                 }
                 window.location.hash = "#dashboard";
             },
@@ -402,7 +402,7 @@
             $("<p></p>").addClass("page-sub").text(
                 est_proprietaire
                     ? "Vue de detail de votre paquet."
-                    : "Paquet partage avec vous."
+                    : "Paquet partagé avec vous."
             )
         );
         groupe_titre.append(bloc_titre);
@@ -460,7 +460,7 @@
                 if (xhr.status === 404) {
                     afficher_erreur("Ce paquet n'existe pas.");
                 } else if (xhr.status === 403) {
-                    afficher_erreur("Vous n'avez pas acces a ce paquet.");
+                    afficher_erreur("Vous n'avez pas accès à ce paquet.");
                 } else {
                     afficher_erreur(message);
                 }

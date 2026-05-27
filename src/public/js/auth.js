@@ -149,10 +149,10 @@ function nettoyer_champ_login(nom_champ, id_input, id_message) {
 function valider_champ_register(nom_champ, valeur, valeur_mdp) {
     if (nom_champ === "prenom") {
         if (valeur === "") {
-            return "Le prenom est obligatoire.";
+            return "Le prénom est obligatoire.";
         }
         if (valeur.length > 100) {
-            return "Le prenom est trop long (100 caracteres maximum).";
+            return "Le prénom est trop long (100 caractères maximum).";
         }
         return "";
     }
@@ -161,7 +161,7 @@ function valider_champ_register(nom_champ, valeur, valeur_mdp) {
             return "Le nom est obligatoire.";
         }
         if (valeur.length > 100) {
-            return "Le nom est trop long (100 caracteres maximum).";
+            return "Le nom est trop long (100 caractères maximum).";
         }
         return "";
     }
@@ -170,7 +170,7 @@ function valider_champ_register(nom_champ, valeur, valeur_mdp) {
             return "L'email est obligatoire.";
         }
         if (valeur.length > 150) {
-            return "L'email est trop long (150 caracteres maximum).";
+            return "L'email est trop long (150 caractères maximum).";
         }
         if (!REGEX_EMAIL.test(valeur)) {
             return "Format d'email invalide.";
@@ -191,7 +191,7 @@ function valider_champ_register(nom_champ, valeur, valeur_mdp) {
             return "Le mot de passe est obligatoire.";
         }
         if (valeur.length < 6) {
-            return "Le mot de passe doit faire au moins 6 caracteres.";
+            return "Le mot de passe doit faire au moins 6 caractères.";
         }
         return "";
     }
@@ -322,7 +322,7 @@ function soumettre_login(evenement) {
             if (reponse && reponse.utilisateur) {
                 Session.connecter(reponse.utilisateur);
             }
-            Toast.succes("Connexion reussie.");
+            Toast.succes("Connexion réussie.");
             window.location.hash = "#dashboard";
         },
         erreur: function (xhr, message) {
@@ -368,7 +368,7 @@ function soumettre_register(evenement) {
 
     AjaxService.post("auth/inscription", donnees, {
         succes: function () {
-            Toast.succes("Compte cree. Vous pouvez vous connecter.");
+            Toast.succes("Compte créé. Vous pouvez vous connecter.");
             // Reinitialise le formulaire et bascule vers login.
             $("#form-register")[0].reset();
             window.location.hash = "#login";

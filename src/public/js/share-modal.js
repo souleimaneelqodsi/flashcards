@@ -67,7 +67,7 @@
 
     // Texte par defaut du bandeau info (sans destinataire selectionne).
     // Stocke en constante pour pouvoir le restaurer apres une selection.
-    var TEXTE_BANDEAU_DEFAUT = "Le destinataire recevra un acces en "
+    var TEXTE_BANDEAU_DEFAUT = "Le destinataire recevra un accès en "
         + "lecture seule. Chaque utilisateur garde ses propres scores "
         + "et progressions.";
 
@@ -160,7 +160,7 @@
         conteneur.empty();
         if (utilisateurs.length === 0) {
             conteneur.append(
-                $("<p></p>").addClass("partage-vide").text("Aucun utilisateur trouve.")
+                $("<p></p>").addClass("partage-vide").text("Aucun utilisateur trouvé.")
             );
             return;
         }
@@ -230,7 +230,7 @@
         // conformement au mockup share_bag.png. On utilise .text() pour
         // echapper le nom (defense XSS).
         var bandeau_perso = utilisateur.prenom + " " + utilisateur.nom
-            + " recevra un acces en lecture seule. Chaque utilisateur garde "
+            + " recevra un accès en lecture seule. Chaque utilisateur garde "
             + "ses propres scores et progressions.";
         $("#partage-info-bandeau").text(bandeau_perso);
     }
@@ -259,7 +259,7 @@
                     // disponible, on continue sans bloquer sinon.
                     if (window.Toast && typeof window.Toast.succes === "function") {
                         window.Toast.succes(
-                            "Paquet partage avec " + nom + "."
+                            "Paquet partagé avec " + nom + "."
                         );
                     }
                 },

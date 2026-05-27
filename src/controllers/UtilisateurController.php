@@ -43,7 +43,7 @@ class UtilisateurController extends BaseController
      *
      *  1. Verifie l'authentification (sinon 401) - GET donc pas de CSRF.
      *  2. Lit `q` dans la query string ($_GET).
-     *  3. Si `q` est vide ou < 2 caracteres : renvoie une liste vide
+     *  3. Si `q` est vide ou < 2 caractères : renvoie une liste vide
      *     (evite de balayer toute la BD au premier caractere tape).
      *  4. Cherche via le Repository (LIKE prepare avec echappement).
      *  5. Repond 200 avec un tableau `utilisateurs` (toArray sans MDP).
@@ -60,7 +60,7 @@ class UtilisateurController extends BaseController
         }
 
         // Borne basse : on ne lance pas de recherche au-dessous de 2
-        // caracteres pour ne pas saturer la BD ni envoyer des resultats
+        // caractères pour ne pas saturer la BD ni envoyer des resultats
         // trop larges. Cas typique : l'utilisateur tape "j" -> on attend.
         if (strlen($q) < 2) {
             $this->repondre(array('utilisateurs' => array()), 200);
@@ -126,7 +126,7 @@ class UtilisateurController extends BaseController
         if ($email !== $utilisateur->getEmail()) {
             $autre = $this->utilisateurs->chercher_par_email($email);
             if ($autre !== null) {
-                $this->repondre(array('erreurs' => array('email' => 'Email deja utilise.')), 409);
+                $this->repondre(array('erreurs' => array('email' => 'Email déjà utilisé.')), 409);
                 return;
             }
         }
@@ -143,7 +143,7 @@ class UtilisateurController extends BaseController
 
         $this->repondre(
             array(
-                'message'     => 'Profil mis a jour.',
+                'message'     => 'Profil mis à jour.',
                 'utilisateur' => $utilisateur->toArray()
             ),
             200
@@ -158,7 +158,7 @@ class UtilisateurController extends BaseController
      *  1. Authentification + token CSRF.
      *  2. Verifie le mot de passe actuel avec password_verify (on ne
      *     change pas un mot de passe sans prouver qu'on connait l'ancien).
-     *  3. Valide le nouveau (>= 6 caracteres + confirmation identique).
+     *  3. Valide le nouveau (>= 6 caractères + confirmation identique).
      *  4. Hashe en BCRYPT et persiste via le Repository.
      */
     public function changer_mot_de_passe()
@@ -184,7 +184,7 @@ class UtilisateurController extends BaseController
         if ($nouveau === '') {
             $erreurs['nouveau_mot_de_passe'] = 'Le nouveau mot de passe est obligatoire.';
         } else if (strlen($nouveau) < 6) {
-            $erreurs['nouveau_mot_de_passe'] = 'Le mot de passe doit faire au moins 6 caracteres.';
+            $erreurs['nouveau_mot_de_passe'] = 'Le mot de passe doit faire au moins 6 caractères.';
         }
         if ($nouveau !== $confirmation) {
             $erreurs['confirmation_mot_de_passe'] = 'Les deux mots de passe ne correspondent pas.';
@@ -197,7 +197,7 @@ class UtilisateurController extends BaseController
         $utilisateur->setMotDePasse(password_hash($nouveau, PASSWORD_BCRYPT));
         $this->utilisateurs->mettre_a_jour($utilisateur);
 
-        $this->repondre(array('message' => 'Mot de passe mis a jour.'), 200);
+        $this->repondre(array('message' => 'Mot de passe mis à jour.'), 200);
     }
 
     /**
@@ -235,7 +235,7 @@ class UtilisateurController extends BaseController
 
         $this->repondre(
             array(
-                'message'     => 'Avatar mis a jour.',
+                'message'     => 'Avatar mis à jour.',
                 'utilisateur' => $utilisateur->toArray()
             ),
             200
@@ -272,7 +272,7 @@ class UtilisateurController extends BaseController
         if ($email === '') {
             $erreurs['email'] = 'L\'email est obligatoire.';
         } else if (strlen($email) > 150) {
-            $erreurs['email'] = 'L\'email est trop long (150 caracteres maximum).';
+            $erreurs['email'] = 'L\'email est trop long (150 caractères maximum).';
         } else {
             $regex_email = '/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/';
             if (!preg_match($regex_email, $email)) {
@@ -283,13 +283,13 @@ class UtilisateurController extends BaseController
         if ($nom === '') {
             $erreurs['nom'] = 'Le nom est obligatoire.';
         } else if (strlen($nom) > 100) {
-            $erreurs['nom'] = 'Le nom est trop long (100 caracteres maximum).';
+            $erreurs['nom'] = 'Le nom est trop long (100 caractères maximum).';
         }
 
         if ($prenom === '') {
-            $erreurs['prenom'] = 'Le prenom est obligatoire.';
+            $erreurs['prenom'] = 'Le prénom est obligatoire.';
         } else if (strlen($prenom) > 100) {
-            $erreurs['prenom'] = 'Le prenom est trop long (100 caracteres maximum).';
+            $erreurs['prenom'] = 'Le prénom est trop long (100 caractères maximum).';
         }
 
         if ($date_naissance === '') {

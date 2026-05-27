@@ -104,7 +104,7 @@ $csrf_token = Csrf::obtenir();
                         </span>
                     </a>
                     <div class="theme-row">
-                        <span>Theme sombre</span>
+                        <span>Thème sombre</span>
                         <button type="button" class="theme-switch" id="theme-switch" aria-label="Basculer le theme sombre ou clair"></button>
                     </div>
                 </div>
@@ -185,20 +185,20 @@ $csrf_token = Csrf::obtenir();
                                 <h3 class="edition-section-titre">Informations du paquet</h3>
                                 <div class="form-group">
                                     <label class="form-label" for="paquet-titre">Titre <span class="req">*</span></label>
-                                    <input type="text" id="paquet-titre" class="form-control" maxlength="150" value="Bases de donnees relationnelles" placeholder="Bases de donnees relationnelles">
-                                    <p class="message-erreur" id="erreur-paquet-titre" hidden>Le titre est obligatoire (150 caracteres maximum).</p>
-                                    <p class="form-counter"><span id="paquet-titre-counter">33</span> / 150 caracteres</p>
+                                    <input type="text" id="paquet-titre" class="form-control" maxlength="150" value="Bases de données relationnelles" placeholder="Bases de données relationnelles">
+                                    <p class="message-erreur" id="erreur-paquet-titre" hidden>Le titre est obligatoire (150 caractères maximum).</p>
+                                    <p class="form-counter"><span id="paquet-titre-counter">33</span> / 150 caractères</p>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label" for="paquet-theme">Theme</label>
+                                    <label class="form-label" for="paquet-theme">Thème</label>
                                     <input type="text" id="paquet-theme" class="form-control" value="SQL et modelisation" placeholder="SQL et modelisation">
                                 </div>
                             </div>
 
                             <div>
-                                <h3 class="edition-section-titre">Apercu</h3>
+                                <h3 class="edition-section-titre">Aperçu</h3>
                                 <div class="apercu-card">
-                                    <div class="apercu-card-titre" id="apercu-titre">Bases de donnees relationnelles</div>
+                                    <div class="apercu-card-titre" id="apercu-titre">Bases de données relationnelles</div>
                                     <div class="apercu-card-theme" id="apercu-theme">SQL et modelisation</div>
                                     <div class="apercu-card-count"><span id="apercu-count">0</span> cartes</div>
                                 </div>
@@ -267,15 +267,15 @@ $csrf_token = Csrf::obtenir();
 
                             <!-- Face recto (question) : visible par defaut.
                                  Contenu rempli par js/study.js (STUDY-1.3). -->
-                            <div class="study-carte study-carte-recto" id="study-carte-recto" tabindex="0" role="button" aria-label="Carte question - cliquer pour reveler la reponse">
+                            <div class="study-carte study-carte-recto" id="study-carte-recto" tabindex="0" role="button" aria-label="Carte question - cliquer pour révéler la réponse">
                                 <div class="study-carte-label">Question</div>
                                 <p class="study-carte-contenu" id="study-question"></p>
-                                <p class="study-carte-aide">Cliquer pour reveler la reponse</p>
+                                <p class="study-carte-aide">Cliquer pour révéler la réponse</p>
                             </div>
 
                             <!-- Face verso (reponse) : masquee par defaut, FRONT-2.7. -->
-                            <div class="study-carte study-carte-verso" id="study-carte-verso" tabindex="0" role="button" aria-label="Carte reponse - cliquer pour revoir la question" hidden>
-                                <div class="study-carte-label">Reponse</div>
+                            <div class="study-carte study-carte-verso" id="study-carte-verso" tabindex="0" role="button" aria-label="Carte réponse - cliquer pour revoir la question" hidden>
+                                <div class="study-carte-label">Réponse</div>
                                 <p class="study-carte-contenu" id="study-reponse"></p>
                                 <p class="study-carte-aide">Cliquer pour revoir la question</p>
                             </div>
@@ -342,7 +342,7 @@ $csrf_token = Csrf::obtenir();
                     <div class="auth-fond">
                         <div class="auth-carte">
                             <h2 class="auth-titre" id="titre-login">Connexion</h2>
-                            <p class="auth-sous-titre">Accedez a vos paquets de revisions.</p>
+                            <p class="auth-sous-titre">Accédez à vos paquets de révisions.</p>
 
                             <!-- Le formulaire est soumis via js/auth.js en AJAX. L'attribut
                                  novalidate desactive la validation HTML5 du navigateur :
@@ -372,7 +372,7 @@ $csrf_token = Csrf::obtenir();
 
                             <p class="auth-bascule">
                                 Pas encore de compte ?
-                                <a href="#register" id="lien-vers-register">Creer un compte</a>
+                                <a href="#register" id="lien-vers-register">Créer un compte</a>
                             </p>
                         </div>
                     </div>
@@ -390,12 +390,12 @@ $csrf_token = Csrf::obtenir();
                     <div class="auth-fond">
                         <div class="auth-carte">
                             <h2 class="auth-titre" id="titre-register">Inscription</h2>
-                            <p class="auth-sous-titre">Creez votre compte FlashCards MIAGE.</p>
+                            <p class="auth-sous-titre">Créez votre compte FlashCards MIAGE.</p>
 
                             <form id="form-register" class="auth-form" novalidate>
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label class="form-label" for="reg-prenom">Prenom <span class="req">*</span></label>
+                                        <label class="form-label" for="reg-prenom">Prénom <span class="req">*</span></label>
                                         <input type="text" id="reg-prenom" name="prenom" class="form-control" maxlength="100" autocomplete="given-name" required>
                                         <p class="message-erreur" id="erreur-reg-prenom" hidden></p>
                                     </div>
@@ -431,11 +431,11 @@ $csrf_token = Csrf::obtenir();
                                 </div>
 
                                 <div class="recap-erreurs" id="recap-erreurs-register" hidden>
-                                    <p>Veuillez corriger les erreurs avant de creer votre compte :</p>
+                                    <p>Veuillez corriger les erreurs avant de créer votre compte :</p>
                                     <ul id="liste-erreurs-register"></ul>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary btn-full" id="btn-soumettre-register">Creer mon compte</button>
+                                <button type="submit" class="btn btn-primary btn-full" id="btn-soumettre-register">Créer mon compte</button>
                             </form>
 
                             <p class="auth-bascule">
@@ -458,11 +458,11 @@ $csrf_token = Csrf::obtenir();
                             <svg class="fin-session-icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 2l2.39 4.84L19.78 8l-3.89 3.79.92 5.36L12 14.77l-4.81 2.38.92-5.36L4.22 8l5.39-1.16L12 2z"></path>
                             </svg>
-                            <h2 class="fin-session-titre" id="fin-session-titre">Session terminee !</h2>
-                            <p class="fin-session-sous-titre" id="fin-session-paquet">Bases de donnees relationnelles - 24 cartes</p>
+                            <h2 class="fin-session-titre" id="fin-session-titre">Session terminée !</h2>
+                            <p class="fin-session-sous-titre" id="fin-session-paquet">Bases de données relationnelles - 24 cartes</p>
 
                             <div class="fin-session-score"><span id="fin-session-score-pct">75</span>%</div>
-                            <p class="fin-session-detail"><span id="fin-session-reussies">18</span> sur <span id="fin-session-total">24</span> cartes reussies</p>
+                            <p class="fin-session-detail"><span id="fin-session-reussies">18</span> sur <span id="fin-session-total">24</span> cartes réussies</p>
 
                             <div class="fin-session-stats">
                                 <div class="fin-session-stat fin-session-stat-correctes">
@@ -536,7 +536,7 @@ $csrf_token = Csrf::obtenir();
                                         </svg>
                                     </span>
                                     <span class="profil-info-txt">
-                                        <span class="profil-info-label">Prenom</span>
+                                        <span class="profil-info-label">Prénom</span>
                                         <span class="profil-info-valeur" id="profil-val-prenom"></span>
                                     </span>
                                     <span class="profil-chevron">
@@ -622,7 +622,7 @@ $csrf_token = Csrf::obtenir();
                             </div>
 
                             <div class="profil-actions">
-                                <button type="button" class="btn btn-secondary" id="btn-deconnexion-profil">Se deconnecter</button>
+                                <button type="button" class="btn btn-secondary" id="btn-deconnexion-profil">Se déconnecter</button>
                                 <button type="button" class="btn profil-btn-supprimer" id="btn-supprimer-compte">Supprimer le compte</button>
                             </div>
                         </div>
@@ -661,7 +661,7 @@ $csrf_token = Csrf::obtenir();
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="champ-reponse">Reponse <span class="req">*</span></label>
+                    <label class="form-label" for="champ-reponse">Réponse <span class="req">*</span></label>
                     <textarea id="champ-reponse" name="reponse" class="form-control" placeholder="Saisissez la reponse..." required></textarea>
                     <p class="message-erreur" id="erreur-reponse" hidden>La reponse est obligatoire.</p>
                 </div>
@@ -721,8 +721,8 @@ $csrf_token = Csrf::obtenir();
                     </svg>
                     <input type="text" id="partage-recherche" class="form-control partage-input" placeholder="Email ou debut d'email..." autocomplete="off">
                 </div>
-                <div class="partage-resultats" id="partage-resultats" role="listbox" aria-label="Resultats de recherche"></div>
-                <p class="partage-info-bandeau" id="partage-info-bandeau">Le destinataire recevra un acces en lecture seule. Chaque utilisateur garde ses propres scores et progressions.</p>
+                <div class="partage-resultats" id="partage-resultats" role="listbox" aria-label="Résultats de recherche"></div>
+                <p class="partage-info-bandeau" id="partage-info-bandeau">Le destinataire recevra un accès en lecture seule. Chaque utilisateur garde ses propres scores et progressions.</p>
             </div>
 
             <div class="recap-erreurs modale-recap-erreurs" id="partage-recap-erreurs" hidden></div>
@@ -779,7 +779,7 @@ $csrf_token = Csrf::obtenir();
             </div>
             <form class="modale-corps" id="form-edition-profil" novalidate>
                 <div class="form-group">
-                    <label class="form-label" for="edit-prenom">Prenom <span class="req">*</span></label>
+                    <label class="form-label" for="edit-prenom">Prénom <span class="req">*</span></label>
                     <input type="text" id="edit-prenom" name="prenom" class="form-control" maxlength="100" required>
                     <p class="message-erreur" id="erreur-edit-prenom" hidden></p>
                 </div>
@@ -848,7 +848,7 @@ $csrf_token = Csrf::obtenir();
                 </div>
                 <div class="modale-actions">
                     <button type="button" class="btn btn-secondary" id="btn-annuler-mot-de-passe">Annuler</button>
-                    <button type="submit" class="btn btn-primary" id="btn-valider-mot-de-passe">Mettre a jour</button>
+                    <button type="submit" class="btn btn-primary" id="btn-valider-mot-de-passe">Mettre à jour</button>
                 </div>
             </form>
         </div>

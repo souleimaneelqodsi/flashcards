@@ -39,7 +39,7 @@ abstract class BaseController
     protected function verifier_authentifie()
     {
         if (!isset($_SESSION['id_user'])) {
-            $this->repondre(array('erreur' => 'Non authentifie'), 401);
+            $this->repondre(array('erreur' => 'Non authentifié'), 401);
         }
         return (int) $_SESSION['id_user'];
     }

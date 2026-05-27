@@ -141,7 +141,7 @@ function ouvrir_modale_edition_question(element_question) {
     selectionner_difficulte_modale(difficulte);
 
     $("#titre-modale-ajout-question").text("Modifier la question");
-    $("#btn-valider-ajout-question").text("Mettre a jour");
+    $("#btn-valider-ajout-question").text("Mettre à jour");
     $("#" + ID_MODALE).removeAttr("hidden");
     $("#" + ID_CHAMP_QUESTION).focus();
 }
@@ -186,7 +186,7 @@ function valider_formulaire_ajout_question() {
         erreurs.push("La question est obligatoire.");
     }
     if (!reponse_ok) {
-        erreurs.push("La reponse est obligatoire.");
+        erreurs.push("La réponse est obligatoire.");
     }
     if (erreurs.length === 0) {
         $("#" + ID_RECAP).attr("hidden", "hidden");
@@ -255,7 +255,7 @@ function construire_element_question(numero, contenu_question, contenu_reponse, 
     corps.append($("<p></p>").addClass("question-titre").text(contenu_question));
     corps.append($("<p></p>").addClass("question-reponse-preview").text(contenu_reponse));
 
-    var difficulte_row = $("<div></div>").addClass("question-difficulte").attr("role", "radiogroup").attr("aria-label", "Difficulte de la question " + numero);
+    var difficulte_row = $("<div></div>").addClass("question-difficulte").attr("role", "radiogroup").attr("aria-label", "Difficulté de la question " + numero);
 
     var niveaux = ["facile", "moyen", "difficile"];
     var libelles = ["Facile", "Moyen", "Difficile"];
@@ -292,8 +292,8 @@ function construire_element_question(numero, contenu_question, contenu_reponse, 
 
 // ── Validation dynamique du titre du paquet (FRONT-2.5) ──────
 // Le titre est requis (cf. mockup new_bag.png : "TITRE *") et limite
-// a 150 caracteres (CLAUDE.md §6). Cette fonction met aussi a jour le
-// compteur de caracteres affiche sous le champ et bascule la classe
+// a 150 caractères (CLAUDE.md §6). Cette fonction met aussi a jour le
+// compteur de caractères affiche sous le champ et bascule la classe
 // .champ-invalide selon le contenu.
 function valider_titre_paquet() {
     var champ = $("#paquet-titre");
@@ -357,13 +357,13 @@ function envoyer_post_question(contenu_question, contenu_reponse, niveau, id_dif
             succes: function (reponse) {
                 var question = (reponse && reponse.question) ? reponse.question : null;
                 if (question === null) {
-                    afficher_erreurs_question(["Reponse serveur invalide."]);
+                    afficher_erreurs_question(["Réponse serveur invalide."]);
                     return;
                 }
                 ajouter_question_au_dom(question, niveau);
                 fermer_modale_ajout_question();
                 if (window.Toast && typeof window.Toast.succes === "function") {
-                    window.Toast.succes("Question ajoutee.");
+                    window.Toast.succes("Question ajoutée.");
                 }
             },
             erreur: function (xhr, message) {
@@ -403,7 +403,7 @@ function envoyer_put_question(contenu_question, contenu_reponse, niveau, id_diff
                 );
                 fermer_modale_ajout_question();
                 if (window.Toast && typeof window.Toast.succes === "function") {
-                    window.Toast.succes("Question mise a jour.");
+                    window.Toast.succes("Question mise à jour.");
                 }
             },
             erreur: function (xhr, message) {
@@ -429,7 +429,7 @@ function envoyer_delete_question(id_question, element_question) {
             renumeroter_questions();
             mettre_a_jour_compteur_questions();
             if (window.Toast && typeof window.Toast.succes === "function") {
-                window.Toast.succes("Question supprimee.");
+                window.Toast.succes("Question supprimée.");
             }
         },
         erreur: function (xhr, message) {
@@ -476,7 +476,7 @@ function ajouter_question_buffer(contenu_question, contenu_reponse, niveau, id_d
     mettre_a_jour_compteur_questions();
     fermer_modale_ajout_question();
     if (window.Toast && typeof window.Toast.succes === "function") {
-        window.Toast.succes("Question ajoutee.");
+        window.Toast.succes("Question ajoutée.");
     }
 }
 
@@ -494,7 +494,7 @@ function modifier_question_buffer(id_local, contenu_question, contenu_reponse, n
     mettre_a_jour_question_existante(id_local, contenu_question, contenu_reponse, niveau);
     fermer_modale_ajout_question();
     if (window.Toast && typeof window.Toast.succes === "function") {
-        window.Toast.succes("Question mise a jour.");
+        window.Toast.succes("Question mise à jour.");
     }
 }
 
@@ -514,7 +514,7 @@ function supprimer_question_buffer(id_local, element_question) {
     renumeroter_questions();
     mettre_a_jour_compteur_questions();
     if (window.Toast && typeof window.Toast.succes === "function") {
-        window.Toast.succes("Question supprimee.");
+        window.Toast.succes("Question supprimée.");
     }
 }
 
@@ -529,7 +529,7 @@ function renumeroter_questions() {
         $(this).find(".btn-supprimer-question")
             .attr("aria-label", "Supprimer la question " + nouveau_numero);
         $(this).find(".question-difficulte")
-            .attr("aria-label", "Difficulte de la question " + nouveau_numero);
+            .attr("aria-label", "Difficulté de la question " + nouveau_numero);
     });
 }
 
@@ -665,7 +665,7 @@ function charger_paquet_pour_edition(id_paquet) {
             $("#paquet-titre").val(paquet.titre || "");
             $("#paquet-theme").val(paquet.theme || "");
             $("#paquet-titre-counter").text((paquet.titre || "").length);
-            $("#titre-edition-paquet").text("Editer un paquet");
+            $("#titre-edition-paquet").text("Éditer un paquet");
             synchroniser_apercu();
             valider_titre_paquet();
             // Enchaine sur le chargement des questions (QST-1.6).
@@ -795,7 +795,7 @@ function enregistrer_paquet() {
     // Validation cliente : titre obligatoire <= 150 (FRONT-2.5).
     var titre_ok = valider_titre_paquet();
     if (!titre_ok) {
-        afficher_erreurs_form(["Le titre est obligatoire (150 caracteres maximum)."]);
+        afficher_erreurs_form(["Le titre est obligatoire (150 caractères maximum)."]);
         $("#paquet-titre").focus();
         return;
     }
@@ -833,7 +833,7 @@ function envoyer_post(payload) {
             if (id_cree !== null && questions_buffer.length > 0) {
                 enregistrer_questions_bufferisees(id_cree, 0);
             } else {
-                apres_succes(reponse, "Paquet cree.");
+                apres_succes(reponse, "Paquet créé.");
             }
         },
         erreur: function (xhr, message) {
@@ -850,7 +850,7 @@ function envoyer_post(payload) {
 function enregistrer_questions_bufferisees(id_paquet, index) {
     if (index >= questions_buffer.length) {
         if (window.Toast && typeof window.Toast.succes === "function") {
-            window.Toast.succes("Paquet et questions enregistres.");
+            window.Toast.succes("Paquet et questions enregistrés.");
         }
         questions_buffer = [];
         window.location.hash = "#visualisation-paquet-" + id_paquet;
@@ -868,7 +868,7 @@ function enregistrer_questions_bufferisees(id_paquet, index) {
         },
         erreur: function (xhr, message) {
             if (window.Toast && typeof window.Toast.erreur === "function") {
-                window.Toast.erreur("Paquet cree, mais une question n'a pas pu etre enregistree : " + message);
+                window.Toast.erreur("Paquet créé, mais une question n'a pas pu être enregistrée : " + message);
             }
             questions_buffer = [];
             window.location.hash = "#edit-paquet-" + id_paquet;
@@ -883,7 +883,7 @@ function envoyer_put(payload) {
     }
     AjaxService.put("paquets/" + paquet_id_courant, payload, {
         succes: function (reponse) {
-            apres_succes(reponse, "Paquet mis a jour.");
+            apres_succes(reponse, "Paquet mis à jour.");
         },
         erreur: function (xhr, message) {
             traiter_erreur_form(xhr, message);
