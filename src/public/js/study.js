@@ -345,48 +345,111 @@ function aller_question_suivante() {
     aller_a_question(index_question_courante + 1);
 }
 
-// ── Appel API de fin de session (FRONT-2.12) ─────────────────
-// Envoie le score calcule au serveur pour mise a jour de last_score
-// (et de best_score si meilleur). L'endpoint cible (FULL-2.12) :
-//   POST /api/paquets/<id>/session
-//   { correctes: N, mauvaises: N, score: pct }
-// Cote serveur, last_score et best_score sont mis a jour seulement si
-// l'utilisateur connecte est le proprietaire du paquet (regle metier
-// CLAUDE.md §4). Cote client on appelle aussi cet endpoint pour les
-// destinataires : le serveur ignorera silencieusement leur score.
-function envoyer_resultat_session() {
+// ── Calcul du pourcentage de la session ──────────────────────
+// Helper isole pour le partager entre envoyer_resultat_session et la
+// vue de fin (qui en a besoin pour le rendu du pourcentage et du best).
+function calculer_pourcentage_session() {
     var total_evaluees = nb_correctes + nb_mauvaises;
-    var pourcentage = 0;
-    if (total_evaluees > 0) {
-        pourcentage = Math.round((nb_correctes / total_evaluees) * 100);
+    if (total_evaluees === 0) {
+        return 0;
+    }
+    return Math.round((nb_correctes / total_evaluees) * 100);
+}
+
+// ── Pre-remplissage de la vue de fin de session (STUDY-1.4) ──
+// Remplit les champs de #vue-fin-session a partir des compteurs en
+// memoire (nb_correctes, nb_mauvaises, questions_session.length) +
+// le titre du paquet courant (lu depuis le header de study). Le
+// best_score est passe en parametre car il vient de la reponse POST
+// score (peut etre null si la session vient d'etre faite par un
+// destinataire et qu'on n'a pas re-questionne le serveur).
+function remplir_recap_fin_session(best_serveur) {
+    var pourcentage = calculer_pourcentage_session();
+    var nb_total = questions_session.length;
+    var titre_paquet = $("#study-titre").text();
+    var sous_titre_session = titre_paquet + " - " + nb_total + " cartes";
+
+    $("#fin-session-paquet").text(sous_titre_session);
+    $("#fin-session-score-pct").text(pourcentage);
+    $("#fin-session-reussies").text(nb_correctes);
+    $("#fin-session-total").text(nb_total);
+    $("#fin-session-correctes").text(nb_correctes);
+    $("#fin-session-mauvaises").text(nb_mauvaises);
+
+    // Best : si renvoye par le serveur (proprietaire qui a persiste),
+    // on l'affiche tel quel. Sinon (destinataire ou erreur reseau)
+    // on affiche le pourcentage courant comme repere (le meilleur de
+    // la session en cours est au moins ce pourcentage).
+    if (typeof best_serveur === "number") {
+        $("#fin-session-best").text(best_serveur);
+    } else {
+        $("#fin-session-best").text(pourcentage);
     }
 
-    // Pour la phase frontend (FRONT-2), l'endpoint reel n'est pas encore
-    // disponible : on log la requete et on bascule directement sur la
-    // vue de fin de session. Le branchement AJAX sera complete quand le
-    // backend exposera la route (cf. FULL-2.12). Le bloc $.ajax ci-
-    // dessous est cable pret a l'emploi.
-    $.ajax({
-        url: "/api/paquets/" + id_paquet_session + "/session",
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({
-            correctes: nb_correctes,
-            mauvaises: nb_mauvaises,
-            score: pourcentage
-        }),
-        dataType: "json",
-        success: function () {
-            // Le serveur a accepte : on navigue vers la fin de session.
-            window.location.hash = "fin-session-" + id_paquet_session;
-        },
-        error: function () {
-            // En attendant que le backend existe, on bascule quand meme
-            // pour permettre les tests UI. Quand FULL-2.12 sera fait,
-            // remplacer ce fallback par un message d'erreur explicite.
-            window.location.hash = "fin-session-" + id_paquet_session;
+    // Mise a jour des liens d'action de la vue de fin (recommencer +
+    // retour dashboard). Le bouton "Recommencer" pointe vers la
+    // session courante.
+    $("#btn-recommencer-session").attr("href", "#study-" + id_paquet_session);
+}
+
+// ── Appel API de fin de session (STUDY-1.4) ──────────────────
+// Persiste le score uniquement pour le proprietaire (regle metier
+// CLAUDE.md §4 : last_score / best_score sont strictement personnels au
+// proprietaire). Cote serveur l'endpoint POST /api/paquets/:id/score
+// (STUDY-1.2) refuse de toute facon les destinataires avec un 403, mais
+// on evite l'appel inutile cote front.
+//
+// Format du payload : { score: 0..100 }. Le serveur deduit last_score =
+// score et best_score = max(best_score, score). En retour, le paquet
+// renvoye contient les nouvelles valeurs (utilisable pour pre-remplir
+// la vue de fin de session sans relire l'API).
+//
+// La navigation vers #fin-session-<id> se fait dans tous les cas
+// (proprietaire, destinataire, erreur reseau) : la vue de fin reste
+// utile pour visualiser le score de la session courante meme si elle
+// n'est pas persistee.
+function envoyer_resultat_session() {
+    var pourcentage = calculer_pourcentage_session();
+    var hash_fin = "#fin-session-" + id_paquet_session;
+
+    // Destinataire : pas d'appel API (le serveur refuserait de toute
+    // facon avec 403). On remplit la vue de fin avec les compteurs en
+    // memoire sans best_score serveur, et on bascule.
+    if (utilisateur_est_proprietaire !== true) {
+        remplir_recap_fin_session(undefined);
+        window.location.hash = hash_fin;
+        return;
+    }
+
+    AjaxService.post(
+        "paquets/" + id_paquet_session + "/score",
+        { score: pourcentage },
+        {
+            succes: function (reponse) {
+                // Le serveur a persiste : on recupere best_score depuis
+                // la reponse pour l'afficher sur la vue de fin.
+                var best = null;
+                if (reponse && reponse.paquet && typeof reponse.paquet.best_score === "number") {
+                    best = reponse.paquet.best_score;
+                }
+                remplir_recap_fin_session(best);
+                window.location.hash = hash_fin;
+            },
+            erreur: function (xhr, message) {
+                // L'echec d'enregistrement du score ne doit pas
+                // empecher l'utilisateur de voir le recap. Toast +
+                // bascule avec best inconnu.
+                if (window.Toast && typeof window.Toast.afficher === "function") {
+                    window.Toast.afficher(
+                        "Impossible d'enregistrer le score : " + message,
+                        "erreur"
+                    );
+                }
+                remplir_recap_fin_session(undefined);
+                window.location.hash = hash_fin;
+            }
         }
-    });
+    );
 }
 
 // ── Initialisation au chargement du DOM ──────────────────────
