@@ -235,7 +235,230 @@ classe Factory séparée tout en remplissant exactement le même rôle.
 | Repository | `*Repository` (x5) | Isolation du SQL hors des controleurs | `src/repositories/*.php` |
 | Factory Method | `Paquet`, `Question`, `Utilisateur` | création cohérente des entités (formulaire vs SQL) | `src/models/*.php` |
 
-Les trois patrons se complementent : le **Singleton** fournit la connexion, le
-**Repository** l'utilise pour persister les donnees, et la **Factory Method**
+Les trois patrons se complémentent : le **Singleton** fournit la connexion, le
+**Repository** l'utilise pour persister les données, et la **Factory Method**
 produit les objets que le Repository retourne. Ensemble, ils couvrent toute la
-chaine d'accès aux donnees sans introduire de code complexe.
+chaîne d'accès aux données sans introduire de code complexe.
+
+---
+
+## 5. Diagramme de classes — vue d'ensemble des trois patrons
+
+Le diagramme ci-dessous représente toutes les classes du projet et
+annote explicitement chaque patron par un stéréotype UML
+(`<<Singleton>>`, `<<Repository>>`, méthodes statiques `$` pour Factory).
+Les contrôleurs sont inclus pour montrer qu'ils utilisent uniquement les
+repositories — jamais `DB` directement.
+
+```mermaid
+classDiagram
+    direction LR
+
+    %% ===== Patron FACTORY Method : creer()/fromRow() statiques sur les modeles =====
+    class BaseModel {
+        <<abstract>>
+        +toArray() array*
+    }
+    class Utilisateur {
+        -int id_user
+        -string email
+        -string mot_de_passe
+        -string nom
+        -string prenom
+        -date date_naissance
+        -string avatar
+        +creer(email, mdp, nom, prenom, date, avatar) Utilisateur$
+        +fromRow(ligne) Utilisateur$
+        +toArray() array
+    }
+    class Paquet {
+        -int id_paquet
+        -string titre
+        -string theme
+        -date date_creation
+        -int last_score
+        -int best_score
+        -int id_proprietaire
+        +creer(titre, theme, id_proprietaire) Paquet$
+        +fromRow(ligne) Paquet$
+        +toArray() array
+    }
+    class Question {
+        -int id_question
+        -string contenu_question
+        -string contenu_reponse
+        -int id_paquet
+        -int id_difficulte
+        +creer(cq, cr, id_paquet, id_difficulte) Question$
+        +fromRow(ligne) Question$
+        +toArray() array
+    }
+    class Partage {
+        -int id_paquet
+        -int id_destinataire
+        -date date_partage
+        +creer(id_paquet, id_destinataire) Partage$
+        +fromRow(ligne) Partage$
+        +toArray() array
+    }
+    class Difficulte {
+        -int id_difficulte
+        -string nom_difficulte
+        +creer(nom_difficulte) Difficulte$
+        +fromRow(ligne) Difficulte$
+        +toArray() array
+    }
+
+    BaseModel <|-- Utilisateur
+    BaseModel <|-- Paquet
+    BaseModel <|-- Question
+    BaseModel <|-- Partage
+    BaseModel <|-- Difficulte
+
+    %% ===== Patron SINGLETON : connexion PDO unique =====
+    class DB {
+        <<Singleton>>
+        -DB instance$
+        -PDO pdo
+        -__construct()
+        +getInstance() DB$
+        +pdo() PDO
+        +executer(sql, params) PDOStatement
+        +dernier_id_insere() int
+        -__clone()
+    }
+
+    %% ===== Patron REPOSITORY : un repository par entite =====
+    class UtilisateurRepository {
+        <<Repository>>
+        +trouver_par_id(id) Utilisateur
+        +chercher_par_email(email) Utilisateur
+        +creer(u) Utilisateur
+        +mettre_a_jour(u) void
+        +supprimer(id) void
+        +rechercher_par_email_partiel(q, exclu, limite) Utilisateur[]
+    }
+    class PaquetRepository {
+        <<Repository>>
+        +trouver_par_id(id) Paquet
+        +trouver_par_proprietaire(id) Paquet[]
+        +trouver_partages_avec(id) Paquet[]
+        +creer(p) Paquet
+        +mettre_a_jour(p) void
+        +supprimer(id) void
+        +supprimer_avec_cascade(id) void
+    }
+    class QuestionRepository {
+        <<Repository>>
+        +trouver_par_id(id) Question
+        +trouver_par_paquet(id) Question[]
+        +creer(q) Question
+        +mettre_a_jour(q) void
+        +supprimer(id) void
+        +supprimer_par_paquet(id) void
+    }
+    class PartageRepository {
+        <<Repository>>
+        +existe(id_paquet, id_dest) bool
+        +creer(partage) void
+        +lister_par_paquet(id) Partage[]
+        +lister_destinataires_par_paquet(id) Utilisateur[]
+        +revoquer(id_paquet, id_dest) void
+        +revoquer_toutes_par_paquet(id) void
+    }
+    class DifficulteRepository {
+        <<Repository>>
+        +trouver_tous() Difficulte[]
+        +trouver_par_id(id) Difficulte
+    }
+
+    %% Les repositories passent TOUJOURS par le Singleton DB (jamais PDO direct)
+    UtilisateurRepository ..> DB : getInstance()
+    PaquetRepository ..> DB : getInstance()
+    QuestionRepository ..> DB : getInstance()
+    PartageRepository ..> DB : getInstance()
+    DifficulteRepository ..> DB : getInstance()
+
+    %% Les repositories reconstruisent les entites via la Factory fromRow()
+    UtilisateurRepository ..> Utilisateur : fromRow()
+    PaquetRepository ..> Paquet : fromRow()
+    QuestionRepository ..> Question : fromRow()
+    PartageRepository ..> Partage : fromRow()
+    DifficulteRepository ..> Difficulte : fromRow()
+
+    %% ===== Controleurs : utilisent les Repositories, jamais DB directement =====
+    class BaseController {
+        <<abstract>>
+        #verifier_authentifie() int
+        #repondre(donnees, code) void
+        #lire_corps_json() array
+    }
+    class AuthController {
+        -UtilisateurRepository utilisateurs
+        +inscription() void
+        +connexion() void
+        +deconnexion() void
+        +moi() void
+    }
+    class PaquetController {
+        -PaquetRepository paquets
+        -PartageRepository partages
+        -QuestionRepository questions
+        +lister_mes_paquets() void
+        +afficher(id) void
+        +creer() void
+        +mettre_a_jour(id) void
+        +supprimer(id) void
+        +partager(id) void
+        +charger_session(id) void
+        +enregistrer_score(id) void
+    }
+    class UtilisateurController {
+        -UtilisateurRepository utilisateurs
+        +mettre_a_jour_profil() void
+        +changer_mot_de_passe() void
+        +mettre_a_jour_avatar() void
+        +rechercher(q) void
+    }
+    class QuestionController {
+        -QuestionRepository questions
+        -PaquetRepository paquets
+        +creer(id_paquet) void
+        +mettre_a_jour(id) void
+        +supprimer(id) void
+    }
+
+    BaseController <|-- AuthController
+    BaseController <|-- PaquetController
+    BaseController <|-- UtilisateurController
+    BaseController <|-- QuestionController
+
+    %% Les controleurs utilisent les repositories — jamais DB ni PDO directement
+    AuthController ..> UtilisateurRepository : utilise
+    PaquetController ..> PaquetRepository : utilise
+    PaquetController ..> PartageRepository : utilise
+    PaquetController ..> QuestionRepository : utilise
+    UtilisateurController ..> UtilisateurRepository : utilise
+    QuestionController ..> QuestionRepository : utilise
+    QuestionController ..> PaquetRepository : utilise
+
+    %% ===== Associations metier (multiplicites) =====
+    Utilisateur "1" --> "0..*" Paquet : possède
+    Paquet "1" --> "0..*" Question : contient
+    Difficulte "1" --> "0..*" Question : classe
+    Paquet "1" --> "0..*" Partage : est partagé
+    Utilisateur "1" --> "0..*" Partage : reçoit
+```
+
+### Où chaque patron apparaît dans le code
+
+| Patron | Stéréotype UML | Classes concernées | Point d'entrée dans le code |
+|---|---|---|---|
+| **Singleton** | `<<Singleton>>` | `DB` | `DB::getInstance()` dans chaque repository |
+| **Repository** | `<<Repository>>` | `*Repository` (×5) | Injecté dans le constructeur de chaque contrôleur |
+| **Factory Method** | méthodes `$` (statiques) | `Utilisateur`, `Paquet`, `Question`, `Partage`, `Difficulte` | `Entite::creer(...)` depuis les contrôleurs ; `Entite::fromRow(...)` depuis les repositories |
+
+**Règle de visibilité** : les contrôleurs ne connaissent que les
+repositories (flèche `..>` avec `utilise`). Ils n'ont aucun lien direct
+vers `DB` — c'est la garantie visuelle que le patron Repository est
+respecté sans exception.
