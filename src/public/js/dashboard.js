@@ -20,6 +20,40 @@
 // declenche par le router (`afficher_dashboard()`), de maniere a etre
 // rejoue chaque fois que l'utilisateur revient sur #dashboard.
 
+// ── Icones SVG (chaines hard-codees : aucun contenu utilisateur, donc
+// pas de risque XSS via .html()). Style "feather", coherent avec les
+// autres icones de l'interface. La taille est fixee par la CSS
+// (.kpi-ic svg / .btn-ic svg). ──────────────────────────────────────
+var SVG_KPI_PAQUETS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+var SVG_KPI_SCORE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>';
+var SVG_KPI_PARTAGE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>';
+var SVG_KPI_CARTES = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>';
+var SVG_BTN_PLAY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+var SVG_BTN_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>';
+var SVG_BTN_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+
+// Construit un bouton d'action "icone + libelle". L'icone est une chaine
+// SVG hard-codee (injectee via .html(), sans risque XSS) ; le libelle
+// passe par .text() (echappe).
+function bouton_action(classes, svg, libelle) {
+    var bouton = $("<button></button>").attr("type", "button").addClass(classes);
+    bouton.append($("<span></span>").addClass("btn-ic").html(svg));
+    bouton.append($("<span></span>").text(libelle));
+    return bouton;
+}
+
+// Construit une carte KPI du tableau de bord (pastille coloree + valeur +
+// libelle). Reference visuelle : project-files/interface/dashboard.png.
+function carte_kpi(id_valeur, valeur_initiale, libelle, classe_ic, svg) {
+    var carte = $("<div></div>").addClass("card kpi-card");
+    carte.append($("<span></span>").addClass("kpi-ic " + classe_ic).html(svg));
+    var txt = $("<span></span>").addClass("kpi-txt");
+    txt.append($("<span></span>").addClass("kpi-valeur").attr("id", id_valeur).text(valeur_initiale));
+    txt.append($("<span></span>").addClass("kpi-label").text(libelle));
+    carte.append(txt);
+    return carte;
+}
+
 // ── Formatage de la date pour l'affichage ───────────────────────
 // Affiche "Aujourd'hui" pour la date du jour, "Hier" pour la veille,
 // "Il y a N j" pour les dates plus anciennes. Reference visuelle :
@@ -136,10 +170,7 @@ function rendre_carte_paquet(paquet, est_proprietaire) {
     // Bouton Reviser : navigue vers #study-:id (WIRE-1.1). Disponible
     // pour tous (proprietaire ET destinataire), conforme a STUDY-1.1
     // qui autorise l'acces proprietaire-ou-destinataire.
-    var bouton_reviser = $("<button></button>")
-        .attr("type", "button")
-        .addClass("btn btn-primary btn-sm")
-        .text("Reviser");
+    var bouton_reviser = bouton_action("btn btn-primary btn-sm", SVG_BTN_PLAY, "Reviser");
     bouton_reviser.on("click", function (evenement) {
         evenement.stopPropagation();
         window.location.hash = "#study-" + paquet.id_paquet;
@@ -153,10 +184,7 @@ function rendre_carte_paquet(paquet, est_proprietaire) {
         // Bouton Editer : navigue vers #edit-paquet-:id (WIRE-1.2).
         // edition-paquet.js detecte le mode edition et fetch les donnees
         // via GET /api/paquets/:id (cf. PAQ-2.2 + QST-1.6).
-        var bouton_editer = $("<button></button>")
-            .attr("type", "button")
-            .addClass("btn btn-secondary btn-sm")
-            .text("Editer");
+        var bouton_editer = bouton_action("btn btn-secondary btn-sm", SVG_BTN_EDIT, "Editer");
         bouton_editer.on("click", function (evenement) {
             evenement.stopPropagation();
             window.location.hash = "#edit-paquet-" + paquet.id_paquet;
@@ -164,10 +192,7 @@ function rendre_carte_paquet(paquet, est_proprietaire) {
         actions.append(bouton_editer);
 
         // Partager : ouvre la modale share-modal.js (SHARE-1.4).
-        var bouton_partager = $("<button></button>")
-            .attr("type", "button")
-            .addClass("btn btn-secondary btn-sm")
-            .text("Partager");
+        var bouton_partager = bouton_action("btn btn-secondary btn-sm", SVG_KPI_PARTAGE, "Partager");
         bouton_partager.on("click", function (evenement) {
             evenement.stopPropagation();
             if (typeof window.ouvrir_modale_partage === "function") {
@@ -230,6 +255,16 @@ function construire_squelette_dashboard() {
     entete.append(bouton_nouveau);
     vue.append(entete);
 
+    // Rangee de KPI (dashboard.png) : mes paquets, meilleur score,
+    // partages, cartes au total. Les valeurs sont mises a jour quand les
+    // appels API repondent (maj_kpis_mes_paquets / maj_kpi_partages).
+    var kpis = $("<div></div>").addClass("dashboard-kpis");
+    kpis.append(carte_kpi("kpi-mes-paquets", "0", "Mes paquets", "kpi-ic-violet", SVG_KPI_PAQUETS));
+    kpis.append(carte_kpi("kpi-meilleur-score", "—", "Meilleur score", "kpi-ic-vert", SVG_KPI_SCORE));
+    kpis.append(carte_kpi("kpi-partages", "0", "Partages avec moi", "kpi-ic-orange", SVG_KPI_PARTAGE));
+    kpis.append(carte_kpi("kpi-total-cartes", "0", "Cartes au total", "kpi-ic-rose", SVG_KPI_CARTES));
+    vue.append(kpis);
+
     // Deux colonnes : mes paquets / partages avec moi.
     var colonnes = $("<div></div>").addClass("dashboard-columns");
 
@@ -268,6 +303,37 @@ function afficher_message_colonne(id_conteneur, message) {
     conteneur.append($("<p></p>").addClass("dashboard-col-empty").text(message));
 }
 
+// ── Mise a jour des KPI a partir de "Mes paquets" ───────────────
+// Calcule 3 des 4 indicateurs depuis la liste des paquets de
+// l'utilisateur : nombre de paquets, meilleur score (max des best_score),
+// total de cartes (somme des nombre_cartes). Le 4e (partages) vient de
+// l'autre colonne (maj_kpi_partages).
+function maj_kpis_mes_paquets(paquets) {
+    $("#kpi-mes-paquets").text(paquets.length);
+
+    var total_cartes = 0;
+    var meilleur = null;
+    var i;
+    for (i = 0; i < paquets.length; i = i + 1) {
+        var p = paquets[i];
+        if (typeof p.nombre_cartes === "number") {
+            total_cartes = total_cartes + p.nombre_cartes;
+        }
+        if (typeof p.best_score === "number") {
+            if (meilleur === null || p.best_score > meilleur) {
+                meilleur = p.best_score;
+            }
+        }
+    }
+    $("#kpi-total-cartes").text(total_cartes);
+    $("#kpi-meilleur-score").text(meilleur === null ? "—" : (meilleur + "%"));
+}
+
+// Met a jour le KPI "Partages avec moi" (nombre de paquets recus).
+function maj_kpi_partages(nombre) {
+    $("#kpi-partages").text(nombre);
+}
+
 // ── Branchement API : Mes paquets (DASH-2.2) ────────────────────
 // Appelle GET /api/paquets via AjaxService et rend la liste recue
 // dans la colonne gauche du dashboard. Le serveur applique deja
@@ -290,6 +356,7 @@ function charger_mes_paquets() {
                 "Aucun paquet pour le moment.",
                 true
             );
+            maj_kpis_mes_paquets(paquets);
         },
         erreur: function (xhr, message) {
             afficher_message_colonne(
@@ -323,6 +390,7 @@ function charger_partages_avec_moi() {
                 "Aucun paquet partage.",
                 false
             );
+            maj_kpi_partages(paquets.length);
         },
         erreur: function (xhr, message) {
             afficher_message_colonne(

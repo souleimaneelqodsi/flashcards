@@ -26,9 +26,12 @@ class PaquetRepository
     public function trouver_par_id($id_paquet)
     {
         $statement = DB::getInstance()->executer(
-            'SELECT id_paquet, titre, theme, date_creation, last_score, best_score, id_proprietaire
-             FROM paquets
-             WHERE id_paquet = ?',
+            'SELECT p.id_paquet, p.titre, p.theme, p.date_creation, p.last_score, p.best_score, p.id_proprietaire,
+                    COUNT(q.id_question) AS nombre_cartes
+             FROM paquets p
+             LEFT JOIN questions q ON q.id_paquet = p.id_paquet
+             WHERE p.id_paquet = ?
+             GROUP BY p.id_paquet',
             array($id_paquet)
         );
         $ligne = $statement->fetch();
@@ -56,10 +59,13 @@ class PaquetRepository
     public function trouver_par_proprietaire($id_proprietaire)
     {
         $statement = DB::getInstance()->executer(
-            'SELECT id_paquet, titre, theme, date_creation, last_score, best_score, id_proprietaire
-             FROM paquets
-             WHERE id_proprietaire = ?
-             ORDER BY date_creation DESC',
+            'SELECT p.id_paquet, p.titre, p.theme, p.date_creation, p.last_score, p.best_score, p.id_proprietaire,
+                    COUNT(q.id_question) AS nombre_cartes
+             FROM paquets p
+             LEFT JOIN questions q ON q.id_paquet = p.id_paquet
+             WHERE p.id_proprietaire = ?
+             GROUP BY p.id_paquet
+             ORDER BY p.date_creation DESC',
             array($id_proprietaire)
         );
         $lignes = $statement->fetchAll();
@@ -82,10 +88,13 @@ class PaquetRepository
     public function trouver_partages_avec($id_destinataire)
     {
         $statement = DB::getInstance()->executer(
-            'SELECT p.id_paquet, p.titre, p.theme, p.date_creation, p.last_score, p.best_score, p.id_proprietaire
+            'SELECT p.id_paquet, p.titre, p.theme, p.date_creation, p.last_score, p.best_score, p.id_proprietaire,
+                    COUNT(q.id_question) AS nombre_cartes
              FROM paquets p
              INNER JOIN partages pa ON pa.id_paquet = p.id_paquet
+             LEFT JOIN questions q ON q.id_paquet = p.id_paquet
              WHERE pa.id_destinataire = ?
+             GROUP BY p.id_paquet
              ORDER BY pa.date_partage DESC',
             array($id_destinataire)
         );

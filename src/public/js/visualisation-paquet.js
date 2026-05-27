@@ -314,10 +314,12 @@
         var actions = $("<div></div>").addClass("vp-actions");
 
         // Reviser : disponible pour tous (proprietaire + destinataire).
+        // Icones SVG via les helpers globaux de dashboard.js (charge avant).
         var bouton_reviser = $("<a></a>")
             .attr("href", "#study-" + paquet.id_paquet)
-            .addClass("btn btn-primary")
-            .text("Reviser");
+            .addClass("btn btn-primary");
+        bouton_reviser.append($("<span></span>").addClass("btn-ic").html(SVG_BTN_PLAY));
+        bouton_reviser.append($("<span></span>").text("Reviser"));
         actions.append(bouton_reviser);
 
         if (!est_proprietaire) {
@@ -327,14 +329,12 @@
         // Actions reservees au proprietaire (CLAUDE.md sec. 5).
         var bouton_editer = $("<a></a>")
             .attr("href", "#edit-paquet-" + paquet.id_paquet)
-            .addClass("btn btn-secondary")
-            .text("Editer");
+            .addClass("btn btn-secondary");
+        bouton_editer.append($("<span></span>").addClass("btn-ic").html(SVG_BTN_EDIT));
+        bouton_editer.append($("<span></span>").text("Editer"));
         actions.append(bouton_editer);
 
-        var bouton_partager = $("<button></button>")
-            .attr("type", "button")
-            .addClass("btn btn-secondary")
-            .text("Partager");
+        var bouton_partager = bouton_action("btn btn-secondary", SVG_KPI_PARTAGE, "Partager");
         bouton_partager.on("click", function () {
             if (typeof window.ouvrir_modale_partage === "function") {
                 window.ouvrir_modale_partage(paquet.id_paquet, paquet.titre);
@@ -342,10 +342,7 @@
         });
         actions.append(bouton_partager);
 
-        var bouton_supprimer = $("<button></button>")
-            .attr("type", "button")
-            .addClass("btn btn-danger")
-            .text("Supprimer");
+        var bouton_supprimer = bouton_action("btn btn-danger", SVG_BTN_TRASH, "Supprimer");
         bouton_supprimer.on("click", function () {
             confirmer_suppression(paquet);
         });
