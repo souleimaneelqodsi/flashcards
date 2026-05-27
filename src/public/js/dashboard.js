@@ -133,12 +133,16 @@ function rendre_carte_paquet(paquet, est_proprietaire) {
     carte.append(scores);
 
     var actions = $("<div></div>").addClass("paquet-actions");
+    // Bouton Reviser : navigue vers #study-:id (WIRE-1.1). Disponible
+    // pour tous (proprietaire ET destinataire), conforme a STUDY-1.1
+    // qui autorise l'acces proprietaire-ou-destinataire.
     var bouton_reviser = $("<button></button>")
         .attr("type", "button")
         .addClass("btn btn-primary btn-sm")
         .text("Reviser");
     bouton_reviser.on("click", function (evenement) {
         evenement.stopPropagation();
+        window.location.hash = "#study-" + paquet.id_paquet;
     });
     actions.append(bouton_reviser);
 
