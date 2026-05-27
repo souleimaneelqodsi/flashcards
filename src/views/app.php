@@ -145,14 +145,6 @@ $csrf_token = Csrf::obtenir();
 
                     <h1 class="topbar-title" id="topbar-title">Tableau de bord</h1>
 
-                    <div class="search-bar">
-                        <svg class="search-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                            <circle cx="11" cy="11" r="7"></circle>
-                            <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
-                        </svg>
-                        <input type="text" placeholder="Rechercher un paquet..." aria-label="Rechercher un paquet">
-                    </div>
-
                     <div class="topbar-actions">
                         <button type="button" class="icon-btn" aria-label="Notifications">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
