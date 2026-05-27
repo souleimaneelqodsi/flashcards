@@ -44,6 +44,18 @@ var id_question_a_supprimer = null;
 var paquet_mode = "creation";
 var paquet_id_courant = null;
 
+// ── Tampon de questions en mode CREATION (conforme new_bag.png) ─
+// En creation, le paquet n'a pas encore d'id_paquet : on ne peut donc
+// pas appeler POST /api/paquets/:id/questions tout de suite. On memorise
+// les questions saisies dans ce tampon (et on les affiche dans la liste),
+// puis a l'enregistrement on cree le paquet PUIS chaque question. Chaque
+// entree : { id_local, contenu_question, contenu_reponse, id_difficulte }.
+// id_local est l'identifiant DOM temporaire (data-id-question) qui sert a
+// retrouver / modifier / supprimer la question dans le tampon avant envoi.
+// En mode EDITION, ce tampon n'est pas utilise (les questions vont
+// directement a l'API).
+var questions_buffer = [];
+
 // ── Mapping difficulte (QST-1.6) ───────────────────────────────
 // Cote front, la difficulte est manipulee comme une chaine
 // ("facile"/"moyen"/"difficile") pour piloter les classes CSS et
@@ -327,8 +339,10 @@ function synchroniser_apercu() {
 // dans le DOM avec l'id_question reel renvoye par l'API. Sur erreur,
 // affiche les erreurs dans le recap-erreurs-question.
 function envoyer_post_question(contenu_question, contenu_reponse, niveau, id_difficulte) {
+    // Mode CREATION : le paquet n'existe pas encore -> on bufferise la
+    // question (elle sera envoyee a l'enregistrement du paquet).
     if (paquet_mode !== "edition" || paquet_id_courant === null) {
-        afficher_erreurs_question(["Enregistrez d'abord le paquet avant d'ajouter des questions."]);
+        ajouter_question_buffer(contenu_question, contenu_reponse, niveau, id_difficulte);
         return;
     }
     var payload = {
@@ -368,6 +382,12 @@ function envoyer_put_question(contenu_question, contenu_reponse, niveau, id_diff
         afficher_erreurs_question(["Identifiant de question manquant."]);
         return;
     }
+    // Mode CREATION : la question editee n'est qu'en tampon (pas en base)
+    // -> on met a jour le tampon et le DOM, sans appel API.
+    if (paquet_mode !== "edition" || paquet_id_courant === null) {
+        modifier_question_buffer(id_question, contenu_question, contenu_reponse, niveau, id_difficulte);
+        return;
+    }
     var payload = {
         contenu_question: contenu_question,
         contenu_reponse:  contenu_reponse,
@@ -398,6 +418,11 @@ function envoyer_put_question(contenu_question, contenu_reponse, niveau, id_diff
 // jour le compteur. Sur erreur, toast d'erreur (la modale de
 // confirmation est deja fermee, on n'a pas de recap a alimenter).
 function envoyer_delete_question(id_question, element_question) {
+    // Mode CREATION : question seulement en tampon -> suppression locale.
+    if (paquet_mode !== "edition" || paquet_id_courant === null) {
+        supprimer_question_buffer(id_question, element_question);
+        return;
+    }
     AjaxService.supprimer("questions/" + id_question, {
         succes: function () {
             element_question.remove();
@@ -431,6 +456,66 @@ function ajouter_question_au_dom(question, niveau) {
     element.attr("data-id-question", question.id_question);
     $("#questions-liste").append(element);
     mettre_a_jour_compteur_questions();
+}
+
+// ── Tampon de questions (mode CREATION) ───────────────────────
+// Ajoute une question au tampon + au DOM (avec son id_local genere par
+// construire_element_question). Aucun appel API : l'envoi se fera a
+// l'enregistrement du paquet (enregistrer_questions_bufferisees).
+function ajouter_question_buffer(contenu_question, contenu_reponse, niveau, id_difficulte) {
+    var numero = $("#questions-liste .question-item").length + 1;
+    var element = construire_element_question(numero, contenu_question, contenu_reponse, niveau);
+    var id_local = element.attr("data-id-question");
+    $("#questions-liste").append(element);
+    questions_buffer.push({
+        id_local:         id_local,
+        contenu_question: contenu_question,
+        contenu_reponse:  contenu_reponse,
+        id_difficulte:    id_difficulte
+    });
+    mettre_a_jour_compteur_questions();
+    fermer_modale_ajout_question();
+    if (window.Toast && typeof window.Toast.succes === "function") {
+        window.Toast.succes("Question ajoutee.");
+    }
+}
+
+// Met a jour une question du tampon (et son rendu DOM) en mode CREATION.
+function modifier_question_buffer(id_local, contenu_question, contenu_reponse, niveau, id_difficulte) {
+    var i;
+    for (i = 0; i < questions_buffer.length; i = i + 1) {
+        if (questions_buffer[i].id_local === id_local) {
+            questions_buffer[i].contenu_question = contenu_question;
+            questions_buffer[i].contenu_reponse = contenu_reponse;
+            questions_buffer[i].id_difficulte = id_difficulte;
+            break;
+        }
+    }
+    mettre_a_jour_question_existante(id_local, contenu_question, contenu_reponse, niveau);
+    fermer_modale_ajout_question();
+    if (window.Toast && typeof window.Toast.succes === "function") {
+        window.Toast.succes("Question mise a jour.");
+    }
+}
+
+// Retire une question du tampon (et du DOM) en mode CREATION. On
+// reconstruit le tableau sans l'element supprime (pas de splice, plus
+// lisible). Renumerote ensuite les questions restantes.
+function supprimer_question_buffer(id_local, element_question) {
+    var nouveau = [];
+    var i;
+    for (i = 0; i < questions_buffer.length; i = i + 1) {
+        if (questions_buffer[i].id_local !== id_local) {
+            nouveau.push(questions_buffer[i]);
+        }
+    }
+    questions_buffer = nouveau;
+    element_question.remove();
+    renumeroter_questions();
+    mettre_a_jour_compteur_questions();
+    if (window.Toast && typeof window.Toast.succes === "function") {
+        window.Toast.succes("Question supprimee.");
+    }
 }
 
 // Renumerote toutes les questions visibles (apres suppression). Meme
@@ -639,18 +724,16 @@ function rendre_questions(questions) {
     }
 }
 
-// En mode "creation", on ne peut pas encore ajouter de question (le
-// paquet n'a pas d'id_paquet tant qu'il n'est pas POSTed). On laisse
-// le bouton visible mais inactif, avec un message explicatif au clic.
+// Le bouton "Ajouter une question" est actif dans les deux modes
+// (conforme a new_bag.png qui montre l'ajout de questions des l'ecran de
+// creation) :
+//  - edition  : la question est envoyee a l'API immediatement ;
+//  - creation : la question est mise en tampon et envoyee a
+//    l'enregistrement du paquet (enregistrer_questions_bufferisees).
 function appliquer_etat_creation_ou_edition() {
     var bouton_ajouter = $("#btn-ajouter-question");
-    if (paquet_mode === "creation") {
-        bouton_ajouter.prop("disabled", true);
-        bouton_ajouter.attr("title", "Enregistrez d'abord le paquet pour pouvoir y ajouter des questions.");
-    } else {
-        bouton_ajouter.prop("disabled", false);
-        bouton_ajouter.removeAttr("title");
-    }
+    bouton_ajouter.prop("disabled", false);
+    bouton_ajouter.removeAttr("title");
 }
 
 function rediriger_apres_erreur(message) {
@@ -665,8 +748,10 @@ function rediriger_apres_erreur(message) {
 function afficher_edition_paquet() {
     detecter_mode_edition();
     // Vide la liste de questions a chaque entree pour eviter d'afficher
-    // les questions d'un paquet precedemment visite.
+    // les questions d'un paquet precedemment visite, et repart d'un
+    // tampon vide (mode creation).
     $("#questions-liste").empty();
+    questions_buffer = [];
     mettre_a_jour_compteur_questions();
     appliquer_etat_creation_ou_edition();
     if (paquet_mode === "creation") {
@@ -739,10 +824,54 @@ function enregistrer_paquet() {
 function envoyer_post(payload) {
     AjaxService.post("paquets", payload, {
         succes: function (reponse) {
-            apres_succes(reponse, "Paquet cree.");
+            var id_cree = null;
+            if (reponse && reponse.paquet && reponse.paquet.id_paquet) {
+                id_cree = reponse.paquet.id_paquet;
+            }
+            // Des questions ont ete saisies pendant la creation : on les
+            // cree maintenant que le paquet possede un id, puis on redirige.
+            if (id_cree !== null && questions_buffer.length > 0) {
+                enregistrer_questions_bufferisees(id_cree, 0);
+            } else {
+                apres_succes(reponse, "Paquet cree.");
+            }
         },
         erreur: function (xhr, message) {
             traiter_erreur_form(xhr, message);
+        }
+    });
+}
+
+// Envoie en serie les questions du tampon (mode creation) une fois le
+// paquet cree. Recursion nommee plutot que callbacks imbriques (CLAUDE.md
+// §7bis). A la fin : toast + redirection vers la visualisation du paquet.
+// Si une question echoue, le paquet existe deja : on previent et on
+// bascule vers l'edition pour permettre de reprendre.
+function enregistrer_questions_bufferisees(id_paquet, index) {
+    if (index >= questions_buffer.length) {
+        if (window.Toast && typeof window.Toast.succes === "function") {
+            window.Toast.succes("Paquet et questions enregistres.");
+        }
+        questions_buffer = [];
+        window.location.hash = "#visualisation-paquet-" + id_paquet;
+        return;
+    }
+    var q = questions_buffer[index];
+    var payload = {
+        contenu_question: q.contenu_question,
+        contenu_reponse:  q.contenu_reponse,
+        id_difficulte:    q.id_difficulte
+    };
+    AjaxService.post("paquets/" + id_paquet + "/questions", payload, {
+        succes: function () {
+            enregistrer_questions_bufferisees(id_paquet, index + 1);
+        },
+        erreur: function (xhr, message) {
+            if (window.Toast && typeof window.Toast.erreur === "function") {
+                window.Toast.erreur("Paquet cree, mais une question n'a pas pu etre enregistree : " + message);
+            }
+            questions_buffer = [];
+            window.location.hash = "#edit-paquet-" + id_paquet;
         }
     });
 }
