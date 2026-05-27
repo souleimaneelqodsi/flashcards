@@ -18,10 +18,15 @@ ErrorHandler::enregistrer();
 // Cookie de session durci avant le demarrage : HttpOnly (le cookie n'est pas
 // lisible en JavaScript -> protege le vol de session par XSS) et SameSite Lax
 // (limite l'envoi du cookie sur les requetes cross-site -> defense CSRF).
+// Le flag Secure est active uniquement en HTTPS : ainsi le cookie n'est jamais
+// envoye en clair sur une connexion chiffree, tout en restant fonctionnel en
+// developpement local (HTTP), ou la condition vaut false.
 if (!isset($_SESSION)) {
+    $connexion_https = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
     session_set_cookie_params(array(
         'lifetime' => 0,
         'path'     => '/',
+        'secure'   => $connexion_https,
         'httponly' => true,
         'samesite' => 'Lax'
     ));

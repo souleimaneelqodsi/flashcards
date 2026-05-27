@@ -96,7 +96,6 @@ Phase 2,P5,Fullstack,SHARE-1.4,UI champ auto-completion en jQuery vanilla (keyup
 Phase 2,P5,Fullstack,VIEW-1.1,Liste des utilisateurs partages (chips + retrait) sur ecran de visualisation paquet,2,Hors cours - auto-formation HTML/CSS
 Phase 2,P5,Fullstack,VIEW-1.2,GET /api/paquets/:id (ecran visualisation - titre date proprietaire liste destinataires),2,Exigence sujet TER : ecran de visualisation doit afficher destinataires de partage
 Phase 2,P5,Fullstack,VIEW-1.3,Vue Visualisation paquet (liens Editer/Supprimer si proprietaire + liste destinataires chips),3,Exigence sujet TER : ecran de visualisation complet
-Phase 2,P5,Fullstack,STRAT-1.1,Pattern Strategy pour calcul de score selon difficulte (Facile Moyen Difficile) - 4eme patron optionnel,2,Ch8 - pattern Strategy - optionnel (3 patrons Singleton+Repository+Factory deja garantis)
 Phase 2,P5,Backend,QST-1.1,POST /api/paquets/:id/questions (creer une question via QuestionRepository + Factory Question::creer),2,Hors cours - auto-formation - endpoint questions absent du decoupage FULL-2 initial
 Phase 2,P5,Backend,QST-1.2,PUT /api/questions/:id (editer une question - controle proprietaire via le paquet parent),2,Hors cours - auto-formation
 Phase 2,P5,Backend,QST-1.3,DELETE /api/questions/:id (supprimer une question - controle proprietaire),1,Hors cours - auto-formation
