@@ -137,13 +137,6 @@ $csrf_token = Csrf::obtenir();
                     <h1 class="topbar-title" id="topbar-title">Tableau de bord</h1>
 
                     <div class="topbar-actions">
-                        <button type="button" class="icon-btn" aria-label="Notifications">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                <path d="M13.7 21a2 2 0 0 1-3.4 0"></path>
-                            </svg>
-                            <span class="notif-dot"></span>
-                        </button>
                         <a href="#profil" class="topbar-av" id="topbar-initiales" aria-label="Mon profil"></a>
                     </div>
                 </header>
