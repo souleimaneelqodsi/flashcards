@@ -134,7 +134,8 @@ class UtilisateurController extends BaseController
         $utilisateur->setEmail($email);
         $utilisateur->setNom($nom);
         $utilisateur->setPrenom($prenom);
-        $utilisateur->setDateNaissance($this->convertir_date_aaaammjj($date_naissance));
+        // La date arrive deja au format AAAA-MM-JJ (input type=date).
+        $utilisateur->setDateNaissance($date_naissance);
 
         $this->utilisateurs->mettre_a_jour($utilisateur);
 
@@ -294,29 +295,24 @@ class UtilisateurController extends BaseController
 
         if ($date_naissance === '') {
             $erreurs['date_naissance'] = 'La date de naissance est obligatoire.';
-        } else if (!preg_match('/^[0-9]{8}$/', $date_naissance)) {
-            $erreurs['date_naissance'] = 'Date attendue au format AAAAMMJJ (ex : 19990315).';
+        } else if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $date_naissance)) {
+            $erreurs['date_naissance'] = 'Date de naissance invalide.';
         } else {
             $annee = (int) substr($date_naissance, 0, 4);
-            $mois  = (int) substr($date_naissance, 4, 2);
-            $jour  = (int) substr($date_naissance, 6, 2);
+            $mois  = (int) substr($date_naissance, 5, 2);
+            $jour  = (int) substr($date_naissance, 8, 2);
             if (!checkdate($mois, $jour, $annee)) {
                 $erreurs['date_naissance'] = 'Date de naissance invalide.';
+            } else {
+                $age = $this->calculer_age($annee, $mois, $jour);
+                if ($age < 7) {
+                    $erreurs['date_naissance'] = 'Vous devez avoir au moins 7 ans.';
+                } else if ($age > 100) {
+                    $erreurs['date_naissance'] = 'L\'âge maximum autorisé est de 100 ans.';
+                }
             }
         }
 
         return $erreurs;
-    }
-
-    /**
-     * Convertit AAAAMMJJ (8 chiffres) vers AAAA-MM-JJ (format DATE SQLite).
-     * La validation prealable garantit 8 chiffres.
-     */
-    private function convertir_date_aaaammjj($aaaammjj)
-    {
-        $annee = substr($aaaammjj, 0, 4);
-        $mois  = substr($aaaammjj, 4, 2);
-        $jour  = substr($aaaammjj, 6, 2);
-        return $annee . '-' . $mois . '-' . $jour;
     }
 }

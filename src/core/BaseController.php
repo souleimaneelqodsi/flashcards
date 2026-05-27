@@ -67,4 +67,27 @@ abstract class BaseController
         }
         return $donnees;
     }
+
+    /**
+     * Calcule l'age en annees revolues a la date du jour, a partir des
+     * composantes d'une date de naissance. Sert a borner l'age des
+     * utilisateurs (entre 7 et 100 ans) cote serveur. Utilise uniquement
+     * `date()` (perimetre du cours), pas DateTime.
+     *
+     * @param int $annee Annee de naissance (ex : 1999).
+     * @param int $mois  Mois de naissance (1-12).
+     * @param int $jour  Jour de naissance (1-31).
+     * @return int Age en annees revolues (negatif si la date est future).
+     */
+    protected function calculer_age($annee, $mois, $jour)
+    {
+        $age = (int) date('Y') - $annee;
+        $mois_courant = (int) date('m');
+        $jour_courant = (int) date('d');
+        // Si l'anniversaire n'est pas encore passe cette annee, on retire 1.
+        if ($mois_courant < $mois || ($mois_courant === $mois && $jour_courant < $jour)) {
+            $age = $age - 1;
+        }
+        return $age;
+    }
 }

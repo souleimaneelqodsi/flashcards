@@ -21,9 +21,40 @@
 // ── Expressions regulieres ──────────────────────────────────────
 // Email : login@domaine.extension. Volontairement stricte mais standard.
 var REGEX_EMAIL = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-// Date de naissance : 8 chiffres AAAAMMJJ (validation cote serveur
-// completera avec checkdate pour les dates impossibles type 19999999).
-var REGEX_DATE_AAAAMMJJ = /^[0-9]{8}$/;
+// Date de naissance : champ <input type="date">, valeur au format ISO
+// AAAA-MM-JJ. Le navigateur garantit deja une date valide ; le serveur
+// revalide avec checkdate (defense en profondeur).
+var REGEX_DATE_ISO = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+
+// Bornes d'age autorisees pour la date de naissance.
+var AGE_MIN = 7;
+var AGE_MAX = 100;
+
+// Calcule l'age en annees revolues a partir d'une date AAAA-MM-JJ.
+// (memes regles que le calcul cote serveur, BaseController::calculer_age).
+function age_a_partir_de(iso) {
+    var annee_n = parseInt(iso.substring(0, 4), 10);
+    var mois_n  = parseInt(iso.substring(5, 7), 10);
+    var jour_n  = parseInt(iso.substring(8, 10), 10);
+    var maintenant = new Date();
+    var age = maintenant.getFullYear() - annee_n;
+    var mois_a = maintenant.getMonth() + 1;
+    var jour_a = maintenant.getDate();
+    if (mois_a < mois_n || (mois_a === mois_n && jour_a < jour_n)) {
+        age = age - 1;
+    }
+    return age;
+}
+
+// Renvoie la date AAAA-MM-JJ d'il y a `n` annees, pour borner le
+// selecteur (max = il y a AGE_MIN ans, min = il y a AGE_MAX ans).
+function date_il_y_a_annees(n) {
+    var maintenant = new Date();
+    var annee = maintenant.getFullYear() - n;
+    var mois = ("0" + (maintenant.getMonth() + 1)).slice(-2);
+    var jour = ("0" + maintenant.getDate()).slice(-2);
+    return annee + "-" + mois + "-" + jour;
+}
 
 // ── Helpers d'affichage d'erreur ────────────────────────────────
 // Marque un champ comme invalide : ajoute la classe .champ-invalide,
@@ -181,8 +212,15 @@ function valider_champ_register(nom_champ, valeur, valeur_mdp) {
         if (valeur === "") {
             return "La date de naissance est obligatoire.";
         }
-        if (!REGEX_DATE_AAAAMMJJ.test(valeur)) {
-            return "Date attendue au format AAAAMMJJ (ex : 19990315).";
+        if (!REGEX_DATE_ISO.test(valeur)) {
+            return "Date de naissance invalide.";
+        }
+        var age = age_a_partir_de(valeur);
+        if (age < AGE_MIN) {
+            return "Vous devez avoir au moins 7 ans.";
+        }
+        if (age > AGE_MAX) {
+            return "L'âge maximum autorisé est de 100 ans.";
         }
         return "";
     }
@@ -435,6 +473,11 @@ $(function () {
         brancher_champ_register(champs_register[i][0], champs_register[i][1], champs_register[i][2]);
     }
     $("#form-register").on("submit", soumettre_register);
+
+    // Borne le selecteur de date de naissance : entre AGE_MAX et AGE_MIN ans.
+    $("#reg-date-naissance")
+        .attr("min", date_il_y_a_annees(AGE_MAX))
+        .attr("max", date_il_y_a_annees(AGE_MIN));
 
 });
 

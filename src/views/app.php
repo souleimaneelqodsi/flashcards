@@ -185,13 +185,13 @@ $csrf_token = Csrf::obtenir();
                                 <h3 class="edition-section-titre">Informations du paquet</h3>
                                 <div class="form-group">
                                     <label class="form-label" for="paquet-titre">Titre <span class="req">*</span></label>
-                                    <input type="text" id="paquet-titre" class="form-control" maxlength="150" value="Bases de données relationnelles" placeholder="Bases de données relationnelles">
+                                    <input type="text" id="paquet-titre" class="form-control" maxlength="150" value="" placeholder="Ex : Bases de données relationnelles">
                                     <p class="message-erreur" id="erreur-paquet-titre" hidden>Le titre est obligatoire (150 caractères maximum).</p>
                                     <p class="form-counter"><span id="paquet-titre-counter">33</span> / 150 caractères</p>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label" for="paquet-theme">Thème</label>
-                                    <input type="text" id="paquet-theme" class="form-control" value="SQL et modelisation" placeholder="SQL et modelisation">
+                                    <input type="text" id="paquet-theme" class="form-control" value="" placeholder="Ex : SQL et modélisation">
                                 </div>
                             </div>
 
@@ -413,8 +413,8 @@ $csrf_token = Csrf::obtenir();
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="form-label" for="reg-date-naissance">Date de naissance (AAAAMMJJ) <span class="req">*</span></label>
-                                    <input type="text" id="reg-date-naissance" name="date_naissance" class="form-control" maxlength="8" pattern="[0-9]{8}" placeholder="19990315" inputmode="numeric" required>
+                                    <label class="form-label" for="reg-date-naissance">Date de naissance <span class="req">*</span></label>
+                                    <input type="date" id="reg-date-naissance" name="date_naissance" class="form-control" min="1900-01-01" required>
                                     <p class="message-erreur" id="erreur-reg-date-naissance" hidden></p>
                                 </div>
 
@@ -662,7 +662,7 @@ $csrf_token = Csrf::obtenir();
 
                 <div class="form-group">
                     <label class="form-label" for="champ-reponse">Réponse <span class="req">*</span></label>
-                    <textarea id="champ-reponse" name="reponse" class="form-control" placeholder="Saisissez la reponse..." required></textarea>
+                    <textarea id="champ-reponse" name="reponse" class="form-control" placeholder="Saisissez la réponse..." required></textarea>
                     <p class="message-erreur" id="erreur-reponse" hidden>La reponse est obligatoire.</p>
                 </div>
 
@@ -789,8 +789,8 @@ $csrf_token = Csrf::obtenir();
                     <p class="message-erreur" id="erreur-edit-nom" hidden></p>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="edit-date">Date de naissance (AAAAMMJJ) <span class="req">*</span></label>
-                    <input type="text" id="edit-date" name="date_naissance" class="form-control" placeholder="19990315" maxlength="8" required>
+                    <label class="form-label" for="edit-date">Date de naissance <span class="req">*</span></label>
+                    <input type="date" id="edit-date" name="date_naissance" class="form-control" min="1900-01-01" required>
                     <p class="message-erreur" id="erreur-edit-date" hidden></p>
                 </div>
                 <div class="form-group">

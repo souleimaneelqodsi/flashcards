@@ -238,12 +238,12 @@ function afficher_recap(id_recap, id_liste, messages) {
     }
 }
 
-// Vrai si la chaine AAAAMMJJ correspond a une date reelle (memes regles
-// que checkdate cote serveur).
-function date_reelle(aaaammjj) {
-    var annee = parseInt(aaaammjj.substring(0, 4), 10);
-    var mois  = parseInt(aaaammjj.substring(4, 6), 10);
-    var jour  = parseInt(aaaammjj.substring(6, 8), 10);
+// Vrai si la chaine AAAA-MM-JJ (valeur d'un <input type="date">)
+// correspond a une date reelle (memes regles que checkdate cote serveur).
+function date_reelle(iso) {
+    var annee = parseInt(iso.substring(0, 4), 10);
+    var mois  = parseInt(iso.substring(5, 7), 10);
+    var jour  = parseInt(iso.substring(8, 10), 10);
     if (mois < 1 || mois > 12 || jour < 1 || jour > 31) {
         return false;
     }
@@ -253,12 +253,33 @@ function date_reelle(aaaammjj) {
         && date.getDate() === jour;
 }
 
-// Convertit "1999-03-15" (DATE SQLite) en "19990315" (saisie AAAAMMJJ).
-function date_iso_vers_aaaammjj(iso) {
-    if (typeof iso !== "string" || iso.length !== 10) {
-        return "";
+// Bornes d'age autorisees pour la date de naissance.
+var AGE_MIN_PROFIL = 7;
+var AGE_MAX_PROFIL = 100;
+
+// Calcule l'age en annees revolues a partir d'une date AAAA-MM-JJ (memes
+// regles que BaseController::calculer_age cote serveur).
+function age_a_partir_de(iso) {
+    var annee_n = parseInt(iso.substring(0, 4), 10);
+    var mois_n  = parseInt(iso.substring(5, 7), 10);
+    var jour_n  = parseInt(iso.substring(8, 10), 10);
+    var maintenant = new Date();
+    var age = maintenant.getFullYear() - annee_n;
+    var mois_a = maintenant.getMonth() + 1;
+    var jour_a = maintenant.getDate();
+    if (mois_a < mois_n || (mois_a === mois_n && jour_a < jour_n)) {
+        age = age - 1;
     }
-    return iso.substring(0, 4) + iso.substring(5, 7) + iso.substring(8, 10);
+    return age;
+}
+
+// Renvoie la date AAAA-MM-JJ d'il y a `n` annees (bornes du selecteur).
+function date_il_y_a_annees(n) {
+    var maintenant = new Date();
+    var annee = maintenant.getFullYear() - n;
+    var mois = ("0" + (maintenant.getMonth() + 1)).slice(-2);
+    var jour = ("0" + maintenant.getDate()).slice(-2);
+    return annee + "-" + mois + "-" + jour;
 }
 
 // ── Validateurs de champ (renvoient "" si valide, sinon le message) ──
@@ -296,11 +317,18 @@ function erreur_date(v) {
     if (v === "") {
         return "La date de naissance est obligatoire.";
     }
-    if (!/^[0-9]{8}$/.test(v)) {
-        return "Date attendue au format AAAAMMJJ (ex : 19990315).";
+    if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(v)) {
+        return "Date de naissance invalide.";
     }
     if (!date_reelle(v)) {
         return "Date de naissance invalide.";
+    }
+    var age = age_a_partir_de(v);
+    if (age < AGE_MIN_PROFIL) {
+        return "Vous devez avoir au moins 7 ans.";
+    }
+    if (age > AGE_MAX_PROFIL) {
+        return "L'âge maximum autorisé est de 100 ans.";
     }
     return "";
 }
@@ -314,7 +342,7 @@ function ouvrir_modale_edition_profil() {
     $("#edit-prenom").val(utilisateur.prenom || "");
     $("#edit-nom").val(utilisateur.nom || "");
     $("#edit-email").val(utilisateur.email || "");
-    $("#edit-date").val(date_iso_vers_aaaammjj(utilisateur.date_naissance));
+    $("#edit-date").val(utilisateur.date_naissance || "");
     effacer_erreur_champ("edit-prenom", "erreur-edit-prenom");
     effacer_erreur_champ("edit-nom", "erreur-edit-nom");
     effacer_erreur_champ("edit-date", "erreur-edit-date");
@@ -573,6 +601,10 @@ $(function () {
     brancher_champ("edit-prenom", "erreur-edit-prenom", erreur_prenom);
     brancher_champ("edit-nom", "erreur-edit-nom", erreur_nom);
     brancher_champ("edit-date", "erreur-edit-date", erreur_date);
+    // Borne le selecteur de date (entre AGE_MAX et AGE_MIN ans).
+    $("#edit-date")
+        .attr("min", date_il_y_a_annees(AGE_MAX_PROFIL))
+        .attr("max", date_il_y_a_annees(AGE_MIN_PROFIL));
     brancher_champ("edit-email", "erreur-edit-email", erreur_email);
     $("#form-edition-profil").on("submit", function (evenement) {
         evenement.preventDefault();

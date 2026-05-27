@@ -82,8 +82,9 @@ class AuthController extends BaseController
         // Hashage du mot de passe (AUTH-2.1).
         $hash = password_hash($mot_de_passe, PASSWORD_BCRYPT);
 
-        // Conversion de la date AAAAMMJJ vers AAAA-MM-JJ (format DATE SQLite).
-        $date_sqlite = $this->convertir_date_aaaammjj($date_naissance);
+        // La date arrive deja au format AAAA-MM-JJ (input type=date), qui est
+        // le format DATE de SQLite : aucune conversion necessaire.
+        $date_sqlite = $date_naissance;
 
         $utilisateur = Utilisateur::creer($email, $hash, $nom, $prenom, $date_sqlite, null);
 
@@ -289,36 +290,28 @@ class AuthController extends BaseController
             $erreurs['prenom'] = 'Le prénom est trop long (100 caractères maximum).';
         }
 
-        // Date de naissance : format AAAAMMJJ strict (8 chiffres).
+        // Date de naissance : format ISO AAAA-MM-JJ (valeur d'un
+        // <input type="date">), + date reelle verifiee par checkdate.
         if ($date_naissance === '') {
             $erreurs['date_naissance'] = 'La date de naissance est obligatoire.';
-        } else if (!preg_match('/^[0-9]{8}$/', $date_naissance)) {
-            $erreurs['date_naissance'] = 'Date attendue au format AAAAMMJJ (ex : 19990315).';
+        } else if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $date_naissance)) {
+            $erreurs['date_naissance'] = 'Date de naissance invalide.';
         } else {
             $annee = (int) substr($date_naissance, 0, 4);
-            $mois  = (int) substr($date_naissance, 4, 2);
-            $jour  = (int) substr($date_naissance, 6, 2);
+            $mois  = (int) substr($date_naissance, 5, 2);
+            $jour  = (int) substr($date_naissance, 8, 2);
             if (!checkdate($mois, $jour, $annee)) {
                 $erreurs['date_naissance'] = 'Date de naissance invalide.';
+            } else {
+                $age = $this->calculer_age($annee, $mois, $jour);
+                if ($age < 7) {
+                    $erreurs['date_naissance'] = 'Vous devez avoir au moins 7 ans.';
+                } else if ($age > 100) {
+                    $erreurs['date_naissance'] = 'L\'âge maximum autorisé est de 100 ans.';
+                }
             }
         }
 
         return $erreurs;
-    }
-
-    /**
-     * Convertit une date du format AAAAMMJJ (saisie utilisateur, 8 chiffres)
-     * vers AAAA-MM-JJ (format DATE SQLite). La validation prealable garantit
-     * que la chaine est exactement 8 chiffres.
-     *
-     * @param string $aaaammjj Ex : "19990315".
-     * @return string Ex : "1999-03-15".
-     */
-    private function convertir_date_aaaammjj($aaaammjj)
-    {
-        $annee = substr($aaaammjj, 0, 4);
-        $mois  = substr($aaaammjj, 4, 2);
-        $jour  = substr($aaaammjj, 6, 2);
-        return $annee . '-' . $mois . '-' . $jour;
     }
 }
