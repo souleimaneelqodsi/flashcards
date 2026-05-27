@@ -116,23 +116,24 @@ Phase 2,P5,Backend,OPT-1.3,Optionnel - Changement de mot de passe (endpoint BCRY
 Phase 2,P5,Fullstack,OPT-1.4,Optionnel - Modification de l'avatar (upload $_FILES + stockage + colonne avatar du modele),3,Hors-sujet - colonne avatar prevue au modele mais upload hors perimetre
 Phase 2,P5,Backend,OPT-1.5,Optionnel - Suppression du compte (endpoint DELETE + cascade + confirmation),2,Hors-sujet - non exige - action destructrice a confirmer
 Phase 2,P5,Frontend,OPT-1.6,Optionnel - Retrait ou implementation de l'icone notifications (cloche) du header,1,Hors-sujet - pur decor de la maquette dashboard.png
-Phase 3,P1,Documentation,DOC-BD.1,Doc MCD + MLD (schema + commentaires),2,Derive Ch3-4 (modelisation) - mapping relationnel hors cours
-Phase 3,P1,Documentation,DOC-BD.2,Doc contraintes et regles metier BD,1,Documentation - autonome (OCL Ch3-4 mentionnable)
-Phase 3,P1,Documentation,DOC-BD.3,Doc scripts install / seed / reset,1,Documentation - autonome
-Phase 3,P2,Documentation,DOC-ARCH.1,Justification de l'architecture MVC (rapport),2,Ch8 - MVC/MVP/MVVM (comparaison attendue)
-Phase 3,P2,Documentation,DOC-ARCH.2,Doc diagramme de composants (couches Vue Controller Repository BD - composants UML 2),1,Ch3-4 - diagramme de composants UML (distinct du diagramme de deploiement)
-Phase 3,P2,Documentation,DOC-ARCH.3,Doc patrons utilises (Singleton DB + Repository + Factory fromRow + Strategy optionnel) avec extraits de code,3,Ch8 - design patterns - 3 patrons minimum exiges par sujet TER (pas 5)
-Phase 3,P2,Documentation,DOC-ARCH.4,Doc diagrammes de sequence (login partage session Anki),2,Ch3-4 - sequences User-System et Object-Object
-Phase 3,P3,Documentation,DOC-AUTH.1,Doc sessions PHP (cycle de vie cookies session_regenerate_id),1,Hors cours - auto-formation (sujet TER l'exige)
-Phase 3,P3,Documentation,DOC-AUTH.2,Doc hachage BCRYPT (algorithme cout salage),1,Hors cours - sujet TER (auto-formation)
-Phase 3,P3,Documentation,DOC-AUTH.3,Doc validation client/serveur (matrice regles + pattern rouge dynamique),1,Hors cours - regex auto-formation + pattern UI binome
-Phase 3,P3,Documentation,DOC-AUTH.4,Doc regles d'acces + middleware + CSRF,1,Documentation - autonome
-Phase 3,P4,Documentation,DOC-UI.1,Charte graphique + themes Dark/Light alignee avec project-files/interface/ (palette typo border),2,Hors cours - auto-formation UX + reference mockups equipe
-Phase 3,P4,Documentation,DOC-UI.2,Parcours utilisateur (wireframes commentes) renvoyant aux mockups project-files/interface/,2,Lien Ch3-4 cas d'utilisation (wireframes hors cours mais fournis par binome)
-Phase 3,P4,Documentation,DOC-UI.3,Justification choix UX (flip navigation feedback dashboard 2 colonnes vs onglets),1,Hors cours - justifier l'exception dashboard
-Phase 3,P5,Documentation,DOC-FONC.1,Doc CRUD paquets / questions,1,Documentation - autonome
-Phase 3,P5,Documentation,DOC-FONC.2,Doc partage + auto-completion (jQuery vanilla) + ecran visualisation avec destinataires,2,Documentation - autonome
-Phase 3,P5,Documentation,DOC-FONC.4,Doc session Anki + scoring (Strategy si retenu) + last_score/best_score proprietaire,1,Lien Ch5-6 (etats-transitions) + Ch8 (Strategy optionnel)
+Phase 3,Tous,Documentation,DOC-0,Convention doc : un fichier docs/NN-section.md par tache - plages reservees par personne (ARCH 10-19 / BD 20-29 / AUTH 30-39 / FONC 40-49 / UI 50-59) - chacun ne touche que sa plage - rapport.pdf assemble par QA-11,0,Organisation doc - evite les conflits sur un fichier rapport unique
+Phase 3,P1,Documentation,DOC-BD.1,Doc MCD + MLD (schema + commentaires) -> docs/20-modele-donnees.md,2,Derive Ch3-4 (modelisation) - mapping relationnel hors cours
+Phase 3,P1,Documentation,DOC-BD.2,Doc contraintes et regles metier BD -> docs/21-regles-metier.md,1,Documentation - autonome (OCL Ch3-4 mentionnable)
+Phase 3,P1,Documentation,DOC-BD.3,Doc scripts install / seed / reset -> docs/22-scripts-bd.md,1,Documentation - autonome
+Phase 3,P2,Documentation,DOC-ARCH.1,Justification de l'architecture MVC (rapport) -> docs/10-architecture.md,2,Ch8 - MVC/MVP/MVVM (comparaison attendue)
+Phase 3,P2,Documentation,DOC-ARCH.2,Doc diagramme de composants (couches Vue Controller Repository BD - composants UML 2) -> docs/10-architecture.md,1,Ch3-4 - diagramme de composants UML (distinct du diagramme de deploiement)
+Phase 3,P2,Documentation,DOC-ARCH.3,Doc patrons utilises (Singleton DB + Repository + Factory fromRow + Strategy optionnel) avec extraits de code -> docs/11-patrons.md,3,Ch8 - design patterns - 3 patrons minimum exiges par sujet TER (pas 5)
+Phase 3,P2,Documentation,DOC-ARCH.4,Doc diagrammes de sequence (login partage session Anki) -> docs/12-diagrammes-sequence.md,2,Ch3-4 - sequences User-System et Object-Object
+Phase 3,P3,Documentation,DOC-AUTH.1,Doc sessions PHP (cycle de vie cookies session_regenerate_id) -> docs/30-sessions.md,1,Hors cours - auto-formation (sujet TER l'exige)
+Phase 3,P3,Documentation,DOC-AUTH.2,Doc hachage BCRYPT (algorithme cout salage) -> docs/31-bcrypt.md,1,Hors cours - sujet TER (auto-formation)
+Phase 3,P3,Documentation,DOC-AUTH.3,Doc validation client/serveur (matrice regles + pattern rouge dynamique) -> docs/32-validation.md,1,Hors cours - regex auto-formation + pattern UI binome
+Phase 3,P3,Documentation,DOC-AUTH.4,Doc regles d'acces + middleware + CSRF -> docs/33-acces-csrf.md,1,Documentation - autonome
+Phase 3,P4,Documentation,DOC-UI.1,Charte graphique + themes Dark/Light alignee avec project-files/interface/ (palette typo border) -> docs/50-charte-graphique.md,2,Hors cours - auto-formation UX + reference mockups equipe
+Phase 3,P4,Documentation,DOC-UI.2,Parcours utilisateur (wireframes commentes) renvoyant aux mockups project-files/interface/ -> docs/51-parcours-utilisateur.md,2,Lien Ch3-4 cas d'utilisation (wireframes hors cours mais fournis par binome)
+Phase 3,P4,Documentation,DOC-UI.3,Justification choix UX (flip navigation feedback dashboard 2 colonnes vs onglets) -> docs/52-justifications-ux.md,1,Hors cours - justifier l'exception dashboard
+Phase 3,P5,Documentation,DOC-FONC.1,Doc CRUD paquets / questions -> docs/40-crud.md,1,Documentation - autonome
+Phase 3,P5,Documentation,DOC-FONC.2,Doc partage + auto-completion (jQuery vanilla) + ecran visualisation avec destinataires -> docs/41-partage.md,2,Documentation - autonome
+Phase 3,P5,Documentation,DOC-FONC.4,Doc session Anki + scoring (Strategy si retenu) + last_score/best_score proprietaire -> docs/42-revision-scoring.md,1,Lien Ch5-6 (etats-transitions) + Ch8 (Strategy optionnel)
 Phase 3,Tous,QA,QA-1,Plan de tests (matrice fonctionnalites x comptes test),2,Hors cours - autonome
 Phase 3,Tous,QA,QA-2,Tests inscription / connexion / deconnexion (parite client/serveur),1,Hors cours - autonome
 Phase 3,Tous,QA,QA-3,Tests CRUD paquets et questions,2,Hors cours - autonome
@@ -143,4 +144,4 @@ Phase 3,Tous,QA,QA-7,Validation W3C HTML + CSS2 (zero erreur),1,Hors cours - exi
 Phase 3,Tous,QA,QA-8,Tests securite (injection SQL XSS hijacking session CSRF),2,Hors cours - auto-formation securite web
 Phase 3,Tous,QA,QA-9,Verif indentation 4 espaces tous fichiers PHP/JS/CSS/HTML,1,Exigence sujet TER : -2 pts si non respecte
 Phase 3,Tous,QA,QA-10,installation.txt final + verification archive projet-progweb-gN.zip (sans .git .claude project-files data BD),1,Documentation - autonome (exigence sujet TER format archive)
-Phase 3,Tous,QA,QA-11,Compilation rapport.pdf (fusion des docs),3,Documentation - autonome
+Phase 3,Tous,QA,QA-11,Compilation rapport.pdf (concatene docs/*.md dans ordre numerique),3,Documentation - autonome
