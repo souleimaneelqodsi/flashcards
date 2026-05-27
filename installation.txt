@@ -1,0 +1,186 @@
+================================================================
+INSTALLATION - FlashCards MIAGE (TER M1, projet web)
+================================================================
+
+Ce document explique comment installer et demarrer l'application
+FlashCards MIAGE en local pour le correcteur.
+
+----------------------------------------------------------------
+1. PREREQUIS
+----------------------------------------------------------------
+
+- PHP >= 7.4 (testes : 7.4, 8.0, 8.1, 8.2)
+- Extension PHP PDO + pilote PDO SQLite (presents par defaut dans
+  toutes les distributions PHP standard).
+- Un navigateur web moderne (Firefox, Chrome, Safari, Edge).
+- Aucune dependance externe (pas de Composer, pas de npm, pas de
+  base de donnees externe a installer : SQLite est embarque).
+
+Verification de l'environnement avant installation :
+
+    php --version
+    php -m | grep -i pdo
+
+Doit afficher PHP >= 7.4 et au moins "PDO" et "pdo_sqlite" dans la
+liste des modules.
+
+----------------------------------------------------------------
+2. INSTALLATION DE LA BASE DE DONNEES
+----------------------------------------------------------------
+
+Le projet utilise SQLite, un moteur de base de donnees embarque
+(fichier unique, pas de serveur a installer).
+
+Pour creer le schema et seeder les donnees referentielles
+(table `difficultes` : Facile / Moyen / Difficile), executer une
+seule fois a la racine du projet :
+
+    php src/sql/install.php
+
+Sortie attendue (sur stdout) :
+
+    Installation terminee : 5 tables creees, difficultes seedees.
+
+Le fichier de base est cree a l'emplacement suivant :
+
+    src/data/flashcards.sqlite
+
+Le script est **idempotent** : il peut etre relance sans risque
+(CREATE TABLE IF NOT EXISTS + INSERT OR IGNORE). Pour repartir d'une
+base totalement vide, il suffit de supprimer le fichier SQLite avant
+de relancer install.php :
+
+    rm src/data/flashcards.sqlite
+    php src/sql/install.php
+
+Le script `install.php` peut etre supprime apres usage. Il n'est pas
+necessaire au fonctionnement de l'application en production ; il sert
+uniquement a creer le schema initial.
+
+----------------------------------------------------------------
+3. DEMARRAGE DE L'APPLICATION
+----------------------------------------------------------------
+
+L'application utilise le **serveur de developpement PHP integre**
+(cf. `php -S`), pas de configuration Apache / Nginx requise pour le
+test local.
+
+Depuis la racine du projet :
+
+    php -S localhost:8000 -t src/public
+
+Sortie attendue :
+
+    [...] PHP X.Y.Z Development Server (http://localhost:8000) started
+
+Ouvrir un navigateur sur :
+
+    http://localhost:8000/
+
+L'ecran d'inscription / connexion s'affiche.
+
+----------------------------------------------------------------
+4. PREMIER USAGE
+----------------------------------------------------------------
+
+1. Cliquer "Creer un compte" sur l'ecran de connexion.
+2. Renseigner :
+   - Prenom + Nom
+   - Email (format login@domaine.extension)
+   - Date de naissance au format AAAAMMJJ (ex : 19990315)
+   - Mot de passe (>= 6 caracteres) + confirmation
+3. Apres validation, on est redirige vers le tableau de bord.
+4. Cliquer "Nouveau paquet" pour creer un premier paquet, puis
+   ajouter des questions via la modale "+ Ajouter une question".
+5. Sur le dashboard, cliquer "Reviser" sur une card pour demarrer
+   une session de revision style Anki.
+
+Pour tester le partage entre utilisateurs, creer un second compte
+puis utiliser le bouton "Partager" sur une card de paquet.
+
+----------------------------------------------------------------
+5. ARRET ET RESET
+----------------------------------------------------------------
+
+Arret du serveur : `Ctrl-C` dans le terminal qui execute `php -S`.
+
+Reset complet de la base (perte de tous les comptes, paquets,
+questions, partages) :
+
+    rm src/data/flashcards.sqlite
+    php src/sql/install.php
+
+----------------------------------------------------------------
+6. STRUCTURE DU PROJET
+----------------------------------------------------------------
+
+    src/
+    |-- public/         Point d'entree HTTP (front-controller) + assets
+    |   |-- index.php     Routage API + serve HTML
+    |   |-- css/          Feuilles de style (CSS2 max + flexbox)
+    |   |-- js/           Code client jQuery
+    |   |   `-- lib/      jQuery 3.7.1 (lib externe, non modifiee)
+    |-- controllers/    Endpoints API JSON (PHP)
+    |-- repositories/   Acces aux donnees (patron Repository, PDO)
+    |-- models/         Entites metier (patron Factory)
+    |-- core/           Singleton DB, Csrf, Router, ErrorHandler, etc.
+    |-- views/          Templates HTML (coquille SPA)
+    |-- sql/            Script install.php (creation + seed referentiel)
+    `-- data/           Fichier SQLite (cree par install.php)
+
+----------------------------------------------------------------
+7. CONFIGURATION
+----------------------------------------------------------------
+
+Aucune configuration supplementaire n'est requise. Les seuls
+parametres potentiellement personnalisables sont :
+
+- Chemin du fichier SQLite : code en dur dans `src/core/DB.php`
+  (par defaut : `src/data/flashcards.sqlite`).
+- Cookie de session : `HttpOnly + SameSite=Lax` declares dans
+  `src/public/index.php` (pour ajouter le flag `secure` en
+  HTTPS production, modifier la-bas).
+
+----------------------------------------------------------------
+8. DEPANNAGE
+----------------------------------------------------------------
+
+**"no such table: utilisateurs"** ou erreurs SQL au login : la base
+n'a pas ete initialisee. Lancer `php src/sql/install.php`.
+
+**Erreur 500 / page blanche** : verifier que PHP >= 7.4 et que
+`pdo_sqlite` est actif (`php -m | grep -i pdo`).
+
+**Erreur "Permission denied" sur src/data/** : verifier que le
+processus PHP a les droits d'ecriture dans `src/data/` (le dossier
+est cree automatiquement si absent, mais peut echouer en cas de
+restrictions de permission).
+
+**Ports occupes** : si le port 8000 est utilise, en choisir un
+autre : `php -S localhost:8001 -t src/public`.
+
+----------------------------------------------------------------
+9. ARCHIVE LIVREE
+----------------------------------------------------------------
+
+L'archive `projet-progweb-g<N>.zip` ne contient PAS :
+
+- Le dossier `.git/` (historique git, hors du livrable academique)
+- Le dossier `.claude/` (configuration de l'assistant de dev)
+- Le dossier `project-files/` (mockups et PDFs de cours, pour
+  redaction interne)
+- Le dossier `src/data/` (base SQLite locale, regeneree par
+  `install.php` chez le correcteur)
+- Tout fichier `.env`, `node_modules/`, `vendor/` (non utilises)
+
+Elle contient :
+
+- `src/` (code complet, sans `data/`)
+- `rapport.pdf`
+- `installation.txt` (ce fichier)
+- `README.md` du projet (description courte)
+
+================================================================
+Auteurs : Augustin Lecomte, Souleimane El Qodsi (M1 MIAGE)
+TER 2025-2026
+================================================================
