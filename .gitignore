@@ -29,3 +29,8 @@ node_modules/
 vendor/
 .env
 .env.local
+
+# Rapport regenerable : produit par build-rapport.sh a partir de docs/*.md.
+# rapport.pdf est dans l'archive finale du rendu, pas dans le git.
+/rapport.md
+/rapport.pdf
