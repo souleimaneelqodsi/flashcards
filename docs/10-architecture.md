@@ -124,3 +124,81 @@ aussi l'architecture explicitement attendue par le sujet.
 - **Travail en binome facilite** : un developpeur peut travailler sur un
   controleur pendant qu'un autre travaille sur une vue, car le contrat entre
   les deux est l'API JSON, stable et documentee.
+
+---
+
+## 6. Diagramme de composants (DOC-ARCH.2)
+
+Le diagramme de composants (`project-files/component_diagram.jpeg`) traduit
+en UML 2 la repartition des responsabilites decrite ci-dessus. Il montre
+quatre blocs distincts relies par des interfaces fournies / requises.
+
+### 6.1 Description des composants
+
+**Frontend — SPA Client Riche**
+
+Le composant `Vues Dynamiques` produit l'interface HTML/CSS visible par
+l'utilisateur. Il contient les templates des ecrans (tableau de bord, creation
+de paquet, mode revision, etc.) et le rendu dynamique assure par jQuery.
+
+Le composant `Routeur jQuery` gere la navigation cote client : il ecoute les
+changements de `window.location.hash` et affiche ou masque les sections
+correspondantes sans recharger la page (`src/public/js/router.js`). Il est
+aussi responsable d'initier les appels AJAX vers l'API.
+
+Le composant `Session Client` maintient l'etat local de la session (identite
+de l'utilisateur connecte, jeton CSRF actif) pour eviter de redemander ces
+informations a chaque action.
+
+Ces trois composants forment la **couche Vue** du MVC.
+
+**Backend — Serveur PHP**
+
+Le composant `Controleurs API` regroupe les quatre controleurs PHP
+(`AuthController`, `PaquetController`, `UtilisateurController`,
+`QuestionController`) et le routeur serveur (`Router.php`). Il recoit les
+requetes AJAX du front, verifie l'authentification et le jeton CSRF, valide
+les donnees, puis delegue la persistance a la couche en dessous.
+
+Le composant `Couche Persistance` est constitue des cinq repositories
+(`UtilisateurRepository`, `PaquetRepository`, `QuestionRepository`,
+`PartageRepository`, `DifficulteRepository`) et des cinq entites metier
+(`Utilisateur`, `Paquet`, `Question`, `Difficulte`, `Partage`). Les
+repositories sont les seuls composants autorises a ecrire du SQL.
+
+Ces deux composants forment la **couche Controleur et la couche Modele** du
+MVC cote serveur.
+
+**DB Singleton (PDO)**
+
+Le composant `DB Singleton` (`src/core/DB.php`) isole la connexion SQLite dans
+une instance unique. Tous les repositories obtiennent la meme connexion PDO
+via `DB::getInstance()` au lieu d'en creer chacun une nouvelle. C'est
+l'implementation du patron Singleton (cf. [11-patrons.md](11-patrons.md)).
+
+**Base SQLite**
+
+La base de donnees est un fichier local (`src/data/flashcards.sqlite`). SQLite
+est appropriate pour un projet universitaire mono-utilisateur en developpement
+local : aucun serveur de base de donnees a installer, portabilite maximale.
+
+### 6.2 Interfaces entre composants
+
+| Interface | Nature | Direction |
+|---|---|---|
+| Frontend <-> Controleurs API | AJAX / JSON via HTTP | Bidirectionnelle requete/reponse |
+| Controleurs API <-> Couche Persistance | Appels de methodes PHP (objets) | Controleur appelle Repository |
+| Couche Persistance <-> DB Singleton | Appels `DB::getInstance()->executer(...)` | Repository appelle Singleton |
+| DB Singleton <-> Base SQLite | PDO (requetes SQL preparees) | Singleton lit/ecrit SQLite |
+
+La communication entre Frontend et Backend est **exclusivement AJAX/JSON** :
+le front ne connait pas le schema SQL, le back ne connait pas le DOM. Ce
+contrat est ce qui rend les deux cotes independants l'un de l'autre.
+
+### 6.3 Ce que le diagramme n'exprime pas
+
+Le diagramme de composants montre la **structure statique** (quelles briques
+existent et comment elles s'assemblent). Il ne montre pas les flux dynamiques
+(qui appelle qui dans quel ordre pour une operation donnee). Ces flux sont
+documentes dans les diagrammes de sequence :
+voir [12-diagrammes-sequence.md](12-diagrammes-sequence.md).
