@@ -150,12 +150,16 @@ function rendre_carte_paquet(paquet, est_proprietaire) {
     // "Partages avec moi" ne propose ni l'edition ni le re-partage : un
     // destinataire est un consommateur du paquet, pas un co-proprietaire.
     if (est_proprietaire) {
+        // Bouton Editer : navigue vers #edit-paquet-:id (WIRE-1.2).
+        // edition-paquet.js detecte le mode edition et fetch les donnees
+        // via GET /api/paquets/:id (cf. PAQ-2.2 + QST-1.6).
         var bouton_editer = $("<button></button>")
             .attr("type", "button")
             .addClass("btn btn-secondary btn-sm")
             .text("Editer");
         bouton_editer.on("click", function (evenement) {
             evenement.stopPropagation();
+            window.location.hash = "#edit-paquet-" + paquet.id_paquet;
         });
         actions.append(bouton_editer);
 
