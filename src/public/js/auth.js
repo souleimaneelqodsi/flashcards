@@ -305,6 +305,10 @@ function soumettre_login(evenement) {
     };
 
     AjaxService.post("auth/connexion", donnees, {
+        // Un 401 ici signifie "identifiants invalides" (cas normal), pas
+        // "session expiree" : on desactive la redirection automatique de
+        // AjaxService pour traiter l'erreur nous-memes ci-dessous.
+        rediriger_si_401: false,
         succes: function (reponse) {
             // Le serveur a regenere le token CSRF a la connexion : on met a
             // jour la balise <meta> pour que les requetes suivantes envoient
@@ -322,10 +326,13 @@ function soumettre_login(evenement) {
             window.location.hash = "#dashboard";
         },
         erreur: function (xhr, message) {
-            // 401 (identifiants invalides) ou 400 (champs manquants).
-            // Affiche le message en recap et un toast d'erreur.
-            var erreurs_serveur = { _global: message };
-            afficher_recap_erreurs("recap-erreurs-login", "liste-erreurs-login", erreurs_serveur);
+            // 401 (identifiants invalides) ou 400 (champs manquants). Par
+            // securite le serveur ne dit pas quel champ est faux : on
+            // marque les deux champs en rouge (classe seule) et on porte
+            // le message dans le recap + un toast (pattern CLAUDE.md §6).
+            $("#login-email").addClass("champ-invalide");
+            $("#login-mot-de-passe").addClass("champ-invalide");
+            afficher_recap_erreurs("recap-erreurs-login", "liste-erreurs-login", { _global: message });
             Toast.erreur(message);
         }
     });
