@@ -367,6 +367,10 @@ function valider_form_profil() {
     return messages.length === 0;
 }
 
+// Soumet l'edition du profil : validation cliente puis PUT /api/profil.
+// Au succes, met a jour la session + le chrome (Session.connecter) et
+// rafraichit la vue ; en cas d'erreur serveur, delegue a
+// traiter_erreur_serveur_profil.
 function soumettre_profil() {
     if (!valider_form_profil()) {
         return;
@@ -471,6 +475,8 @@ function erreur_mdp_confirmation(v, nouveau) {
     return "";
 }
 
+// Valide les 3 champs du formulaire de mot de passe (actuel / nouveau /
+// confirmation) et alimente le recap. Renvoie true si tout est valide.
 function valider_form_mdp() {
     var actuel  = lire_brut("mdp-actuel");
     var nouveau = lire_brut("mdp-nouveau");
@@ -483,6 +489,9 @@ function valider_form_mdp() {
     return messages.length === 0;
 }
 
+// Soumet le changement de mot de passe (POST /api/profil/mot-de-passe)
+// apres validation cliente. Erreurs serveur rendues par
+// traiter_erreur_serveur_mdp.
 function soumettre_mdp() {
     if (!valider_form_mdp()) {
         return;
@@ -542,6 +551,8 @@ function fermer_modale_avatar() {
     $("#modale-avatar").attr("hidden", "hidden");
 }
 
+// Enregistre la couleur d'avatar choisie (POST /api/profil/avatar), puis
+// l'applique au chrome (cercles d'initiales) et ferme la modale.
 function choisir_couleur_avatar(couleur) {
     AjaxService.post("profil/avatar", { couleur: couleur }, {
         succes: function (reponse) {

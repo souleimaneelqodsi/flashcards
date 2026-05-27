@@ -218,6 +218,9 @@
         return ligne;
     }
 
+    // Selectionne un destinataire dans la liste de resultats : surligne la
+    // ligne cliquee, active le bouton "Partager avec X" et contextualise le
+    // bandeau d'info avec le nom du destinataire.
     function selectionner_destinataire(utilisateur, element_clique) {
         destinataire_selectionne = utilisateur;
         // Retire le highlight des autres lignes.
