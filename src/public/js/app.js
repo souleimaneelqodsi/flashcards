@@ -265,6 +265,14 @@ $(function () {
     var app = $("#app");
     app.addClass("app-pret");
 
+    // Bouton menu du header (WIRE-1.3) : toggle la classe .sidebar-fermee
+    // sur .app-wrap. La CSS (.sidebar-fermee .app-sidebar { display:none })
+    // se charge du rendu effectif. Le bouton menu reste toujours visible
+    // pour pouvoir ramener la sidebar.
+    $("#menu-btn").on("click", function () {
+        $(".app-wrap").toggleClass("sidebar-fermee");
+    });
+
     // Enregistre toutes les routes avant de demarrer le router.
     enregistrer_routes();
 

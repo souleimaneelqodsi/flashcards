@@ -13,6 +13,15 @@
     background: var(--fond);
 }
 
+/* Etat "sidebar repliee" (WIRE-1.3) : applique sur .app-wrap par le
+   bouton menu du header. La sidebar est masquee, le contenu principal
+   prend toute la largeur. Mise en oeuvre par display:none plutot que
+   width:0 pour eviter tout reflow ambigu et conserver l'accessibilite
+   au clavier (les liens caches ne recoivent plus le focus). */
+.app-wrap.sidebar-fermee .app-sidebar {
+    display: none;
+}
+
 .app-main {
     flex: 1;
     display: flex;
