@@ -77,18 +77,6 @@ $csrf_token = Csrf::obtenir();
                         </span>
                         <span class="nl-text">Nouveau paquet</span>
                     </a>
-                    <a href="#partages" class="nav-link" data-screen="partages">
-                        <span class="nl-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <circle cx="18" cy="5" r="3"></circle>
-                                <circle cx="6" cy="12" r="3"></circle>
-                                <circle cx="18" cy="19" r="3"></circle>
-                                <line x1="8.6" y1="10.6" x2="15.4" y2="6.4"></line>
-                                <line x1="8.6" y1="13.4" x2="15.4" y2="17.6"></line>
-                            </svg>
-                        </span>
-                        <span class="nl-text">Partages avec moi</span>
-                    </a>
                 </nav>
 
                 <nav class="nav-section">
@@ -537,8 +525,10 @@ $csrf_token = Csrf::obtenir();
                         <!-- Colonne droite : infos du compte + reglages + actions -->
                         <div class="profil-droite">
 
+                            <!-- Chaque ligne est cliquable (chevron) et ouvre la
+                                 meme modale d'edition du profil (D). -->
                             <div class="card profil-info-card">
-                                <div class="profil-info-row">
+                                <button type="button" class="profil-info-row profil-info-bouton" aria-label="Modifier mes informations">
                                     <span class="profil-info-ic">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <circle cx="12" cy="8" r="4"></circle>
@@ -549,8 +539,13 @@ $csrf_token = Csrf::obtenir();
                                         <span class="profil-info-label">Prenom</span>
                                         <span class="profil-info-valeur" id="profil-val-prenom"></span>
                                     </span>
-                                </div>
-                                <div class="profil-info-row">
+                                    <span class="profil-chevron">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <polyline points="9 6 15 12 9 18"></polyline>
+                                        </svg>
+                                    </span>
+                                </button>
+                                <button type="button" class="profil-info-row profil-info-bouton" aria-label="Modifier mes informations">
                                     <span class="profil-info-ic">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2"></path>
@@ -561,8 +556,13 @@ $csrf_token = Csrf::obtenir();
                                         <span class="profil-info-label">Nom</span>
                                         <span class="profil-info-valeur" id="profil-val-nom"></span>
                                     </span>
-                                </div>
-                                <div class="profil-info-row">
+                                    <span class="profil-chevron">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <polyline points="9 6 15 12 9 18"></polyline>
+                                        </svg>
+                                    </span>
+                                </button>
+                                <button type="button" class="profil-info-row profil-info-bouton" aria-label="Modifier mes informations">
                                     <span class="profil-info-ic">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <rect x="3" y="4" width="18" height="18" rx="2"></rect>
@@ -575,8 +575,13 @@ $csrf_token = Csrf::obtenir();
                                         <span class="profil-info-label">Date de naissance</span>
                                         <span class="profil-info-valeur" id="profil-val-date"></span>
                                     </span>
-                                </div>
-                                <div class="profil-info-row">
+                                    <span class="profil-chevron">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <polyline points="9 6 15 12 9 18"></polyline>
+                                        </svg>
+                                    </span>
+                                </button>
+                                <button type="button" class="profil-info-row profil-info-bouton" aria-label="Modifier mes informations">
                                     <span class="profil-info-ic">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <rect x="3" y="5" width="18" height="14" rx="2"></rect>
@@ -587,7 +592,12 @@ $csrf_token = Csrf::obtenir();
                                         <span class="profil-info-label">Email</span>
                                         <span class="profil-info-valeur" id="profil-val-email"></span>
                                     </span>
-                                </div>
+                                    <span class="profil-chevron">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <polyline points="9 6 15 12 9 18"></polyline>
+                                        </svg>
+                                    </span>
+                                </button>
                             </div>
 
                             <div class="card profil-reglages-card">
@@ -746,6 +756,136 @@ $csrf_token = Csrf::obtenir();
             <div class="modale-actions">
                 <button type="button" class="btn btn-secondary" id="btn-annuler-suppression">Annuler</button>
                 <button type="button" class="btn btn-danger" id="btn-confirmer-suppression">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+         Modale d'edition du profil (D). Validation client en miroir de
+         la validation serveur (UtilisateurController::valider_profil) :
+         champ rouge au keyup/blur + message sous le champ + recap en bas
+         (pattern impose CLAUDE.md §6). Logique dans js/profil.js.
+    ════════════════════════════════════════════════ -->
+    <div class="modale-overlay" id="modale-edition-profil" role="dialog" aria-modal="true" aria-labelledby="titre-modale-edition-profil" hidden>
+        <div class="modale-boite">
+            <div class="modale-titre-row">
+                <h3 class="modale-titre" id="titre-modale-edition-profil">Modifier mes informations</h3>
+                <button type="button" class="btn-fermer-modale" id="btn-fermer-edition-profil" aria-label="Fermer la modale">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form class="modale-corps" id="form-edition-profil" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="edit-prenom">Prenom <span class="req">*</span></label>
+                    <input type="text" id="edit-prenom" name="prenom" class="form-control" maxlength="100" required>
+                    <p class="message-erreur" id="erreur-edit-prenom" hidden></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit-nom">Nom <span class="req">*</span></label>
+                    <input type="text" id="edit-nom" name="nom" class="form-control" maxlength="100" required>
+                    <p class="message-erreur" id="erreur-edit-nom" hidden></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit-date">Date de naissance (AAAAMMJJ) <span class="req">*</span></label>
+                    <input type="text" id="edit-date" name="date_naissance" class="form-control" placeholder="19990315" maxlength="8" required>
+                    <p class="message-erreur" id="erreur-edit-date" hidden></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit-email">Email <span class="req">*</span></label>
+                    <input type="email" id="edit-email" name="email" class="form-control" maxlength="150" required>
+                    <p class="message-erreur" id="erreur-edit-email" hidden></p>
+                </div>
+                <div class="recap-erreurs modale-recap-erreurs" id="recap-erreurs-profil" hidden>
+                    <p>Veuillez corriger les erreurs ci-dessus avant de valider :</p>
+                    <ul id="liste-erreurs-profil"></ul>
+                </div>
+                <div class="modale-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-annuler-edition-profil">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="btn-valider-edition-profil">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+         Modale de changement de mot de passe (E / OPT-1.3). Validation
+         client + serveur (>= 6 caracteres, confirmation identique, ancien
+         mot de passe verifie cote serveur). Logique dans js/profil.js.
+    ════════════════════════════════════════════════ -->
+    <div class="modale-overlay" id="modale-mot-de-passe" role="dialog" aria-modal="true" aria-labelledby="titre-modale-mot-de-passe" hidden>
+        <div class="modale-boite">
+            <div class="modale-titre-row">
+                <h3 class="modale-titre" id="titre-modale-mot-de-passe">Changer mon mot de passe</h3>
+                <button type="button" class="btn-fermer-modale" id="btn-fermer-mot-de-passe" aria-label="Fermer la modale">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form class="modale-corps" id="form-mot-de-passe" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="mdp-actuel">Mot de passe actuel <span class="req">*</span></label>
+                    <input type="password" id="mdp-actuel" name="mot_de_passe_actuel" class="form-control" required>
+                    <p class="message-erreur" id="erreur-mdp-actuel" hidden></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="mdp-nouveau">Nouveau mot de passe <span class="req">*</span></label>
+                    <input type="password" id="mdp-nouveau" name="nouveau_mot_de_passe" class="form-control" required>
+                    <p class="message-erreur" id="erreur-mdp-nouveau" hidden></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="mdp-confirmation">Confirmer le nouveau mot de passe <span class="req">*</span></label>
+                    <input type="password" id="mdp-confirmation" name="confirmation_mot_de_passe" class="form-control" required>
+                    <p class="message-erreur" id="erreur-mdp-confirmation" hidden></p>
+                </div>
+                <div class="recap-erreurs modale-recap-erreurs" id="recap-erreurs-mdp" hidden>
+                    <p>Veuillez corriger les erreurs ci-dessus avant de valider :</p>
+                    <ul id="liste-erreurs-mdp"></ul>
+                </div>
+                <div class="modale-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-annuler-mot-de-passe">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="btn-valider-mot-de-passe">Mettre a jour</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+         Modale de choix de couleur d'avatar (F). Variante "initiales
+         colorees" : pas d'upload de fichier (hors perimetre du cours),
+         la couleur est choisie dans la palette officielle et stockee
+         dans la colonne avatar. Logique dans js/profil.js.
+    ════════════════════════════════════════════════ -->
+    <div class="modale-overlay" id="modale-avatar" role="dialog" aria-modal="true" aria-labelledby="titre-modale-avatar" hidden>
+        <div class="modale-boite">
+            <div class="modale-titre-row">
+                <h3 class="modale-titre" id="titre-modale-avatar">Couleur de l'avatar</h3>
+                <button type="button" class="btn-fermer-modale" id="btn-fermer-avatar" aria-label="Fermer la modale">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modale-corps">
+                <p class="avatar-modale-info">Choisissez la couleur du cercle de vos initiales.</p>
+                <div class="avatar-palette" role="group" aria-label="Couleurs disponibles">
+                    <button type="button" class="avatar-swatch" data-couleur="#7C4DFF" style="background-color: #7C4DFF" aria-label="Violet"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#FF6584" style="background-color: #FF6584" aria-label="Rose"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#22C55E" style="background-color: #22C55E" aria-label="Vert"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#F59E0B" style="background-color: #F59E0B" aria-label="Orange"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#3B82F6" style="background-color: #3B82F6" aria-label="Bleu"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#EC4899" style="background-color: #EC4899" aria-label="Magenta"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#14B8A6" style="background-color: #14B8A6" aria-label="Turquoise"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#6366F1" style="background-color: #6366F1" aria-label="Indigo"></button>
+                </div>
+            </div>
+            <div class="modale-actions">
+                <button type="button" class="btn btn-secondary" id="btn-annuler-avatar">Fermer</button>
             </div>
         </div>
     </div>

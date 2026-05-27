@@ -101,6 +101,10 @@ var Session = (function () {
         $("#chip-nom").text(nom_complet);
         $("#chip-initiales").text(initiales);
         $("#topbar-initiales").text(initiales);
+        // Applique la couleur d'avatar choisie (F), si profil.js est charge.
+        if (typeof window.appliquer_couleur_avatar === "function") {
+            window.appliquer_couleur_avatar(u.avatar);
+        }
     }
 
     // ── Deconnexion ─────────────────────────────────────────────────

@@ -55,7 +55,6 @@ var titres_routes = {
     "#study": "Mode revision",
     "#fin-session": "Fin de session",
     "#visualisation-paquet": "Visualisation du paquet",
-    "#partages": "Partages avec moi",
     "#profil": "Mon profil",
     "#login": "Connexion",
     "#register": "Inscription"
@@ -121,25 +120,6 @@ function appliquer_mode_auth(hash) {
 function route_authentification(hash) {
     var prefixe = prefixe_de_route(hash);
     return prefixe === "#login" || prefixe === "#register";
-}
-
-// ── Placeholder pour les vues non encore implementees ───────────
-// Affiche un encart simple dans #view (la zone du dashboard) avec le titre
-// de la vue et un message d'integration a venir.
-function afficher_vue_placeholder(libelle_ecran, sous_titre) {
-    var vue = $("#view");
-    vue.empty();
-
-    var entete = $("<div></div>").addClass("page-title-row");
-    var bloc_titre = $("<div></div>");
-    bloc_titre.append($("<h2></h2>").addClass("page-title").text(libelle_ecran));
-    bloc_titre.append($("<p></p>").addClass("page-sub").text(sous_titre));
-    entete.append(bloc_titre);
-    vue.append(entete);
-
-    var carte = $("<div></div>").addClass("card");
-    carte.append($("<p></p>").text("Cette vue est en cours d'integration. Elle sera disponible dans les prochaines taches du projet."));
-    vue.append(carte);
 }
 
 // ── Vue 404 (BACK-2.3) ──────────────────────────────────────────
@@ -227,11 +207,10 @@ function enregistrer_routes() {
     });
     Router.ajouter_avec_id("#visualisation-paquet");
 
-    // Vues non encore construites : placeholders rendus dans #view.
-    Router.ajouter("#partages", function () {
-        afficher_vue(VUE_DASHBOARD);
-        afficher_vue_placeholder("Partages avec moi", "Paquets qui vous ont ete partages.");
-    });
+    // Note : pas de route #partages dediee. Les paquets partages avec
+    // l'utilisateur apparaissent dans la colonne droite du tableau de bord
+    // (DASH-2.3), conformement a la maquette (sidebar = Tableau de bord +
+    // Mon profil).
     Router.ajouter("#profil", function () {
         afficher_vue(VUE_PROFIL);
         remplir_profil();

@@ -135,9 +135,14 @@ if ($est_appel_api) {
     // STUDY-1.2 : enregistre le score d'une session de revision (proprietaire uniquement).
     $routeur->ajouter('POST', '/api/paquets/:id/score', array($paquet_controleur, 'enregistrer_score'));
 
-    $routeur->ajouter('GET', '/api/profil', function () {
-        Response::json(array('message' => 'stub profil'), 200);
-    });
+    // D (edition profil) : mise a jour des informations du compte.
+    $routeur->ajouter('PUT', '/api/profil', array($utilisateur_controleur, 'mettre_a_jour_profil'));
+
+    // E (OPT-1.3) : changement de mot de passe.
+    $routeur->ajouter('POST', '/api/profil/mot-de-passe', array($utilisateur_controleur, 'changer_mot_de_passe'));
+
+    // F (OPT-1.4, variante initiales colorees) : couleur d'avatar.
+    $routeur->ajouter('POST', '/api/profil/avatar', array($utilisateur_controleur, 'mettre_a_jour_avatar'));
 
     $routeur->dispatcher($methode, $chemin);
     exit;
