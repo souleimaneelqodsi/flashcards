@@ -1,0 +1,167 @@
+/* src/public/css/share-modal.css */
+/* Styles specifiques de la modale de partage (SHARE-1.4).
+   Reutilise les classes .modale-overlay / .modale-boite / .modale-titre-row /
+   .modale-corps / .modale-actions deja definies dans edition-paquet.css :
+   on ajoute ici uniquement la mise en forme du contenu propre au partage
+   (label, liste de resultats, avatars, bandeau info). Reference visuelle :
+   project-files/interface/share_bag.png. */
+
+.modale-boite-partage {
+    max-width: 520px;
+}
+
+/* Sous-titre de la modale : nom du paquet partage. */
+.modale-sous-titre {
+    font-size: 14px;
+    color: var(--texte-secondaire);
+    margin-top: 4px;
+}
+
+/* ── Label "Rechercher un utilisateur" ── */
+.partage-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--texte-secondaire);
+    text-transform: uppercase;
+}
+
+/* ── Champ de recherche : prend toute la largeur, icone loupe a gauche ── */
+.partage-input-wrap {
+    position: relative;
+}
+
+.partage-input-icone {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--texte-tertiaire);
+    pointer-events: none;
+}
+
+.partage-input {
+    width: 100%;
+    padding-left: 36px;
+}
+
+/* ── Conteneur des resultats : liste verticale scrollable ── */
+.partage-resultats {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+/* ── Item de la liste : avatar + nom/email + checkmark ── */
+.partage-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--bordure);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.partage-item:hover {
+    background: var(--surface-2);
+}
+
+/* Etat selectionne : fond violet pale + bordure violette. */
+.partage-item-selectionne {
+    background: rgba(124, 77, 255, 0.08);
+    border-color: var(--primaire);
+}
+
+/* ── Avatar circulaire avec initiales et degrade ── */
+.partage-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+/* Trois variantes de degrade, choisies deterministe sur id_user % 3
+   dans share-modal.js (cf. fonction classe_avatar). */
+.avatar-grad-violet {
+    background: linear-gradient(135deg, #7C4DFF, #B388FF);
+}
+
+.avatar-grad-orange {
+    background: linear-gradient(135deg, #FF6584, #FFA980);
+}
+
+.avatar-grad-bleu {
+    background: linear-gradient(135deg, #4DA3FF, #82C8FF);
+}
+
+/* ── Bloc nom + email ── */
+.partage-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.partage-nom {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--texte-primaire);
+}
+
+.partage-email {
+    font-size: 12px;
+    color: var(--texte-secondaire);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Checkmark : cache par defaut, visible quand selectionne ── */
+.partage-check {
+    margin-left: auto;
+    color: var(--primaire);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+}
+
+.partage-item-selectionne .partage-check {
+    opacity: 1;
+}
+
+/* ── Etats secondaires : aucun resultat, erreur reseau ── */
+.partage-vide,
+.partage-erreur {
+    padding: 12px 14px;
+    color: var(--texte-secondaire);
+    font-size: 13px;
+}
+
+/* ── Bandeau info violet pale sous la liste ── */
+.partage-info-bandeau {
+    padding: 12px 14px;
+    background: rgba(124, 77, 255, 0.06);
+    border-left: 3px solid var(--primaire);
+    border-radius: 6px;
+    color: var(--texte-secondaire);
+    font-size: 13px;
+    line-height: 1.5;
+}

@@ -75,15 +75,16 @@ class AuthController extends BaseController
         // Verification d'unicite de l'email (AUTH-2.6).
         $existant = $this->utilisateurs->chercher_par_email($email);
         if ($existant !== null) {
-            $this->repondre(array('erreur' => 'Email deja utilise.'), 409);
+            $this->repondre(array('erreur' => 'Email déjà utilisé.'), 409);
             return;
         }
 
         // Hashage du mot de passe (AUTH-2.1).
         $hash = password_hash($mot_de_passe, PASSWORD_BCRYPT);
 
-        // Conversion de la date AAAAMMJJ vers AAAA-MM-JJ (format DATE SQLite).
-        $date_sqlite = $this->convertir_date_aaaammjj($date_naissance);
+        // La date arrive deja au format AAAA-MM-JJ (input type=date), qui est
+        // le format DATE de SQLite : aucune conversion necessaire.
+        $date_sqlite = $date_naissance;
 
         $utilisateur = Utilisateur::creer($email, $hash, $nom, $prenom, $date_sqlite, null);
 
@@ -94,13 +95,13 @@ class AuthController extends BaseController
         try {
             $utilisateur = $this->utilisateurs->creer($utilisateur);
         } catch (RuntimeException $e) {
-            $this->repondre(array('erreur' => 'Email deja utilise.'), 409);
+            $this->repondre(array('erreur' => 'Email déjà utilisé.'), 409);
             return;
         }
 
         $this->repondre(
             array(
-                'message'     => 'Inscription reussie.',
+                'message'     => 'Inscription réussie.',
                 'utilisateur' => $utilisateur->toArray()
             ),
             201
@@ -165,7 +166,7 @@ class AuthController extends BaseController
 
         $this->repondre(
             array(
-                'message'     => 'Connexion reussie.',
+                'message'     => 'Connexion réussie.',
                 'utilisateur' => $utilisateur->toArray(),
                 'csrf_token'  => Csrf::obtenir()
             ),
@@ -211,7 +212,7 @@ class AuthController extends BaseController
         // Detruit la session cote serveur.
         session_destroy();
 
-        $this->repondre(array('message' => 'Deconnexion reussie.'), 200);
+        $this->repondre(array('message' => 'Déconnexion réussie.'), 200);
     }
 
     /**
@@ -243,7 +244,7 @@ class AuthController extends BaseController
      *
      * Regles (CLAUDE.md section 6) :
      *  - email : format `login@domaine.extension` (regex stricte).
-     *  - mot de passe : >= 6 caracteres.
+     *  - mot de passe : >= 6 caractères.
      *  - date de naissance : 8 chiffres AAAAMMJJ + date reelle valide.
      *  - nom / prenom : non vides, longueur raisonnable (<= 100).
      *
@@ -260,7 +261,7 @@ class AuthController extends BaseController
         if ($email === '') {
             $erreurs['email'] = 'L\'email est obligatoire.';
         } else if (strlen($email) > 150) {
-            $erreurs['email'] = 'L\'email est trop long (150 caracteres maximum).';
+            $erreurs['email'] = 'L\'email est trop long (150 caractères maximum).';
         } else {
             $regex_email = '/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/';
             if (!preg_match($regex_email, $email)) {
@@ -272,53 +273,45 @@ class AuthController extends BaseController
         if ($mot_de_passe === '') {
             $erreurs['mot_de_passe'] = 'Le mot de passe est obligatoire.';
         } else if (strlen($mot_de_passe) < 6) {
-            $erreurs['mot_de_passe'] = 'Le mot de passe doit faire au moins 6 caracteres.';
+            $erreurs['mot_de_passe'] = 'Le mot de passe doit faire au moins 6 caractères.';
         }
 
         // Nom
         if ($nom === '') {
             $erreurs['nom'] = 'Le nom est obligatoire.';
         } else if (strlen($nom) > 100) {
-            $erreurs['nom'] = 'Le nom est trop long (100 caracteres maximum).';
+            $erreurs['nom'] = 'Le nom est trop long (100 caractères maximum).';
         }
 
         // Prenom
         if ($prenom === '') {
-            $erreurs['prenom'] = 'Le prenom est obligatoire.';
+            $erreurs['prenom'] = 'Le prénom est obligatoire.';
         } else if (strlen($prenom) > 100) {
-            $erreurs['prenom'] = 'Le prenom est trop long (100 caracteres maximum).';
+            $erreurs['prenom'] = 'Le prénom est trop long (100 caractères maximum).';
         }
 
-        // Date de naissance : format AAAAMMJJ strict (8 chiffres).
+        // Date de naissance : format ISO AAAA-MM-JJ (valeur d'un
+        // <input type="date">), + date reelle verifiee par checkdate.
         if ($date_naissance === '') {
             $erreurs['date_naissance'] = 'La date de naissance est obligatoire.';
-        } else if (!preg_match('/^[0-9]{8}$/', $date_naissance)) {
-            $erreurs['date_naissance'] = 'Date attendue au format AAAAMMJJ (ex : 19990315).';
+        } else if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $date_naissance)) {
+            $erreurs['date_naissance'] = 'Date de naissance invalide.';
         } else {
             $annee = (int) substr($date_naissance, 0, 4);
-            $mois  = (int) substr($date_naissance, 4, 2);
-            $jour  = (int) substr($date_naissance, 6, 2);
+            $mois  = (int) substr($date_naissance, 5, 2);
+            $jour  = (int) substr($date_naissance, 8, 2);
             if (!checkdate($mois, $jour, $annee)) {
                 $erreurs['date_naissance'] = 'Date de naissance invalide.';
+            } else {
+                $age = $this->calculer_age($annee, $mois, $jour);
+                if ($age < 7) {
+                    $erreurs['date_naissance'] = 'Vous devez avoir au moins 7 ans.';
+                } else if ($age > 100) {
+                    $erreurs['date_naissance'] = 'L\'âge maximum autorisé est de 100 ans.';
+                }
             }
         }
 
         return $erreurs;
-    }
-
-    /**
-     * Convertit une date du format AAAAMMJJ (saisie utilisateur, 8 chiffres)
-     * vers AAAA-MM-JJ (format DATE SQLite). La validation prealable garantit
-     * que la chaine est exactement 8 chiffres.
-     *
-     * @param string $aaaammjj Ex : "19990315".
-     * @return string Ex : "1999-03-15".
-     */
-    private function convertir_date_aaaammjj($aaaammjj)
-    {
-        $annee = substr($aaaammjj, 0, 4);
-        $mois  = substr($aaaammjj, 4, 2);
-        $jour  = substr($aaaammjj, 6, 2);
-        return $annee . '-' . $mois . '-' . $jour;
     }
 }

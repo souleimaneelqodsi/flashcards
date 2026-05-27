@@ -3,6 +3,8 @@
 
 require_once __DIR__ . '/../core/DB.php';
 require_once __DIR__ . '/../models/Paquet.php';
+require_once __DIR__ . '/QuestionRepository.php';
+require_once __DIR__ . '/PartageRepository.php';
 
 /**
  * Acces aux donnees de la table `paquets` (patron Repository).
@@ -24,9 +26,12 @@ class PaquetRepository
     public function trouver_par_id($id_paquet)
     {
         $statement = DB::getInstance()->executer(
-            'SELECT id_paquet, titre, theme, date_creation, last_score, best_score, id_proprietaire
-             FROM paquets
-             WHERE id_paquet = ?',
+            'SELECT p.id_paquet, p.titre, p.theme, p.date_creation, p.last_score, p.best_score, p.id_proprietaire,
+                    COUNT(q.id_question) AS nombre_cartes
+             FROM paquets p
+             LEFT JOIN questions q ON q.id_paquet = p.id_paquet
+             WHERE p.id_paquet = ?
+             GROUP BY p.id_paquet',
             array($id_paquet)
         );
         $ligne = $statement->fetch();
@@ -38,8 +43,15 @@ class PaquetRepository
 
     /**
      * Liste les paquets dont l'utilisateur est proprietaire.
+     *
      * Tries par date de creation decroissante (plus recents en haut),
      * conformement au dashboard (CLAUDE.md sec. 5).
+     *
+     * **Tri garanti cote serveur (PAQ-1.6)** : la clause `ORDER BY
+     * date_creation DESC` est appliquee par SQLite ; le controleur
+     * `PaquetController::lister_mes_paquets` ne re-trie jamais. Ainsi le
+     * front (`dashboard.js`) peut se contenter d'afficher les paquets
+     * dans l'ordre recu, sans connaitre la regle metier.
      *
      * @param int $id_proprietaire
      * @return Paquet[]
@@ -47,10 +59,13 @@ class PaquetRepository
     public function trouver_par_proprietaire($id_proprietaire)
     {
         $statement = DB::getInstance()->executer(
-            'SELECT id_paquet, titre, theme, date_creation, last_score, best_score, id_proprietaire
-             FROM paquets
-             WHERE id_proprietaire = ?
-             ORDER BY date_creation DESC',
+            'SELECT p.id_paquet, p.titre, p.theme, p.date_creation, p.last_score, p.best_score, p.id_proprietaire,
+                    COUNT(q.id_question) AS nombre_cartes
+             FROM paquets p
+             LEFT JOIN questions q ON q.id_paquet = p.id_paquet
+             WHERE p.id_proprietaire = ?
+             GROUP BY p.id_paquet
+             ORDER BY p.date_creation DESC',
             array($id_proprietaire)
         );
         $lignes = $statement->fetchAll();
@@ -73,10 +88,13 @@ class PaquetRepository
     public function trouver_partages_avec($id_destinataire)
     {
         $statement = DB::getInstance()->executer(
-            'SELECT p.id_paquet, p.titre, p.theme, p.date_creation, p.last_score, p.best_score, p.id_proprietaire
+            'SELECT p.id_paquet, p.titre, p.theme, p.date_creation, p.last_score, p.best_score, p.id_proprietaire,
+                    COUNT(q.id_question) AS nombre_cartes
              FROM paquets p
              INNER JOIN partages pa ON pa.id_paquet = p.id_paquet
+             LEFT JOIN questions q ON q.id_paquet = p.id_paquet
              WHERE pa.id_destinataire = ?
+             GROUP BY p.id_paquet
              ORDER BY pa.date_partage DESC',
             array($id_destinataire)
         );
@@ -145,5 +163,42 @@ class PaquetRepository
             'DELETE FROM paquets WHERE id_paquet = ?',
             array($id_paquet)
         );
+    }
+
+    /**
+     * Supprime un paquet en cascade : questions du paquet, partages du
+     * paquet, puis le paquet lui-meme (PAQ-1.4). L'enchaînement est
+     * encapsule dans une transaction SQLite : si une etape echoue, on
+     * fait un rollback pour ne pas laisser la base dans un etat
+     * incoherent (orphelins en questions ou partages).
+     *
+     * Pourquoi ici et pas dans le controleur ? Le patron Repository
+     * impose que les controleurs ne pilotent jamais de SQL ni de
+     * transactions ; la sequence de cascade est un detail de
+     * persistance et appartient au repository de la ressource racine.
+     *
+     * @param int $id_paquet
+     * @throws RuntimeException Si la transaction echoue (la couche DB
+     *                          remappe deja PDOException en
+     *                          RuntimeException pour ne pas exposer la
+     *                          stack trace).
+     */
+    public function supprimer_avec_cascade($id_paquet)
+    {
+        $pdo = DB::getInstance()->pdo();
+
+        $questions = new QuestionRepository();
+        $partages  = new PartageRepository();
+
+        $pdo->beginTransaction();
+        try {
+            $questions->supprimer_par_paquet($id_paquet);
+            $partages->revoquer_toutes_par_paquet($id_paquet);
+            $this->supprimer($id_paquet);
+            $pdo->commit();
+        } catch (Exception $exception) {
+            $pdo->rollBack();
+            throw $exception;
+        }
     }
 }

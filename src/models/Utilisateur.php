@@ -104,6 +104,42 @@ class Utilisateur extends BaseModel
         $this->id_user = (int) $id_user;
     }
 
+    // Setters utilises pour la mise a jour du profil (edition, changement
+    // de mot de passe, couleur d'avatar). On charge l'utilisateur existant
+    // via fromRow(), on modifie les champs concernes, puis on persiste via
+    // UtilisateurRepository::mettre_a_jour(). Le mot de passe passe ici est
+    // deja hashe (BCRYPT) : aucun mot de passe en clair n'est jamais stocke.
+
+    public function setEmail($email)
+    {
+        $this->email = $email;
+    }
+
+    public function setMotDePasse($mot_de_passe_hashe)
+    {
+        $this->mot_de_passe = $mot_de_passe_hashe;
+    }
+
+    public function setNom($nom)
+    {
+        $this->nom = $nom;
+    }
+
+    public function setPrenom($prenom)
+    {
+        $this->prenom = $prenom;
+    }
+
+    public function setDateNaissance($date_naissance)
+    {
+        $this->date_naissance = $date_naissance;
+    }
+
+    public function setAvatar($avatar)
+    {
+        $this->avatar = $avatar;
+    }
+
     /**
      * Representation publique de l'utilisateur (sans mot de passe).
      * Utilisee pour les reponses JSON de l'API.

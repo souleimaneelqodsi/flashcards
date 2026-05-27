@@ -25,6 +25,11 @@ class Paquet extends BaseModel
     private $last_score;
     private $best_score;
     private $id_proprietaire;
+    // Nombre de questions du paquet. Champ DERIVE (pas une colonne de la
+    // table `paquets`) : renseigne par les requetes de liste qui comptent
+    // les questions via un LEFT JOIN (dashboard / badge "X cartes"). Vaut
+    // 0 par defaut quand l'info n'est pas jointe.
+    private $nombre_cartes = 0;
 
     private function __construct()
     {
@@ -69,6 +74,7 @@ class Paquet extends BaseModel
         $paquet->last_score      = isset($ligne['last_score']) ? (int) $ligne['last_score'] : null;
         $paquet->best_score      = isset($ligne['best_score']) ? (int) $ligne['best_score'] : null;
         $paquet->id_proprietaire = isset($ligne['id_proprietaire']) ? (int) $ligne['id_proprietaire'] : null;
+        $paquet->nombre_cartes   = isset($ligne['nombre_cartes']) ? (int) $ligne['nombre_cartes'] : 0;
         return $paquet;
     }
 
@@ -81,6 +87,7 @@ class Paquet extends BaseModel
     public function getLastScore()      { return $this->last_score; }
     public function getBestScore()      { return $this->best_score; }
     public function getIdProprietaire() { return $this->id_proprietaire; }
+    public function getNombreCartes()   { return $this->nombre_cartes; }
 
     public function setIdPaquet($id_paquet)
     {
@@ -121,7 +128,8 @@ class Paquet extends BaseModel
             'date_creation'   => $this->date_creation,
             'last_score'      => $this->last_score,
             'best_score'      => $this->best_score,
-            'id_proprietaire' => $this->id_proprietaire
+            'id_proprietaire' => $this->id_proprietaire,
+            'nombre_cartes'   => $this->nombre_cartes
         );
     }
 }

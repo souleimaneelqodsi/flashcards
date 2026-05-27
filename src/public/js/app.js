@@ -18,6 +18,7 @@ var VUE_FIN_SESSION = "vue-fin-session";
 var VUE_LOGIN = "vue-login";
 var VUE_REGISTER = "vue-register";
 var VUE_PROFIL = "vue-profil";
+var VUE_VISUALISATION_PAQUET = "vue-visualisation-paquet";
 var TOUTES_LES_VUES = [
     VUE_DASHBOARD,
     VUE_EDITION_PAQUET,
@@ -25,7 +26,8 @@ var TOUTES_LES_VUES = [
     VUE_FIN_SESSION,
     VUE_LOGIN,
     VUE_REGISTER,
-    VUE_PROFIL
+    VUE_PROFIL,
+    VUE_VISUALISATION_PAQUET
 ];
 
 // Affiche une vue (section) et masque toutes les autres.
@@ -49,13 +51,11 @@ function afficher_vue(id_vue) {
 var titres_routes = {
     "#dashboard": "Tableau de bord",
     "#nouveau-paquet": "Nouveau paquet",
-    "#edit-paquet": "Editer un paquet",
-    "#study": "Mode revision",
+    "#edit-paquet": "Éditer un paquet",
+    "#study": "Mode révision",
     "#fin-session": "Fin de session",
     "#visualisation-paquet": "Visualisation du paquet",
-    "#partages": "Partages avec moi",
     "#profil": "Mon profil",
-    "#parametres": "Parametres",
     "#login": "Connexion",
     "#register": "Inscription"
 };
@@ -122,25 +122,6 @@ function route_authentification(hash) {
     return prefixe === "#login" || prefixe === "#register";
 }
 
-// ── Placeholder pour les vues non encore implementees ───────────
-// Affiche un encart simple dans #view (la zone du dashboard) avec le titre
-// de la vue et un message d'integration a venir.
-function afficher_vue_placeholder(libelle_ecran, sous_titre) {
-    var vue = $("#view");
-    vue.empty();
-
-    var entete = $("<div></div>").addClass("page-title-row");
-    var bloc_titre = $("<div></div>");
-    bloc_titre.append($("<h2></h2>").addClass("page-title").text(libelle_ecran));
-    bloc_titre.append($("<p></p>").addClass("page-sub").text(sous_titre));
-    entete.append(bloc_titre);
-    vue.append(entete);
-
-    var carte = $("<div></div>").addClass("card");
-    carte.append($("<p></p>").text("Cette vue est en cours d'integration. Elle sera disponible dans les prochaines taches du projet."));
-    vue.append(carte);
-}
-
 // ── Vue 404 (BACK-2.3) ──────────────────────────────────────────
 // Affichee quand l'utilisateur saisit un hash inconnu. Propose un retour
 // explicite au tableau de bord.
@@ -152,13 +133,13 @@ function afficher_vue_404(hash_demande) {
     var bloc_titre = $("<div></div>");
     bloc_titre.append($("<h2></h2>").addClass("page-title").text("Page introuvable"));
     bloc_titre.append(
-        $("<p></p>").addClass("page-sub").text("La route demandee n'existe pas : " + hash_demande)
+        $("<p></p>").addClass("page-sub").text("La route demandée n'existe pas : " + hash_demande)
     );
     entete.append(bloc_titre);
     vue.append(entete);
 
     var carte = $("<div></div>").addClass("card");
-    carte.append($("<p></p>").text("L'adresse que vous avez saisie n'est associee a aucune vue de l'application."));
+    carte.append($("<p></p>").text("L'adresse que vous avez saisie n'est associée à aucune vue de l'application."));
     var lien_retour = $("<a></a>")
         .attr("href", "#dashboard")
         .addClass("btn btn-primary")
@@ -180,18 +161,32 @@ function enregistrer_routes() {
     });
 
     // Creation d'un nouveau paquet et edition d'un paquet existant partagent
-    // la meme vue d'edition. #edit-paquet accepte un id en suffixe.
+    // la meme vue d'edition. #edit-paquet accepte un id en suffixe. Le
+    // mode (creation vs edition) est detecte par edition-paquet.js a partir
+    // du hash courant (PAQ-2.2), qui se charge aussi du pre-remplissage
+    // du formulaire en mode edition via GET /api/paquets/:id.
     Router.ajouter("#nouveau-paquet", function () {
         afficher_vue(VUE_EDITION_PAQUET);
+        if (typeof window.afficher_edition_paquet === "function") {
+            window.afficher_edition_paquet();
+        }
     });
     Router.ajouter("#edit-paquet", function () {
         afficher_vue(VUE_EDITION_PAQUET);
+        if (typeof window.afficher_edition_paquet === "function") {
+            window.afficher_edition_paquet();
+        }
     });
     Router.ajouter_avec_id("#edit-paquet");
 
     // Mode revision : #study-<id> (l'id du paquet est lu par study.js).
+    // afficher_etude_paquet() charge le paquet+questions via API
+    // (STUDY-1.1 / STUDY-1.3) et rend la carte courante.
     Router.ajouter("#study", function () {
         afficher_vue(VUE_STUDY);
+        if (typeof window.afficher_etude_paquet === "function") {
+            window.afficher_etude_paquet();
+        }
     });
     Router.ajouter_avec_id("#study");
 
@@ -201,26 +196,24 @@ function enregistrer_routes() {
     });
     Router.ajouter_avec_id("#fin-session");
 
-    // Visualisation d'un paquet (#visualisation-paquet-<id>) : la vraie vue
-    // n'est pas encore construite, on affiche un placeholder dans #view.
+    // Visualisation d'un paquet (#visualisation-paquet-<id>, VIEW-1.3) :
+    // l'ecran est construit en JS par visualisation-paquet.js a partir de
+    // GET /api/paquets/:id (VIEW-1.2).
     Router.ajouter("#visualisation-paquet", function () {
-        afficher_vue(VUE_DASHBOARD);
-        afficher_vue_placeholder("Visualisation du paquet", "Detail du paquet et liste des destinataires de partage.");
+        afficher_vue(VUE_VISUALISATION_PAQUET);
+        if (typeof window.afficher_visualisation_paquet === "function") {
+            window.afficher_visualisation_paquet();
+        }
     });
     Router.ajouter_avec_id("#visualisation-paquet");
 
-    // Vues non encore construites : placeholders rendus dans #view.
-    Router.ajouter("#partages", function () {
-        afficher_vue(VUE_DASHBOARD);
-        afficher_vue_placeholder("Partages avec moi", "Paquets qui vous ont ete partages.");
-    });
+    // Note : pas de route #partages dediee. Les paquets partages avec
+    // l'utilisateur apparaissent dans la colonne droite du tableau de bord
+    // (DASH-2.3), conformement a la maquette (sidebar = Tableau de bord +
+    // Mon profil).
     Router.ajouter("#profil", function () {
         afficher_vue(VUE_PROFIL);
         remplir_profil();
-    });
-    Router.ajouter("#parametres", function () {
-        afficher_vue(VUE_DASHBOARD);
-        afficher_vue_placeholder("Parametres", "Preferences de l'application.");
     });
     // Vues d'authentification : routes vers les vraies sections HTML
     // de app.php (AUTH-2.7, AUTH-2.8). La validation et la soumission
@@ -245,6 +238,14 @@ function enregistrer_routes() {
 $(function () {
     var app = $("#app");
     app.addClass("app-pret");
+
+    // Bouton menu du header (WIRE-1.3) : toggle la classe .sidebar-fermee
+    // sur .app-wrap. La CSS (.sidebar-fermee .app-sidebar { display:none })
+    // se charge du rendu effectif. Le bouton menu reste toujours visible
+    // pour pouvoir ramener la sidebar.
+    $("#menu-btn").on("click", function () {
+        $(".app-wrap").toggleClass("sidebar-fermee");
+    });
 
     // Enregistre toutes les routes avant de demarrer le router.
     enregistrer_routes();

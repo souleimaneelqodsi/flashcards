@@ -30,6 +30,8 @@ $csrf_token = Csrf::obtenir();
     <link rel="stylesheet" href="css/edition-paquet.css">
     <link rel="stylesheet" href="css/study.css">
     <link rel="stylesheet" href="css/profil.css">
+    <link rel="stylesheet" href="css/share-modal.css">
+    <link rel="stylesheet" href="css/visualisation-paquet.css">
 </head>
 <body>
     <div id="app">
@@ -75,18 +77,6 @@ $csrf_token = Csrf::obtenir();
                         </span>
                         <span class="nl-text">Nouveau paquet</span>
                     </a>
-                    <a href="#partages" class="nav-link" data-screen="partages">
-                        <span class="nl-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <circle cx="18" cy="5" r="3"></circle>
-                                <circle cx="6" cy="12" r="3"></circle>
-                                <circle cx="18" cy="19" r="3"></circle>
-                                <line x1="8.6" y1="10.6" x2="15.4" y2="6.4"></line>
-                                <line x1="8.6" y1="13.4" x2="15.4" y2="17.6"></line>
-                            </svg>
-                        </span>
-                        <span class="nl-text">Partages avec moi</span>
-                    </a>
                 </nav>
 
                 <nav class="nav-section">
@@ -99,15 +89,6 @@ $csrf_token = Csrf::obtenir();
                             </svg>
                         </span>
                         <span class="nl-text">Mon profil</span>
-                    </a>
-                    <a href="#parametres" class="nav-link" data-screen="parametres">
-                        <span class="nl-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"></path>
-                            </svg>
-                        </span>
-                        <span class="nl-text">Parametres</span>
                     </a>
                 </nav>
 
@@ -123,7 +104,7 @@ $csrf_token = Csrf::obtenir();
                         </span>
                     </a>
                     <div class="theme-row">
-                        <span>Theme sombre</span>
+                        <span>Thème sombre</span>
                         <button type="button" class="theme-switch" id="theme-switch" aria-label="Basculer le theme sombre ou clair"></button>
                     </div>
                 </div>
@@ -143,22 +124,7 @@ $csrf_token = Csrf::obtenir();
 
                     <h1 class="topbar-title" id="topbar-title">Tableau de bord</h1>
 
-                    <div class="search-bar">
-                        <svg class="search-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                            <circle cx="11" cy="11" r="7"></circle>
-                            <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
-                        </svg>
-                        <input type="text" placeholder="Rechercher un paquet..." aria-label="Rechercher un paquet">
-                    </div>
-
                     <div class="topbar-actions">
-                        <button type="button" class="icon-btn" aria-label="Notifications">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                <path d="M13.7 21a2 2 0 0 1-3.4 0"></path>
-                            </svg>
-                            <span class="notif-dot"></span>
-                        </button>
                         <a href="#profil" class="topbar-av" id="topbar-initiales" aria-label="Mon profil"></a>
                     </div>
                 </header>
@@ -168,6 +134,18 @@ $csrf_token = Csrf::obtenir();
                      deplace dans js/dashboard.js (afficher_dashboard) pour
                      pouvoir etre rejoue a chaque navigation. -->
                 <div class="page-body" id="view"></div>
+
+                <!-- ════════════════════════════════════════════════
+                     VUE : Visualisation d'un paquet (VIEW-1.3)
+                     Affiche le titre, la date d'ajout, le proprietaire,
+                     la liste des destinataires (chips). Si l'utilisateur
+                     courant est proprietaire : liens Editer / Supprimer
+                     / Partager + bouton Reviser. Sinon : Reviser
+                     uniquement. Le contenu est injecte par
+                     js/visualisation-paquet.js (afficher_visualisation_paquet)
+                     a partir de GET /api/paquets/:id.
+                ════════════════════════════════════════════════ -->
+                <section class="page-body view-screen" id="vue-visualisation-paquet" hidden></section>
 
                 <!-- ════════════════════════════════════════════════
                      VUE : Edition d'un paquet (FRONT-2.1 - 2.5)
@@ -207,22 +185,22 @@ $csrf_token = Csrf::obtenir();
                                 <h3 class="edition-section-titre">Informations du paquet</h3>
                                 <div class="form-group">
                                     <label class="form-label" for="paquet-titre">Titre <span class="req">*</span></label>
-                                    <input type="text" id="paquet-titre" class="form-control" maxlength="150" value="Bases de donnees relationnelles" placeholder="Bases de donnees relationnelles">
-                                    <p class="message-erreur" id="erreur-paquet-titre" hidden>Le titre est obligatoire (150 caracteres maximum).</p>
-                                    <p class="form-counter"><span id="paquet-titre-counter">33</span> / 150 caracteres</p>
+                                    <input type="text" id="paquet-titre" class="form-control" maxlength="150" value="" placeholder="Ex : Bases de données relationnelles">
+                                    <p class="message-erreur" id="erreur-paquet-titre" hidden>Le titre est obligatoire (150 caractères maximum).</p>
+                                    <p class="form-counter"><span id="paquet-titre-counter">33</span> / 150 caractères</p>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label" for="paquet-theme">Theme</label>
-                                    <input type="text" id="paquet-theme" class="form-control" value="SQL et modelisation" placeholder="SQL et modelisation">
+                                    <label class="form-label" for="paquet-theme">Thème</label>
+                                    <input type="text" id="paquet-theme" class="form-control" value="" placeholder="Ex : SQL et modélisation">
                                 </div>
                             </div>
 
                             <div>
-                                <h3 class="edition-section-titre">Apercu</h3>
+                                <h3 class="edition-section-titre">Aperçu</h3>
                                 <div class="apercu-card">
-                                    <div class="apercu-card-titre" id="apercu-titre">Bases de donnees relationnelles</div>
+                                    <div class="apercu-card-titre" id="apercu-titre">Bases de données relationnelles</div>
                                     <div class="apercu-card-theme" id="apercu-theme">SQL et modelisation</div>
-                                    <div class="apercu-card-count"><span id="apercu-count">2</span> cartes</div>
+                                    <div class="apercu-card-count"><span id="apercu-count">0</span> cartes</div>
                                 </div>
                             </div>
 
@@ -235,53 +213,16 @@ $csrf_token = Csrf::obtenir();
                         <!-- Colonne droite : liste des questions du paquet -->
                         <div class="edition-questions">
                             <div class="edition-questions-head">
-                                <h3 class="edition-section-titre">Questions (<span id="nb-questions">2</span>)</h3>
+                                <h3 class="edition-section-titre">Questions (<span id="nb-questions">0</span>)</h3>
                             </div>
 
-                            <div class="questions-liste" id="questions-liste">
-
-                                <!-- Question stub n°1 (FRONT-2.1 : structure et liste). Les
-                                     interactions (ajout, edition, suppression, validation)
-                                     viennent en FRONT-2.2 a 2.5. -->
-                                <article class="question-item" data-id-question="1">
-                                    <span class="question-numero">1</span>
-                                    <div class="question-corps">
-                                        <p class="question-titre">Qu'est-ce que la normalisation 3NF ?</p>
-                                        <p class="question-reponse-preview">Un schema est en 3NF si toute dependance fonctionnelle non triviale implique une cle.</p>
-                                        <div class="question-difficulte" role="radiogroup" aria-label="Difficulte de la question 1">
-                                            <button type="button" class="badge-diff badge-diff-facile active" data-difficulte="facile" role="radio" aria-checked="true">Facile</button>
-                                            <button type="button" class="badge-diff badge-diff-moyen" data-difficulte="moyen" role="radio" aria-checked="false">Moyen</button>
-                                            <button type="button" class="badge-diff badge-diff-difficile" data-difficulte="difficile" role="radio" aria-checked="false">Difficile</button>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn-supprimer-question" aria-label="Supprimer la question 1">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
-                                    </button>
-                                </article>
-
-                                <article class="question-item" data-id-question="2">
-                                    <span class="question-numero">2</span>
-                                    <div class="question-corps">
-                                        <p class="question-titre">Qu'est-ce qu'une jointure INNER JOIN ?</p>
-                                        <p class="question-reponse-preview">Retourne les lignes communes aux deux tables selon une condition de jointure.</p>
-                                        <div class="question-difficulte" role="radiogroup" aria-label="Difficulte de la question 2">
-                                            <button type="button" class="badge-diff badge-diff-facile" data-difficulte="facile" role="radio" aria-checked="false">Facile</button>
-                                            <button type="button" class="badge-diff badge-diff-moyen active" data-difficulte="moyen" role="radio" aria-checked="true">Moyen</button>
-                                            <button type="button" class="badge-diff badge-diff-difficile" data-difficulte="difficile" role="radio" aria-checked="false">Difficile</button>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn-supprimer-question" aria-label="Supprimer la question 2">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
-                                    </button>
-                                </article>
-
-                            </div>
+                            <!-- Liste des questions du paquet. Remplie par
+                                 js/edition-paquet.js a partir de GET
+                                 /api/paquets/:id/questions (QST-1.4 / QST-1.6)
+                                 en mode edition, ou laissee vide en mode
+                                 creation tant que le paquet n'est pas
+                                 enregistre. -->
+                            <div class="questions-liste" id="questions-liste"></div>
 
                             <button type="button" class="btn-ajouter-question" id="btn-ajouter-question">
                                 + Ajouter une question
@@ -299,16 +240,20 @@ $csrf_token = Csrf::obtenir();
                 ════════════════════════════════════════════════ -->
                 <section class="page-body view-screen" id="vue-study" aria-labelledby="study-titre" hidden>
 
-                    <!-- Header de session : titre paquet + progression + compteur -->
+                    <!-- Header de session : titre paquet + progression + compteur.
+                         Les valeurs (titre, theme/nb-cartes, numero courant,
+                         total, progression) sont remplies dynamiquement par
+                         js/study.js a partir de GET /api/paquets/:id/study
+                         (STUDY-1.1 / STUDY-1.3). -->
                     <div class="study-header">
                         <div class="study-header-info">
-                            <div class="study-header-titre" id="study-titre">Bases de donnees relationnelles</div>
-                            <div class="study-header-sous-titre" id="study-sous-titre">SQL et modelisation - 24 cartes</div>
+                            <div class="study-header-titre" id="study-titre"></div>
+                            <div class="study-header-sous-titre" id="study-sous-titre"></div>
                         </div>
                         <div class="study-progress" role="progressbar" aria-label="Progression de la session">
-                            <div class="study-progress-fill" id="study-progress-fill" style="width: 37%"></div>
+                            <div class="study-progress-fill" id="study-progress-fill" style="width: 0%"></div>
                         </div>
-                        <div class="study-header-compteur"><span id="study-numero-courant">9</span> / <span id="study-total">24</span></div>
+                        <div class="study-header-compteur"><span id="study-numero-courant">0</span> / <span id="study-total">0</span></div>
                     </div>
 
                     <div class="study-layout">
@@ -317,20 +262,21 @@ $csrf_token = Csrf::obtenir();
                         <div class="study-main">
 
                             <div class="study-difficulte-row">
-                                <span class="badge badge-warn" id="study-badge-difficulte">Moyen</span>
+                                <span class="badge" id="study-badge-difficulte"></span>
                             </div>
 
-                            <!-- Face recto (question) : visible par defaut. -->
-                            <div class="study-carte study-carte-recto" id="study-carte-recto" tabindex="0" role="button" aria-label="Carte question - cliquer pour reveler la reponse">
+                            <!-- Face recto (question) : visible par defaut.
+                                 Contenu rempli par js/study.js (STUDY-1.3). -->
+                            <div class="study-carte study-carte-recto" id="study-carte-recto" tabindex="0" role="button" aria-label="Carte question - cliquer pour révéler la réponse">
                                 <div class="study-carte-label">Question</div>
-                                <p class="study-carte-contenu" id="study-question">Qu'est-ce que la normalisation 3NF et dans quels cas l'utiliser ?</p>
-                                <p class="study-carte-aide">Cliquer pour reveler la reponse</p>
+                                <p class="study-carte-contenu" id="study-question"></p>
+                                <p class="study-carte-aide">Cliquer pour révéler la réponse</p>
                             </div>
 
                             <!-- Face verso (reponse) : masquee par defaut, FRONT-2.7. -->
-                            <div class="study-carte study-carte-verso" id="study-carte-verso" tabindex="0" role="button" aria-label="Carte reponse - cliquer pour revoir la question" hidden>
-                                <div class="study-carte-label">Reponse</div>
-                                <p class="study-carte-contenu" id="study-reponse">Un schema est en 3NF si toute dependance fonctionnelle non triviale implique une cle ou depend d'une cle.</p>
+                            <div class="study-carte study-carte-verso" id="study-carte-verso" tabindex="0" role="button" aria-label="Carte réponse - cliquer pour revoir la question" hidden>
+                                <div class="study-carte-label">Réponse</div>
+                                <p class="study-carte-contenu" id="study-reponse"></p>
                                 <p class="study-carte-aide">Cliquer pour revoir la question</p>
                             </div>
 
@@ -364,25 +310,19 @@ $csrf_token = Csrf::obtenir();
                             <h3 class="study-side-titre">Session en cours</h3>
 
                             <div class="study-score-card">
-                                <div class="study-score-grand"><span id="study-score-pct">75</span>%</div>
+                                <div class="study-score-grand"><span id="study-score-pct">0</span>%</div>
                                 <div class="study-score-label">Score actuel</div>
                                 <div class="study-score-stats">
-                                    <span class="score-pastille score-pastille-ok"><span id="study-correctes">6</span></span>
-                                    <span class="score-pastille score-pastille-bad"><span id="study-mauvaises">2</span></span>
-                                    <span class="score-pastille score-pastille-best"><span id="study-best">92</span>%</span>
+                                    <span class="score-pastille score-pastille-ok"><span id="study-correctes">0</span></span>
+                                    <span class="score-pastille score-pastille-bad"><span id="study-mauvaises">0</span></span>
+                                    <span class="score-pastille score-pastille-best"><span id="study-best">0</span>%</span>
                                 </div>
                             </div>
 
                             <div>
                                 <h4 class="study-liste-titre">Questions</h4>
-                                <ol class="study-liste" id="study-liste-questions">
-                                    <li class="study-liste-item savais"><span class="study-liste-numero">1</span><span class="study-liste-titre-question">Definition de la cle primaire</span></li>
-                                    <li class="study-liste-item revoir"><span class="study-liste-numero">2</span><span class="study-liste-titre-question">Qu'est-ce qu'une transaction ?</span></li>
-                                    <li class="study-liste-item"><span class="study-liste-numero">3</span><span class="study-liste-titre-question">Difference entre INNER et LEFT JOIN</span></li>
-                                    <li class="study-liste-item active"><span class="study-liste-numero">9</span><span class="study-liste-titre-question">Normalisation 3NF et cas d'usage</span></li>
-                                    <li class="study-liste-item"><span class="study-liste-numero">10</span><span class="study-liste-titre-question">Qu'est-ce qu'une vue SQL ?</span></li>
-                                    <li class="study-liste-item"><span class="study-liste-numero">11</span><span class="study-liste-titre-question">Qu'est-ce qu'un index ?</span></li>
-                                </ol>
+                                <!-- Remplie dynamiquement par js/study.js (STUDY-1.3). -->
+                                <ol class="study-liste" id="study-liste-questions"></ol>
                             </div>
                         </aside>
                     </div>
@@ -402,7 +342,7 @@ $csrf_token = Csrf::obtenir();
                     <div class="auth-fond">
                         <div class="auth-carte">
                             <h2 class="auth-titre" id="titre-login">Connexion</h2>
-                            <p class="auth-sous-titre">Accedez a vos paquets de revisions.</p>
+                            <p class="auth-sous-titre">Accédez à vos paquets de révisions.</p>
 
                             <!-- Le formulaire est soumis via js/auth.js en AJAX. L'attribut
                                  novalidate desactive la validation HTML5 du navigateur :
@@ -432,7 +372,7 @@ $csrf_token = Csrf::obtenir();
 
                             <p class="auth-bascule">
                                 Pas encore de compte ?
-                                <a href="#register" id="lien-vers-register">Creer un compte</a>
+                                <a href="#register" id="lien-vers-register">Créer un compte</a>
                             </p>
                         </div>
                     </div>
@@ -450,12 +390,12 @@ $csrf_token = Csrf::obtenir();
                     <div class="auth-fond">
                         <div class="auth-carte">
                             <h2 class="auth-titre" id="titre-register">Inscription</h2>
-                            <p class="auth-sous-titre">Creez votre compte FlashCards MIAGE.</p>
+                            <p class="auth-sous-titre">Créez votre compte FlashCards MIAGE.</p>
 
                             <form id="form-register" class="auth-form" novalidate>
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label class="form-label" for="reg-prenom">Prenom <span class="req">*</span></label>
+                                        <label class="form-label" for="reg-prenom">Prénom <span class="req">*</span></label>
                                         <input type="text" id="reg-prenom" name="prenom" class="form-control" maxlength="100" autocomplete="given-name" required>
                                         <p class="message-erreur" id="erreur-reg-prenom" hidden></p>
                                     </div>
@@ -473,8 +413,8 @@ $csrf_token = Csrf::obtenir();
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="form-label" for="reg-date-naissance">Date de naissance (AAAAMMJJ) <span class="req">*</span></label>
-                                    <input type="text" id="reg-date-naissance" name="date_naissance" class="form-control" maxlength="8" pattern="[0-9]{8}" placeholder="19990315" inputmode="numeric" required>
+                                    <label class="form-label" for="reg-date-naissance">Date de naissance <span class="req">*</span></label>
+                                    <input type="date" id="reg-date-naissance" name="date_naissance" class="form-control" min="1900-01-01" required>
                                     <p class="message-erreur" id="erreur-reg-date-naissance" hidden></p>
                                 </div>
 
@@ -491,11 +431,11 @@ $csrf_token = Csrf::obtenir();
                                 </div>
 
                                 <div class="recap-erreurs" id="recap-erreurs-register" hidden>
-                                    <p>Veuillez corriger les erreurs avant de creer votre compte :</p>
+                                    <p>Veuillez corriger les erreurs avant de créer votre compte :</p>
                                     <ul id="liste-erreurs-register"></ul>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary btn-full" id="btn-soumettre-register">Creer mon compte</button>
+                                <button type="submit" class="btn btn-primary btn-full" id="btn-soumettre-register">Créer mon compte</button>
                             </form>
 
                             <p class="auth-bascule">
@@ -518,11 +458,11 @@ $csrf_token = Csrf::obtenir();
                             <svg class="fin-session-icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 2l2.39 4.84L19.78 8l-3.89 3.79.92 5.36L12 14.77l-4.81 2.38.92-5.36L4.22 8l5.39-1.16L12 2z"></path>
                             </svg>
-                            <h2 class="fin-session-titre" id="fin-session-titre">Session terminee !</h2>
-                            <p class="fin-session-sous-titre" id="fin-session-paquet">Bases de donnees relationnelles - 24 cartes</p>
+                            <h2 class="fin-session-titre" id="fin-session-titre">Session terminée !</h2>
+                            <p class="fin-session-sous-titre" id="fin-session-paquet">Bases de données relationnelles - 24 cartes</p>
 
                             <div class="fin-session-score"><span id="fin-session-score-pct">75</span>%</div>
-                            <p class="fin-session-detail"><span id="fin-session-reussies">18</span> sur <span id="fin-session-total">24</span> cartes reussies</p>
+                            <p class="fin-session-detail"><span id="fin-session-reussies">18</span> sur <span id="fin-session-total">24</span> cartes réussies</p>
 
                             <div class="fin-session-stats">
                                 <div class="fin-session-stat fin-session-stat-correctes">
@@ -585,8 +525,10 @@ $csrf_token = Csrf::obtenir();
                         <!-- Colonne droite : infos du compte + reglages + actions -->
                         <div class="profil-droite">
 
+                            <!-- Chaque ligne est cliquable (chevron) et ouvre la
+                                 meme modale d'edition du profil (D). -->
                             <div class="card profil-info-card">
-                                <div class="profil-info-row">
+                                <button type="button" class="profil-info-row profil-info-bouton" aria-label="Modifier mes informations">
                                     <span class="profil-info-ic">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <circle cx="12" cy="8" r="4"></circle>
@@ -594,11 +536,16 @@ $csrf_token = Csrf::obtenir();
                                         </svg>
                                     </span>
                                     <span class="profil-info-txt">
-                                        <span class="profil-info-label">Prenom</span>
+                                        <span class="profil-info-label">Prénom</span>
                                         <span class="profil-info-valeur" id="profil-val-prenom"></span>
                                     </span>
-                                </div>
-                                <div class="profil-info-row">
+                                    <span class="profil-chevron">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <polyline points="9 6 15 12 9 18"></polyline>
+                                        </svg>
+                                    </span>
+                                </button>
+                                <button type="button" class="profil-info-row profil-info-bouton" aria-label="Modifier mes informations">
                                     <span class="profil-info-ic">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2"></path>
@@ -609,8 +556,13 @@ $csrf_token = Csrf::obtenir();
                                         <span class="profil-info-label">Nom</span>
                                         <span class="profil-info-valeur" id="profil-val-nom"></span>
                                     </span>
-                                </div>
-                                <div class="profil-info-row">
+                                    <span class="profil-chevron">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <polyline points="9 6 15 12 9 18"></polyline>
+                                        </svg>
+                                    </span>
+                                </button>
+                                <button type="button" class="profil-info-row profil-info-bouton" aria-label="Modifier mes informations">
                                     <span class="profil-info-ic">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <rect x="3" y="4" width="18" height="18" rx="2"></rect>
@@ -623,8 +575,13 @@ $csrf_token = Csrf::obtenir();
                                         <span class="profil-info-label">Date de naissance</span>
                                         <span class="profil-info-valeur" id="profil-val-date"></span>
                                     </span>
-                                </div>
-                                <div class="profil-info-row">
+                                    <span class="profil-chevron">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <polyline points="9 6 15 12 9 18"></polyline>
+                                        </svg>
+                                    </span>
+                                </button>
+                                <button type="button" class="profil-info-row profil-info-bouton" aria-label="Modifier mes informations">
                                     <span class="profil-info-ic">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <rect x="3" y="5" width="18" height="14" rx="2"></rect>
@@ -635,7 +592,12 @@ $csrf_token = Csrf::obtenir();
                                         <span class="profil-info-label">Email</span>
                                         <span class="profil-info-valeur" id="profil-val-email"></span>
                                     </span>
-                                </div>
+                                    <span class="profil-chevron">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <polyline points="9 6 15 12 9 18"></polyline>
+                                        </svg>
+                                    </span>
+                                </button>
                             </div>
 
                             <div class="card profil-reglages-card">
@@ -660,7 +622,7 @@ $csrf_token = Csrf::obtenir();
                             </div>
 
                             <div class="profil-actions">
-                                <button type="button" class="btn btn-secondary" id="btn-deconnexion-profil">Se deconnecter</button>
+                                <button type="button" class="btn btn-secondary" id="btn-deconnexion-profil">Se déconnecter</button>
                                 <button type="button" class="btn profil-btn-supprimer" id="btn-supprimer-compte">Supprimer le compte</button>
                             </div>
                         </div>
@@ -699,8 +661,8 @@ $csrf_token = Csrf::obtenir();
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="champ-reponse">Reponse <span class="req">*</span></label>
-                    <textarea id="champ-reponse" name="reponse" class="form-control" placeholder="Saisissez la reponse..." required></textarea>
+                    <label class="form-label" for="champ-reponse">Réponse <span class="req">*</span></label>
+                    <textarea id="champ-reponse" name="reponse" class="form-control" placeholder="Saisissez la réponse..." required></textarea>
                     <p class="message-erreur" id="erreur-reponse" hidden>La reponse est obligatoire.</p>
                 </div>
 
@@ -724,6 +686,51 @@ $csrf_token = Csrf::obtenir();
                     <button type="submit" class="btn btn-primary" id="btn-valider-ajout-question">Ajouter la question</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+         Modale de partage d'un paquet (SHARE-1.4).
+         Reference visuelle : project-files/interface/share_bag.png.
+         Auto-completion en jQuery vanilla (keyup + ajax + render),
+         pas de jQuery UI (lib externe hors stack). La logique est
+         dans js/share-modal.js ; le point d'entree global est
+         window.ouvrir_modale_partage(id_paquet, titre).
+    ════════════════════════════════════════════════ -->
+    <div class="modale-overlay" id="modale-partage" role="dialog" aria-modal="true" aria-labelledby="titre-modale-partage" hidden>
+        <div class="modale-boite modale-boite-partage">
+            <div class="modale-titre-row">
+                <div>
+                    <h3 class="modale-titre" id="titre-modale-partage">Partager ce paquet</h3>
+                    <p class="modale-sous-titre" id="partage-sous-titre"></p>
+                </div>
+                <button type="button" class="btn-fermer-modale" id="partage-bouton-fermer" aria-label="Fermer la modale">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modale-corps">
+                <label class="partage-label" for="partage-recherche">Rechercher un utilisateur</label>
+                <div class="partage-input-wrap">
+                    <svg class="partage-input-icone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+                    </svg>
+                    <input type="text" id="partage-recherche" class="form-control partage-input" placeholder="Email ou debut d'email..." autocomplete="off">
+                </div>
+                <div class="partage-resultats" id="partage-resultats" role="listbox" aria-label="Résultats de recherche"></div>
+                <p class="partage-info-bandeau" id="partage-info-bandeau">Le destinataire recevra un accès en lecture seule. Chaque utilisateur garde ses propres scores et progressions.</p>
+            </div>
+
+            <div class="recap-erreurs modale-recap-erreurs" id="partage-recap-erreurs" hidden></div>
+
+            <div class="modale-actions">
+                <button type="button" class="btn btn-secondary" id="partage-bouton-annuler">Annuler</button>
+                <button type="button" class="btn btn-primary" id="partage-bouton-confirmer" disabled>Partager</button>
+            </div>
         </div>
     </div>
 
@@ -753,6 +760,136 @@ $csrf_token = Csrf::obtenir();
         </div>
     </div>
 
+    <!-- ════════════════════════════════════════════════
+         Modale d'edition du profil (D). Validation client en miroir de
+         la validation serveur (UtilisateurController::valider_profil) :
+         champ rouge au keyup/blur + message sous le champ + recap en bas
+         (pattern impose CLAUDE.md §6). Logique dans js/profil.js.
+    ════════════════════════════════════════════════ -->
+    <div class="modale-overlay" id="modale-edition-profil" role="dialog" aria-modal="true" aria-labelledby="titre-modale-edition-profil" hidden>
+        <div class="modale-boite">
+            <div class="modale-titre-row">
+                <h3 class="modale-titre" id="titre-modale-edition-profil">Modifier mes informations</h3>
+                <button type="button" class="btn-fermer-modale" id="btn-fermer-edition-profil" aria-label="Fermer la modale">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form class="modale-corps" id="form-edition-profil" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="edit-prenom">Prénom <span class="req">*</span></label>
+                    <input type="text" id="edit-prenom" name="prenom" class="form-control" maxlength="100" required>
+                    <p class="message-erreur" id="erreur-edit-prenom" hidden></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit-nom">Nom <span class="req">*</span></label>
+                    <input type="text" id="edit-nom" name="nom" class="form-control" maxlength="100" required>
+                    <p class="message-erreur" id="erreur-edit-nom" hidden></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit-date">Date de naissance <span class="req">*</span></label>
+                    <input type="date" id="edit-date" name="date_naissance" class="form-control" min="1900-01-01" required>
+                    <p class="message-erreur" id="erreur-edit-date" hidden></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit-email">Email <span class="req">*</span></label>
+                    <input type="email" id="edit-email" name="email" class="form-control" maxlength="150" required>
+                    <p class="message-erreur" id="erreur-edit-email" hidden></p>
+                </div>
+                <div class="recap-erreurs modale-recap-erreurs" id="recap-erreurs-profil" hidden>
+                    <p>Veuillez corriger les erreurs ci-dessus avant de valider :</p>
+                    <ul id="liste-erreurs-profil"></ul>
+                </div>
+                <div class="modale-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-annuler-edition-profil">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="btn-valider-edition-profil">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+         Modale de changement de mot de passe (E / OPT-1.3). Validation
+         client + serveur (>= 6 caracteres, confirmation identique, ancien
+         mot de passe verifie cote serveur). Logique dans js/profil.js.
+    ════════════════════════════════════════════════ -->
+    <div class="modale-overlay" id="modale-mot-de-passe" role="dialog" aria-modal="true" aria-labelledby="titre-modale-mot-de-passe" hidden>
+        <div class="modale-boite">
+            <div class="modale-titre-row">
+                <h3 class="modale-titre" id="titre-modale-mot-de-passe">Changer mon mot de passe</h3>
+                <button type="button" class="btn-fermer-modale" id="btn-fermer-mot-de-passe" aria-label="Fermer la modale">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form class="modale-corps" id="form-mot-de-passe" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="mdp-actuel">Mot de passe actuel <span class="req">*</span></label>
+                    <input type="password" id="mdp-actuel" name="mot_de_passe_actuel" class="form-control" required>
+                    <p class="message-erreur" id="erreur-mdp-actuel" hidden></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="mdp-nouveau">Nouveau mot de passe <span class="req">*</span></label>
+                    <input type="password" id="mdp-nouveau" name="nouveau_mot_de_passe" class="form-control" required>
+                    <p class="message-erreur" id="erreur-mdp-nouveau" hidden></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="mdp-confirmation">Confirmer le nouveau mot de passe <span class="req">*</span></label>
+                    <input type="password" id="mdp-confirmation" name="confirmation_mot_de_passe" class="form-control" required>
+                    <p class="message-erreur" id="erreur-mdp-confirmation" hidden></p>
+                </div>
+                <div class="recap-erreurs modale-recap-erreurs" id="recap-erreurs-mdp" hidden>
+                    <p>Veuillez corriger les erreurs ci-dessus avant de valider :</p>
+                    <ul id="liste-erreurs-mdp"></ul>
+                </div>
+                <div class="modale-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-annuler-mot-de-passe">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="btn-valider-mot-de-passe">Mettre à jour</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+         Modale de choix de couleur d'avatar (F). Variante "initiales
+         colorees" : pas d'upload de fichier (hors perimetre du cours),
+         la couleur est choisie dans la palette officielle et stockee
+         dans la colonne avatar. Logique dans js/profil.js.
+    ════════════════════════════════════════════════ -->
+    <div class="modale-overlay" id="modale-avatar" role="dialog" aria-modal="true" aria-labelledby="titre-modale-avatar" hidden>
+        <div class="modale-boite">
+            <div class="modale-titre-row">
+                <h3 class="modale-titre" id="titre-modale-avatar">Couleur de l'avatar</h3>
+                <button type="button" class="btn-fermer-modale" id="btn-fermer-avatar" aria-label="Fermer la modale">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modale-corps">
+                <p class="avatar-modale-info">Choisissez la couleur du cercle de vos initiales.</p>
+                <div class="avatar-palette" role="group" aria-label="Couleurs disponibles">
+                    <button type="button" class="avatar-swatch" data-couleur="#7C4DFF" style="background-color: #7C4DFF" aria-label="Violet"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#FF6584" style="background-color: #FF6584" aria-label="Rose"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#22C55E" style="background-color: #22C55E" aria-label="Vert"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#F59E0B" style="background-color: #F59E0B" aria-label="Orange"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#3B82F6" style="background-color: #3B82F6" aria-label="Bleu"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#EC4899" style="background-color: #EC4899" aria-label="Magenta"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#14B8A6" style="background-color: #14B8A6" aria-label="Turquoise"></button>
+                    <button type="button" class="avatar-swatch" data-couleur="#6366F1" style="background-color: #6366F1" aria-label="Indigo"></button>
+                </div>
+            </div>
+            <div class="modale-actions">
+                <button type="button" class="btn btn-secondary" id="btn-annuler-avatar">Fermer</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/lib/jquery-3.7.1.min.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/toast.js"></script>
@@ -760,6 +897,8 @@ $csrf_token = Csrf::obtenir();
     <script src="js/router.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/edition-paquet.js"></script>
+    <script src="js/share-modal.js"></script>
+    <script src="js/visualisation-paquet.js"></script>
     <script src="js/study.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/session.js"></script>
