@@ -83,6 +83,64 @@ function remplir_profil() {
     $("#profil-val-date").text(formater_date_naissance(utilisateur.date_naissance));
     $("#profil-val-email").text(utilisateur.email);
     synchroniser_toggle_theme_profil();
+    charger_stats_profil();
+}
+
+// ── Compteurs du profil (WIRE-1.4) ──────────────────────────────────
+// Branche les 3 stats de la carte profil (Paquets / Record / Sessions)
+// sur les vraies donnees, calculees a partir de GET /api/paquets :
+//  - Paquets  : nombre de paquets dont l'utilisateur est proprietaire
+//               (taille de la liste retournee).
+//  - Record   : meilleur best_score parmi ses paquets (null si aucun
+//               paquet n'a encore ete revise).
+//  - Sessions : approximation = nombre de paquets dont last_score est
+//               renseigne, i.e. revises au moins une fois. Le modele
+//               actuel (CLAUDE.md §4) ne stocke pas de compteur de
+//               sessions distinct ; cette approximation sera affinee
+//               si une colonne dediee est ajoutee plus tard.
+//
+// Aucun nouvel endpoint backend n'est cree pour WIRE-1.4 : on reutilise
+// GET /api/paquets (PAQ-1.1) qui renvoie deja best_score / last_score
+// par paquet. Une session expiree (401) declenchera la redirection
+// automatique vers login via AjaxService.
+function charger_stats_profil() {
+    AjaxService.get("paquets", undefined, {
+        succes: function (reponse) {
+            var paquets = (reponse && reponse.paquets) ? reponse.paquets : [];
+            mettre_a_jour_stats_profil(paquets);
+        },
+        erreur: function () {
+            // En cas d'erreur reseau, on laisse les "0" du markup par
+            // defaut : pas de toast pour ne pas saturer (le profil est
+            // une vue secondaire, l'erreur est non bloquante).
+        }
+    });
+}
+
+// Calcule et injecte les 3 stats dans le DOM. Separe de
+// charger_stats_profil pour pouvoir etre teste manuellement avec une
+// liste forgee en console.
+function mettre_a_jour_stats_profil(paquets) {
+    $("#profil-nb-paquets").text(paquets.length);
+
+    var best_global = null;
+    var nb_sessions = 0;
+    var i;
+    for (i = 0; i < paquets.length; i = i + 1) {
+        var p = paquets[i];
+        if (typeof p.best_score === "number") {
+            if (best_global === null || p.best_score > best_global) {
+                best_global = p.best_score;
+            }
+        }
+        if (typeof p.last_score === "number") {
+            nb_sessions = nb_sessions + 1;
+        }
+    }
+
+    var libelle_record = (best_global === null) ? "—" : (best_global + "%");
+    $("#profil-record").text(libelle_record);
+    $("#profil-nb-sessions").text(nb_sessions);
 }
 
 window.remplir_profil = remplir_profil;
