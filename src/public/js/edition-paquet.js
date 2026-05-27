@@ -821,6 +821,9 @@ function enregistrer_paquet() {
     }
 }
 
+// Mode creation : cree le paquet (POST /api/paquets). Si des questions ont
+// ete saisies en tampon, on enchaine leur creation une fois l'id du paquet
+// connu (enregistrer_questions_bufferisees) ; sinon redirection directe.
 function envoyer_post(payload) {
     AjaxService.post("paquets", payload, {
         succes: function (reponse) {
@@ -876,6 +879,7 @@ function enregistrer_questions_bufferisees(id_paquet, index) {
     });
 }
 
+// Mode edition : met a jour le paquet existant (PUT /api/paquets/:id).
 function envoyer_put(payload) {
     if (paquet_id_courant === null) {
         afficher_erreurs_form(["Identifiant de paquet manquant."]);
