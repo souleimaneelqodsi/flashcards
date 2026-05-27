@@ -1,4 +1,4 @@
-# Verification indentation 4 espaces
+# vérification indentation 4 espaces
 
 Exigence sujet TER (CLAUDE.md §8 + §10) : **indentation 4 espaces dans
 tous les fichiers PHP/JS/CSS/HTML**. Penalite : -2 pts si non
@@ -8,7 +8,7 @@ respecte.
 
 **Tout est conforme. -2 pts non applicable.**
 
-Verification realisee via l'agent `indentation-fixer` qui a scanne :
+vérification réalisée via l'agent `indentation-fixer` qui a scanne :
 
 - 47 fichiers au total dans :
   - `src/controllers/` (PHP)
@@ -21,7 +21,7 @@ Verification realisee via l'agent `indentation-fixer` qui a scanne :
   - `src/public/js/` (JS, hors `lib/jquery-3.7.1.min.js`)
   - `src/public/index.php` (PHP)
 
-Resultats :
+résultats :
 - [x] Aucune tabulation (`\t`) residuelle.
 - [x] Aucune indentation de code non multiple de 4.
 - [x] Aucune modification apportee.

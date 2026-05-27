@@ -1,8 +1,8 @@
 # Validation W3C HTML + CSS
 
-Cette section consigne le resultat de la validation W3C du HTML et du
+Cette section consigne le résultat de la validation W3C du HTML et du
 CSS du projet, exigence du sujet TER ("Doit passer le validateur W3C
-sans erreur"). La validation a ete realisee via l'agent `w3c-validator`
+sans erreur"). La validation a ete réalisée via l'agent `w3c-validator`
 (Nu HTML Checker pour le HTML, Jigsaw CSS Validator pour le CSS).
 
 ## 1. HTML — `src/views/app.php`
@@ -11,7 +11,7 @@ sans erreur"). La validation a ete realisee via l'agent `w3c-validator`
 
 ### Points positifs
 
-- `<!DOCTYPE html>` declare en debut.
+- `<!DOCTYPE html>` déclaré en debut.
 - `<html lang="fr">` et `<meta charset="UTF-8">` presents.
 - `<meta name="viewport">` pour le responsive.
 - `<title>` non vide.
@@ -35,7 +35,7 @@ chargement) :
    `profil.js` a partir des donnees session.
 
 Ces warnings sont **inherents au pattern SPA** : le validateur W3C
-n'execute pas le JavaScript, donc il voit le HTML "vide" qui est
+n'exécuté pas le JavaScript, donc il voit le HTML "vide" qui est
 ensuite peuple au runtime. Aucun impact fonctionnel.
 
 ## 2. CSS — `src/public/css/*.css`
@@ -46,15 +46,15 @@ Les 10 feuilles de style ont ete validees individuellement contre le
 profil Jigsaw CSS Level 2.1 (le profil le plus strict, conformement a
 l'exigence "CSS2 maximum" du sujet).
 
-### Proprietes CSS3 utilisees (deliberement, toutes justifiees)
+### propriétés CSS3 utilisees (deliberement, toutes justifiees)
 
-| Propriete | Statut sujet | Justification |
+| propriété | Statut sujet | Justification |
 |---|---|---|
 | `display: flex / inline-flex` + `flex-*`, `gap` | **Tolere** (CLAUDE.md §2 bis) | Layout SPA moderne |
 | `border-radius` | **Tolere** | Boutons arrondis (cf. `border_curveness_buttons.png`) |
 | `box-shadow` | **Tolere** | Profondeur visuelle des cartes |
 | `transition` | **Tolere** | Animations douces (hover, focus) |
-| `rgba()` | **Tolere** | Transparences (overlays, etats hover) |
+| `rgba()` | **Tolere** | Transparences (overlays, états hover) |
 | `linear-gradient()` | Implicit (derive rgba) | Avatars degrades, bouton primaire |
 | `:root` + `var(--...)` | **Deliberement utilise** | Design token system pour theme Dark/Light. ~298 occurrences. Remplacement par valeurs en dur produirait un code 3x plus long. |
 | `position: sticky` | **Deliberement utilise** | Sidebar et topbar restent visibles pendant le scroll. Alternative `fixed` casserait le flux. |
@@ -84,9 +84,9 @@ Pour la soutenance, mentionner explicitement :
 
 2. **`position: sticky` sur la sidebar et le topbar** : alternative
    `position: fixed` casserait la coexistence du contenu scrollable et
-   des elements de navigation. C'est l'approche moderne standard.
+   des éléments de navigation. C'est l'approche moderne standard.
 
-3. **Animation du spinner AJAX** : aucune autre fonctionnalite n'utilise
+3. **Animation du spinner AJAX** : aucune autre fonctionnalité n'utilise
    d'animation. Le sujet tolere CSS3 "si besoin" (§2) ; ce besoin est
    ici fonctionnel (feedback visuel du chargement reseau).
 
@@ -109,5 +109,5 @@ curl -F 'file=@/tmp/rendu.html' -F 'showsource=yes' https://validator.w3.org/nu/
 curl -F "file=@src/public/css/theme.css" "https://jigsaw.w3.org/css-validator/validator?profile=css21&output=text"
 ```
 
-**Resultat global : aucun bloquant pour le rendu. Les warnings et
+**résultat global : aucun bloquant pour le rendu. Les warnings et
 erreurs CSS3 toleres sont documentes et justifiables a l'oral.**

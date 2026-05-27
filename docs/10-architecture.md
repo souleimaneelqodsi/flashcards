@@ -1,9 +1,9 @@
 # Architecture logicielle (DOC-ARCH.1)
 
-Justification du choix d'architecture : un MVC cote serveur exposant une API
-JSON, consomme par une SPA (Single Page Application) jQuery cote client.
+Justification du choix d'architecture : un MVC côté serveur exposant une API
+JSON, consomme par une SPA (Single Page Application) jQuery côté client.
 
-> Reference d'implementation : `src/public/index.php` (front-controller),
+> référence d'implémentation : `src/public/index.php` (front-controller),
 > `src/core/Router.php`, `src/controllers/`, `src/models/`,
 > `src/repositories/`. Diagramme : `project-files/component_diagram.jpeg`.
 > Patrons detailles dans [11-patrons.md](11-patrons.md), flux dynamiques dans
@@ -13,18 +13,18 @@ JSON, consomme par une SPA (Single Page Application) jQuery cote client.
 
 ## 1. Le patron MVC
 
-Le **Modele-Vue-Controleur** separe une application en trois responsabilites
+Le **modèle-Vue-Controleur** sépare une application en trois responsabilités
 distinctes, ce qui evite de melanger l'affichage, la logique de traitement et
-l'acces aux donnees dans les memes fichiers :
+l'accès aux donnees dans les mêmes fichiers :
 
-- **Modele** : les donnees metier et les regles qui les gouvernent. Dans le
-  projet, ce sont les entites (`src/models/`) et les repositories qui les
+- **modèle** : les donnees metier et les règles qui les gouvernent. Dans le
+  projet, ce sont les entités (`src/models/`) et les repositories qui les
   persistent (`src/repositories/`).
 - **Vue** : ce que voit l'utilisateur. Ici, la coquille HTML
   (`src/views/app.php`) et tout le rendu dynamique jQuery (`src/public/js/`,
   `src/public/css/`).
-- **Controleur** : le chef d'orchestre. Il recoit la requete, valide les
-  donnees, appelle le modele et choisit la reponse. Ce sont les classes de
+- **Controleur** : le chef d'orchestre. Il reçoit la requête, valide les
+  donnees, appelle le modèle et choisit la réponse. Ce sont les classes de
   `src/controllers/` (`AuthController`, `PaquetController`, etc.).
 
 Le sujet TER impose explicitement une architecture MVC ; le choix n'est donc
@@ -33,27 +33,27 @@ contexte SPA ou la frontiere Vue / Controleur se decale.
 
 ## 2. Repartition des trois couches dans le code
 
-| Couche | Role | Fichiers du projet |
+| Couche | rôle | Fichiers du projet |
 |---|---|---|
 | **Vue** | Affichage, navigation client, validation client | `src/views/app.php`, `src/public/js/*.js`, `src/public/css/*.css` |
-| **Controleur** | Reception AJAX, validation serveur, orchestration, reponse JSON | `src/controllers/*.php`, routage par `src/core/Router.php` |
-| **Modele** | Entites metier + acces aux donnees | `src/models/*.php`, `src/repositories/*.php`, connexion `src/core/DB.php` |
+| **Controleur** | Reception AJAX, validation serveur, orchestration, réponse JSON | `src/controllers/*.php`, routage par `src/core/Router.php` |
+| **modèle** | entités metier + accès aux donnees | `src/models/*.php`, `src/repositories/*.php`, connexion `src/core/DB.php` |
 
-Le decoupage est strict : un controleur ne genere jamais de HTML et ne touche
-jamais a PDO ; une vue ne contient aucune requete SQL ; un repository ne sait
-rien du protocole HTTP. Cette separation est ce qui rend chaque couche
-testable et remplacable independamment.
+Le découpage est strict : un controleur ne généré jamais de HTML et ne touche
+jamais a PDO ; une vue ne contient aucune requête SQL ; un repository ne sait
+rien du protocole HTTP. Cette séparation est ce qui rend chaque couche
+testable et remplacable indépendamment.
 
 ## 3. MVC en mode SPA : ou se trouve la frontiere Vue / Controleur
 
-Dans un MVC classique (PHP qui genere des pages completes a chaque clic), la
+Dans un MVC classique (PHP qui généré des pages complètes a chaque clic), la
 Vue est produite par le serveur. Le projet est une **SPA** : la page n'est
 chargee qu'une fois, puis jQuery met a jour le DOM sans rechargement. La Vue
-est donc **entierement cote client** ; le serveur ne renvoie plus du HTML mais
+est donc **entierement côté client** ; le serveur ne renvoie plus du HTML mais
 du **JSON**.
 
 Concretement, le front-controller `src/public/index.php` distingue deux types
-de requetes :
+de requêtes :
 
 ```php
 $prefixe_api = '/api/';
@@ -69,11 +69,11 @@ if ($est_appel_api) {
 require __DIR__ . '/../views/app.php';
 ```
 
-- une URL `/api/...` est routee vers un **controleur** qui repond en JSON ;
+- une URL `/api/...` est routee vers un **controleur** qui répond en JSON ;
 - toute autre URL renvoie une seule fois la **coquille HTML** (`app.php`), qui
-  charge ensuite jQuery et prend la main cote client.
+  charge ensuite jQuery et prend la main côté client.
 
-La navigation entre ecrans est geree cote client par `src/public/js/router.js`
+La navigation entre écrans est geree côté client par `src/public/js/router.js`
 (ecoute de `window.location.hash`, sans rechargement de page). Le serveur
 reste un fournisseur de donnees : la couche Controleur du MVC devient une
 **API JSON**, et la couche Vue migre dans le navigateur.
@@ -81,44 +81,44 @@ reste un fournisseur de donnees : la couche Controleur du MVC devient une
 ## 4. Comparaison MVC / MVP / MVVM
 
 Le cours (chapitre 8) demande de situer MVC parmi ses variantes. Les trois
-patrons partagent le meme objectif (separer affichage et logique) mais
-different par la facon dont la Vue et le reste communiquent.
+patrons partagent le même objectif (séparer affichage et logique) mais
+different par la façon dont la Vue et le reste communiquent.
 
 | Patron | Intermediaire | Liaison Vue <-> donnees | Adapte a... |
 |---|---|---|---|
-| **MVC** | Controleur | La Vue lit le Modele, le Controleur agit dessus | Applications web requete/reponse |
-| **MVP** | Presenter | La Vue est passive, le Presenter la pilote entierement | Interfaces a logique de presentation lourde (desktop, Android historique) |
-| **MVVM** | ViewModel | Liaison de donnees **bidirectionnelle** automatique (data binding) | Frameworks a binding integre (WPF, Angular, Vue.js) |
+| **MVC** | Controleur | La Vue lit le modèle, le Controleur agit dessus | Applications web requête/réponse |
+| **MVP** | présenter | La Vue est passive, le présenter la pilote entierement | Interfaces a logique de présentation lourde (desktop, Android historique) |
+| **MVVM** | ViewModel | Liaison de donnees **bidirectionnelle** automatique (data binding) | Frameworks a binding intègre (WPF, Angular, Vue.js) |
 
 **Pourquoi pas MVVM ?** Le MVVM repose sur un mecanisme de *data binding*
 bidirectionnel fourni par un framework (Angular, Vue.js). Or la stack imposee
 (CLAUDE.md section 2) exclut tout framework de ce type : avec jQuery seul, il
 faudrait reimplementer un moteur de binding a la main, ce qui serait du code
-complexe et hors perimetre du cours.
+complexe et hors périmètre du cours.
 
-**Pourquoi pas MVP ?** Le MVP vise des interfaces a etat riche ou la Vue est
-totalement passive et pilotee par un Presenter. Le supplement de structure
-(un Presenter par vue, contrats d'interface) n'apporte rien sur une
-application web a echanges requete/reponse comme celle-ci, et alourdirait le
+**Pourquoi pas MVP ?** Le MVP vise des interfaces a état riche ou la Vue est
+totalement passive et pilotee par un présenter. Le supplement de structure
+(un présenter par vue, contrats d'interface) n'apporte rien sur une
+application web a echanges requête/réponse comme celle-ci, et alourdirait le
 code sans benefice.
 
-**Pourquoi MVC ?** Le modele requete/reponse du Web s'aligne naturellement sur
-MVC : une requete HTTP arrive, un controleur la traite, une reponse repart.
-Le decoupage est simple a expliquer, correspond a la structure de fichiers du
-projet, et reste lisible par un etudiant de M1 (CLAUDE.md section 7 bis). C'est
+**Pourquoi MVC ?** Le modèle requête/réponse du Web s'aligne naturellement sur
+MVC : une requête HTTP arrive, un controleur la traite, une réponse repart.
+Le découpage est simple a expliquer, correspond a la structure de fichiers du
+projet, et reste lisible par un étudiant de M1 (CLAUDE.md section 7 bis). C'est
 aussi l'architecture explicitement attendue par le sujet.
 
-## 5. Benefices concrets de ce decoupage dans le projet
+## 5. Benefices concrets de ce découpage dans le projet
 
-- **Securite centralisee** : la verification d'authentification
-  (`BaseController::verifier_authentifie`) et le controle CSRF
+- **sécurité centralisee** : la vérification d'authentification
+  (`BaseController::verifier_authentifie`) et le contrôle CSRF
   (`Csrf::verifier_requete`) vivent dans la couche Controleur, en premiere
   ligne de chaque action. Aucune vue ne peut les contourner puisque la Vue
-  n'a pas d'acces direct aux donnees.
-- **Acces aux donnees isole** : tout le SQL est confine dans les repositories
+  n'a pas d'accès direct aux donnees.
+- **accès aux donnees isole** : tout le SQL est confine dans les repositories
   (patron Repository, [11-patrons.md](11-patrons.md)). Changer de SGBD ou
-  corriger une requete ne touche qu'une couche.
-- **Front independant** : la Vue ne dialogue avec le serveur que via des URL
+  corriger une requête ne touche qu'une couche.
+- **Front indépendant** : la Vue ne dialogue avec le serveur que via des URL
   `/api/...` renvoyant du JSON. Le front pourrait etre remplace (autre client)
   sans modifier le serveur, et inversement.
 - **Travail en binome facilite** : un developpeur peut travailler sur un
@@ -130,7 +130,7 @@ aussi l'architecture explicitement attendue par le sujet.
 ## 6. Diagramme de composants (DOC-ARCH.2)
 
 Le diagramme de composants (`project-files/component_diagram.jpeg`) traduit
-en UML 2 la repartition des responsabilites decrite ci-dessus. Il montre
+en UML 2 la repartition des responsabilités decrite ci-dessus. Il montre
 quatre blocs distincts relies par des interfaces fournies / requises.
 
 ### 6.1 Description des composants
@@ -138,15 +138,15 @@ quatre blocs distincts relies par des interfaces fournies / requises.
 **Frontend — SPA Client Riche**
 
 Le composant `Vues Dynamiques` produit l'interface HTML/CSS visible par
-l'utilisateur. Il contient les templates des ecrans (tableau de bord, creation
-de paquet, mode revision, etc.) et le rendu dynamique assure par jQuery.
+l'utilisateur. Il contient les templates des écrans (tableau de bord, création
+de paquet, mode révision, etc.) et le rendu dynamique assure par jQuery.
 
-Le composant `Routeur jQuery` gere la navigation cote client : il ecoute les
+Le composant `Routeur jQuery` gere la navigation côté client : il ecoute les
 changements de `window.location.hash` et affiche ou masque les sections
 correspondantes sans recharger la page (`src/public/js/router.js`). Il est
 aussi responsable d'initier les appels AJAX vers l'API.
 
-Le composant `Session Client` maintient l'etat local de la session (identite
+Le composant `Session Client` maintient l'état local de la session (identite
 de l'utilisateur connecte, jeton CSRF actif) pour eviter de redemander ces
 informations a chaque action.
 
@@ -156,25 +156,25 @@ Ces trois composants forment la **couche Vue** du MVC.
 
 Le composant `Controleurs API` regroupe les quatre controleurs PHP
 (`AuthController`, `PaquetController`, `UtilisateurController`,
-`QuestionController`) et le routeur serveur (`Router.php`). Il recoit les
-requetes AJAX du front, verifie l'authentification et le jeton CSRF, valide
+`QuestionController`) et le routeur serveur (`Router.php`). Il reçoit les
+requêtes AJAX du front, vérifié l'authentification et le jeton CSRF, valide
 les donnees, puis delegue la persistance a la couche en dessous.
 
 Le composant `Couche Persistance` est constitue des cinq repositories
 (`UtilisateurRepository`, `PaquetRepository`, `QuestionRepository`,
-`PartageRepository`, `DifficulteRepository`) et des cinq entites metier
+`PartageRepository`, `DifficulteRepository`) et des cinq entités metier
 (`Utilisateur`, `Paquet`, `Question`, `Difficulte`, `Partage`). Les
-repositories sont les seuls composants autorises a ecrire du SQL.
+repositories sont les seuls composants autorises a écrire du SQL.
 
-Ces deux composants forment la **couche Controleur et la couche Modele** du
-MVC cote serveur.
+Ces deux composants forment la **couche Controleur et la couche modèle** du
+MVC côté serveur.
 
 **DB Singleton (PDO)**
 
 Le composant `DB Singleton` (`src/core/DB.php`) isole la connexion SQLite dans
-une instance unique. Tous les repositories obtiennent la meme connexion PDO
-via `DB::getInstance()` au lieu d'en creer chacun une nouvelle. C'est
-l'implementation du patron Singleton (cf. [11-patrons.md](11-patrons.md)).
+une instance unique. Tous les repositories obtiennent la même connexion PDO
+via `DB::getInstance()` au lieu d'en créer chacun une nouvelle. C'est
+l'implémentation du patron Singleton (cf. [11-patrons.md](11-patrons.md)).
 
 **Base SQLite**
 
@@ -186,19 +186,19 @@ local : aucun serveur de base de donnees a installer, portabilite maximale.
 
 | Interface | Nature | Direction |
 |---|---|---|
-| Frontend <-> Controleurs API | AJAX / JSON via HTTP | Bidirectionnelle requete/reponse |
-| Controleurs API <-> Couche Persistance | Appels de methodes PHP (objets) | Controleur appelle Repository |
+| Frontend <-> Controleurs API | AJAX / JSON via HTTP | Bidirectionnelle requête/réponse |
+| Controleurs API <-> Couche Persistance | Appels de méthodes PHP (objets) | Controleur appelle Repository |
 | Couche Persistance <-> DB Singleton | Appels `DB::getInstance()->executer(...)` | Repository appelle Singleton |
-| DB Singleton <-> Base SQLite | PDO (requetes SQL preparees) | Singleton lit/ecrit SQLite |
+| DB Singleton <-> Base SQLite | PDO (requêtes SQL preparees) | Singleton lit/écrit SQLite |
 
 La communication entre Frontend et Backend est **exclusivement AJAX/JSON** :
-le front ne connait pas le schema SQL, le back ne connait pas le DOM. Ce
-contrat est ce qui rend les deux cotes independants l'un de l'autre.
+le front ne connait pas le schéma SQL, le back ne connait pas le DOM. Ce
+contrat est ce qui rend les deux cotes indépendants l'un de l'autre.
 
 ### 6.3 Ce que le diagramme n'exprime pas
 
 Le diagramme de composants montre la **structure statique** (quelles briques
 existent et comment elles s'assemblent). Il ne montre pas les flux dynamiques
-(qui appelle qui dans quel ordre pour une operation donnee). Ces flux sont
+(qui appelle qui dans quel ordre pour une opération donnee). Ces flux sont
 documentes dans les diagrammes de sequence :
 voir [12-diagrammes-sequence.md](12-diagrammes-sequence.md).
