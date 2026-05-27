@@ -89,6 +89,13 @@ lisibilite ecran et son large eventail de graisses. Fallback systeme :
 
 Token : `--police: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;`
 
+**Encodage et accents francais** : l'ensemble du pipeline est en UTF-8
+(`<meta charset="UTF-8">` cote HTML, `header('Content-Type: ...
+charset=utf-8')` cote PHP, `JSON_UNESCAPED_UNICODE` sur les reponses
+JSON). Le commit `dc190fb` audite chaque point d'affichage pour
+garantir que les accents (e, e, c, a, ...) sont rendus correctement
+sur tous les navigateurs, peu importe la configuration XAMPP.
+
 ### 3.2 Hierarchie des tailles et poids
 
 Conforme a `project-files/interface/typography.png`, le projet utilise

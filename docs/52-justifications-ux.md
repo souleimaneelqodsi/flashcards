@@ -230,6 +230,30 @@ nous avons ajuste : le rouge ne s'affiche qu'**au blur** (sortie de
 champ) ; le keyup ne fait que **lever** une erreur deja signalee. Plus
 agreable.
 
+### Application uniforme : meme pattern partout
+
+Le pattern §6 a ete applique a **tous les formulaires** du projet,
+y compris les retours d'erreur "serveur" qui n'etaient pas
+explicitement couverts par le sujet :
+
+- **Login** (`52d3307`) : un echec d'authentification ne se limite
+  pas a un toast generique — les champs email et mot de passe sont
+  marques en rouge avec un recap "Identifiants invalides". Pattern
+  identique a la validation client, pour ne pas faire deux UX
+  differentes selon le type d'erreur.
+- **Edition de paquet** (`PAQ-2.2`) : les erreurs renvoyees par le
+  serveur (titre trop long, theme manquant) sont projetees sous le
+  champ concerne **et** dans le recap, exactement comme une erreur
+  de validation client.
+- **Modale question** (`QST-1.5`) : Q et R sont valides cote client
+  ET cote serveur avec les memes bornes (1 a 1000 caracteres,
+  parite explicite documentee). Le serveur reste la source de
+  verite ; le client donne le feedback en avance.
+
+Coherence d'UX : l'utilisateur ne sait pas (et ne doit pas savoir) si
+une erreur vient du client ou du serveur. Elle est presentee de la
+meme facon dans les deux cas.
+
 ---
 
 ## 5. Paquets cliquables partout (carte + titre) avec gardes sur les boutons internes
@@ -453,6 +477,92 @@ Retirer ces elements du topbar et de la sidebar :
 Garder les elements visibles mais inactifs (gris) aurait suggere
 "fonctionnalite a venir" — interpretation trompeuse pour un projet
 livre. Le retrait pur est plus honnete.
+
+---
+
+## 10. Selecteur de date natif HTML5 pour la date de naissance (`5f18447`)
+
+### Le constat
+
+Le sujet TER impose le format `AAAAMMJJ` pour la date de naissance. Le
+mockup `signup.png` montre un champ texte simple. L'implementation
+initiale demandait a l'utilisateur de saisir manuellement les 8
+chiffres avec une regex stricte cote client.
+
+### La decision
+
+Utiliser `<input type="date">` natif HTML5, avec :
+
+- `min` = date du jour - 100 ans (age maximum 100 ans).
+- `max` = date du jour - 7 ans (age minimum 7 ans, pour eviter les
+  inscriptions d'enfants tres jeunes — choix de conformite RGPD).
+- Placeholders dans les libelles pour guider la saisie.
+- Format de sortie automatique `AAAA-MM-JJ` au format ISO,
+  directement compatible avec le type `DATE` SQLite.
+
+### Pourquoi ce choix
+
+1. **Perimetre cours** : `<input type="date">` est de l'HTML5
+   standard, dans le perimetre de `initiation-HTML-CSS.pdf`. Le
+   navigateur fournit un date picker natif sans code JavaScript
+   supplementaire.
+2. **Accessibilite** : le picker natif est lu correctement par les
+   lecteurs d'ecran, supporte le clavier (fleches, Page Up/Down) et
+   s'adapte aux conventions locales (format JJ/MM/AAAA visible en
+   FR, mais valeur ISO `AAAA-MM-JJ` en interne).
+3. **Mobile-friendly** : sur mobile, le picker natif s'ouvre comme
+   un date wheel optimise pour le tactile. Pas besoin de coder un
+   composant responsive.
+4. **Pas de regex cote client** : le navigateur garantit le format,
+   la regex de validation est supprimee. Code client plus simple.
+5. **Validation serveur conservee** : la verification du format
+   `AAAA-MM-JJ` reste cote serveur (PHP) en defense en profondeur,
+   au cas ou un client envoie une valeur via curl ou autre.
+
+### Alternative ecartee
+
+Un date picker custom en jQuery (saisie en 3 champs jour/mois/annee
+ou avec un mini-calendrier) aurait demande 100-200 lignes de JS,
+sortirait du perimetre des cours, et serait moins accessible. Le
+gain visuel ne justifie pas le cout.
+
+### Petite reserve assumee
+
+Le rendu du picker natif **varie selon le navigateur** (Chrome /
+Firefox / Edge / Safari) et selon l'OS. C'est inevitable et accepte
+— c'est le cas pour tous les `<input type="date">` du web.
+
+---
+
+## 11. Encodage UTF-8 garanti pour les accents francais (`dc190fb`)
+
+### Le constat
+
+Certains textes affiches dans l'interface (notifications, libelles
+dynamiques cote serveur, messages d'erreur PHP) presentaient des
+accents francais mal rendus (`é` -> `Ã©`, `è` -> `Ã¨`) sur certaines
+configurations XAMPP / navigateurs.
+
+### La decision
+
+Verifier et garantir l'encodage UTF-8 sur l'ensemble du pipeline :
+
+- `<meta charset="UTF-8">` en tete de `app.php`.
+- `header('Content-Type: application/json; charset=utf-8')` dans
+  `Response::json()`.
+- `json_encode($donnees, JSON_UNESCAPED_UNICODE)` pour preserver les
+  accents en sortie JSON (au lieu de les echapper en `é`).
+- Connexion PDO SQLite ouverte avec `'sqlite:' . $chemin` (SQLite
+  est UTF-8 par defaut, aucune action specifique necessaire cote
+  base).
+
+### Pourquoi ce choix
+
+Le sujet est en francais, les contenus utilisateurs (titres de
+paquets, questions, reponses) seront en francais avec des accents.
+Un projet academique francais qui affiche `BasÃ©s de donnÃ©es
+relationnelles` est une faute. Le commit `dc190fb` audite chaque
+point d'affichage textuel et confirme l'UTF-8 bout-en-bout.
 
 ---
 

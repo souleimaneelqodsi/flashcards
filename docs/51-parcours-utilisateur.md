@@ -70,8 +70,7 @@ de passe non vide. Champ rouge des le `blur` (cf. CLAUDE.md §6).
 **Transition** :
 
 - Succes → bascule sur le **Tableau de bord** via `window.location.hash = "#dashboard"`.
-- Echec → message d'erreur global affiche sous le formulaire ; pas de
-  navigation.
+- Echec d'authentification (`52d3307`) → les champs **email** et **mot de passe** sont marques en rouge (classe `.champ-invalide`), un recap rouge en pied de formulaire affiche "Identifiants invalides". Pattern coherent avec la validation §6, pas un simple toast. L'utilisateur reste sur la vue de connexion.
 
 ---
 
@@ -91,7 +90,12 @@ email, mot de passe **et** sa confirmation.
   l'email est deja pris).
 - Mot de passe : longueur >= 6 caracteres.
 - Confirmation : doit etre identique au mot de passe avant submit.
-- Date de naissance : `AAAAMMJJ` strict.
+- Date de naissance : saisie via un **selecteur natif HTML5**
+  `<input type="date">` (`5f18447`). Bornes appliquees : age
+  minimum 7 ans, age maximum 100 ans (l'attribut `min` / `max`
+  encadre les choix possibles). Placeholders explicites pour
+  guider la saisie. La format `AAAA-MM-JJ` est garanti par le
+  controle natif du navigateur — plus besoin de regex client.
 
 Chaque champ vire au rouge a la moindre erreur (`keyup`/`blur`), et un
 recapitulatif rouge s'affiche en pied de formulaire avant submit.
@@ -194,8 +198,11 @@ qui composent le paquet.
 
 - **Ajout** d'une question : clic sur "+ Ajouter une question" →
   ouverture d'une **modale** (titre Q, contenu R, difficulte). Validation
-  rouge dynamique sur Q et R. Submit → la question est ajoutee en fin
-  de liste, le compteur est mis a jour, la modale se ferme.
+  rouge dynamique sur Q et R, **bornes 1 a 1000 caracteres** sur chaque
+  champ (validation centralisee serveur en miroir, parite client /
+  serveur, cf. `QST-1.5`). Submit → la question est ajoutee en fin de
+  liste via `POST /api/paquets/:id/questions`, le compteur est mis a
+  jour, la modale se ferme.
 - **Edition** d'une question : clic n'importe ou sur la question →
   ouverture de la meme modale en mode "Modifier la question",
   pre-remplie avec les valeurs actuelles.
