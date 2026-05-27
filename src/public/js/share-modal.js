@@ -249,10 +249,9 @@
                     // Toast facultatif (le module Toast peut ne pas
                     // exister selon le chargement) : on appelle si
                     // disponible, on continue sans bloquer sinon.
-                    if (window.Toast && typeof window.Toast.afficher === "function") {
-                        window.Toast.afficher(
-                            "Paquet partage avec " + nom + ".",
-                            "succes"
+                    if (window.Toast && typeof window.Toast.succes === "function") {
+                        window.Toast.succes(
+                            "Paquet partage avec " + nom + "."
                         );
                     }
                 },

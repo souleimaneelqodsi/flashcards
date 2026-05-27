@@ -171,15 +171,14 @@
             succes: function () {
                 element_chip.remove();
                 mettre_a_jour_compteur_destinataires();
-                if (window.Toast && typeof window.Toast.afficher === "function") {
-                    window.Toast.afficher(nom + " a ete retire du partage.", "succes");
+                if (window.Toast && typeof window.Toast.succes === "function") {
+                    window.Toast.succes(nom + " a ete retire du partage.");
                 }
             },
             erreur: function (xhr, message_erreur) {
-                if (window.Toast && typeof window.Toast.afficher === "function") {
-                    window.Toast.afficher(
-                        "Impossible de retirer " + nom + " : " + message_erreur,
-                        "erreur"
+                if (window.Toast && typeof window.Toast.erreur === "function") {
+                    window.Toast.erreur(
+                        "Impossible de retirer " + nom + " : " + message_erreur
                     );
                 }
             }
@@ -367,14 +366,14 @@
         }
         AjaxService.supprimer("paquets/" + paquet.id_paquet, {
             succes: function () {
-                if (window.Toast && typeof window.Toast.afficher === "function") {
-                    window.Toast.afficher("Paquet supprime.", "succes");
+                if (window.Toast && typeof window.Toast.succes === "function") {
+                    window.Toast.succes("Paquet supprime.");
                 }
                 window.location.hash = "#dashboard";
             },
             erreur: function (xhr, message) {
-                if (window.Toast && typeof window.Toast.afficher === "function") {
-                    window.Toast.afficher("Erreur : " + message, "erreur");
+                if (window.Toast && typeof window.Toast.erreur === "function") {
+                    window.Toast.erreur("Erreur : " + message);
                 }
             }
         });

@@ -348,8 +348,8 @@ function envoyer_post_question(contenu_question, contenu_reponse, niveau, id_dif
                 }
                 ajouter_question_au_dom(question, niveau);
                 fermer_modale_ajout_question();
-                if (window.Toast && typeof window.Toast.afficher === "function") {
-                    window.Toast.afficher("Question ajoutee.", "succes");
+                if (window.Toast && typeof window.Toast.succes === "function") {
+                    window.Toast.succes("Question ajoutee.");
                 }
             },
             erreur: function (xhr, message) {
@@ -382,8 +382,8 @@ function envoyer_put_question(contenu_question, contenu_reponse, niveau, id_diff
                     id_question, contenu_question, contenu_reponse, niveau
                 );
                 fermer_modale_ajout_question();
-                if (window.Toast && typeof window.Toast.afficher === "function") {
-                    window.Toast.afficher("Question mise a jour.", "succes");
+                if (window.Toast && typeof window.Toast.succes === "function") {
+                    window.Toast.succes("Question mise a jour.");
                 }
             },
             erreur: function (xhr, message) {
@@ -403,15 +403,14 @@ function envoyer_delete_question(id_question, element_question) {
             element_question.remove();
             renumeroter_questions();
             mettre_a_jour_compteur_questions();
-            if (window.Toast && typeof window.Toast.afficher === "function") {
-                window.Toast.afficher("Question supprimee.", "succes");
+            if (window.Toast && typeof window.Toast.succes === "function") {
+                window.Toast.succes("Question supprimee.");
             }
         },
         erreur: function (xhr, message) {
-            if (window.Toast && typeof window.Toast.afficher === "function") {
-                window.Toast.afficher(
-                    "Impossible de supprimer la question : " + message,
-                    "erreur"
+            if (window.Toast && typeof window.Toast.erreur === "function") {
+                window.Toast.erreur(
+                    "Impossible de supprimer la question : " + message
                 );
             }
         }
@@ -465,10 +464,22 @@ function afficher_erreurs_question(messages) {
     }
 }
 
-// Decode les erreurs serveur de la modale question (format
-// { erreurs: {champ: msg} } cas validation 400, ou { erreur: msg }
-// sinon) et les affiche dans le recap, en marquant aussi les champs
-// concernes en rouge (.champ-invalide).
+// Signale une erreur technique (reseau, CSRF, serveur) via un toast.
+// A distinguer des erreurs de validation de champ qui, elles, vont dans
+// le recap du formulaire (pattern impose CLAUDE.md §6). Une erreur
+// d'infrastructure n'est pas une faute de saisie : l'afficher dans le
+// recap "corrigez les erreurs" induit l'utilisateur en erreur.
+function signaler_erreur_technique(message) {
+    if (window.Toast && typeof window.Toast.erreur === "function") {
+        window.Toast.erreur(message);
+    }
+}
+
+// Decode les erreurs serveur de la modale question. Deux cas distincts :
+//  - validation par champ (400, format { erreurs: {champ: msg} }) :
+//    champs en rouge + recap de la modale ;
+//  - erreur technique (reseau, CSRF, 500) : pas de recap (ce n'est pas
+//    une faute de saisie) mais un toast dedie.
 function traiter_erreur_question(xhr, message_par_defaut) {
     // Reset visuel des champs.
     $("#" + ID_CHAMP_QUESTION).removeClass("champ-invalide");
@@ -476,38 +487,42 @@ function traiter_erreur_question(xhr, message_par_defaut) {
     $("#" + ID_ERREUR_QUESTION).attr("hidden", "hidden");
     $("#" + ID_ERREUR_REPONSE).attr("hidden", "hidden");
 
-    var messages = [];
-
+    var corps = null;
     if (xhr.responseJSON && typeof xhr.responseJSON === "object") {
-        var corps = xhr.responseJSON;
-        if (corps.erreurs && typeof corps.erreurs === "object") {
-            if (corps.erreurs.contenu_question) {
-                $("#" + ID_CHAMP_QUESTION).addClass("champ-invalide");
-                $("#" + ID_ERREUR_QUESTION)
-                    .text(corps.erreurs.contenu_question)
-                    .removeAttr("hidden");
-                messages.push(corps.erreurs.contenu_question);
-            }
-            if (corps.erreurs.contenu_reponse) {
-                $("#" + ID_CHAMP_REPONSE).addClass("champ-invalide");
-                $("#" + ID_ERREUR_REPONSE)
-                    .text(corps.erreurs.contenu_reponse)
-                    .removeAttr("hidden");
-                messages.push(corps.erreurs.contenu_reponse);
-            }
-            if (corps.erreurs.id_difficulte) {
-                messages.push(corps.erreurs.id_difficulte);
-            }
-        } else if (typeof corps.erreur === "string") {
-            messages.push(corps.erreur);
+        corps = xhr.responseJSON;
+    }
+
+    // Cas 1 : erreurs de validation par champ.
+    if (corps !== null && corps.erreurs && typeof corps.erreurs === "object") {
+        var messages = [];
+        if (corps.erreurs.contenu_question) {
+            $("#" + ID_CHAMP_QUESTION).addClass("champ-invalide");
+            $("#" + ID_ERREUR_QUESTION)
+                .text(corps.erreurs.contenu_question)
+                .removeAttr("hidden");
+            messages.push(corps.erreurs.contenu_question);
         }
+        if (corps.erreurs.contenu_reponse) {
+            $("#" + ID_CHAMP_REPONSE).addClass("champ-invalide");
+            $("#" + ID_ERREUR_REPONSE)
+                .text(corps.erreurs.contenu_reponse)
+                .removeAttr("hidden");
+            messages.push(corps.erreurs.contenu_reponse);
+        }
+        if (corps.erreurs.id_difficulte) {
+            messages.push(corps.erreurs.id_difficulte);
+        }
+        afficher_erreurs_question(messages);
+        return;
     }
 
-    if (messages.length === 0) {
-        messages.push(message_par_defaut);
+    // Cas 2 : erreur technique -> toast, pas de recap de validation.
+    afficher_erreurs_question([]);
+    var message = message_par_defaut;
+    if (corps !== null && typeof corps.erreur === "string") {
+        message = corps.erreur;
     }
-
-    afficher_erreurs_question(messages);
+    signaler_erreur_technique("Impossible d'enregistrer la question : " + message);
 }
 
 // ── Branchement API (PAQ-2.2) ────────────────────────────────
@@ -591,10 +606,9 @@ function charger_questions_du_paquet(id_paquet) {
             mettre_a_jour_compteur_questions();
         },
         erreur: function (xhr, message) {
-            if (window.Toast && typeof window.Toast.afficher === "function") {
-                window.Toast.afficher(
-                    "Impossible de charger les questions : " + message,
-                    "erreur"
+            if (window.Toast && typeof window.Toast.erreur === "function") {
+                window.Toast.erreur(
+                    "Impossible de charger les questions : " + message
                 );
             }
         }
@@ -640,8 +654,8 @@ function appliquer_etat_creation_ou_edition() {
 }
 
 function rediriger_apres_erreur(message) {
-    if (window.Toast && typeof window.Toast.afficher === "function") {
-        window.Toast.afficher(message, "erreur");
+    if (window.Toast && typeof window.Toast.erreur === "function") {
+        window.Toast.erreur(message);
     }
     window.location.hash = "#dashboard";
 }
@@ -754,8 +768,8 @@ function envoyer_put(payload) {
 // existant pour POST /api/paquets/:id/questions). En mode EDITION, on
 // va sur la vue de visualisation pour voir le resultat.
 function apres_succes(reponse, message_succes) {
-    if (window.Toast && typeof window.Toast.afficher === "function") {
-        window.Toast.afficher(message_succes, "succes");
+    if (window.Toast && typeof window.Toast.succes === "function") {
+        window.Toast.succes(message_succes);
     }
     var id_cible = paquet_id_courant;
     if (reponse && reponse.paquet && reponse.paquet.id_paquet) {
@@ -779,29 +793,35 @@ function traiter_erreur_form(xhr, message_par_defaut) {
     $("#paquet-titre").removeClass("champ-invalide");
     $("#erreur-paquet-titre").attr("hidden", "hidden");
 
-    var messages = [];
-
+    var corps = null;
     if (xhr.responseJSON && typeof xhr.responseJSON === "object") {
-        var corps = xhr.responseJSON;
-        if (corps.erreurs && typeof corps.erreurs === "object") {
-            if (corps.erreurs.titre) {
-                marquer_champ_invalide("paquet-titre", "erreur-paquet-titre", corps.erreurs.titre);
-                messages.push(corps.erreurs.titre);
-            }
-            if (corps.erreurs.theme) {
-                $("#paquet-theme").addClass("champ-invalide");
-                messages.push(corps.erreurs.theme);
-            }
-        } else if (typeof corps.erreur === "string") {
-            messages.push(corps.erreur);
+        corps = xhr.responseJSON;
+    }
+
+    // Cas 1 : erreurs de validation par champ (400 - PAQ-1.5) -> champs
+    // rouges + recap de validation (pattern impose CLAUDE.md §6).
+    if (corps !== null && corps.erreurs && typeof corps.erreurs === "object") {
+        var messages = [];
+        if (corps.erreurs.titre) {
+            marquer_champ_invalide("paquet-titre", "erreur-paquet-titre", corps.erreurs.titre);
+            messages.push(corps.erreurs.titre);
         }
+        if (corps.erreurs.theme) {
+            $("#paquet-theme").addClass("champ-invalide");
+            messages.push(corps.erreurs.theme);
+        }
+        afficher_erreurs_form(messages);
+        return;
     }
 
-    if (messages.length === 0) {
-        messages.push(message_par_defaut);
+    // Cas 2 : erreur technique (reseau, CSRF, serveur) -> on masque le
+    // recap de validation (trompeur ici) et on signale via un toast.
+    afficher_erreurs_form([]);
+    var message = message_par_defaut;
+    if (corps !== null && typeof corps.erreur === "string") {
+        message = corps.erreur;
     }
-
-    afficher_erreurs_form(messages);
+    signaler_erreur_technique("Impossible d'enregistrer le paquet : " + message);
 }
 
 // ── Initialisation au chargement du DOM ───────────────────────

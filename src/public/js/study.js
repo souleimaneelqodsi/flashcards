@@ -439,10 +439,9 @@ function envoyer_resultat_session() {
                 // L'echec d'enregistrement du score ne doit pas
                 // empecher l'utilisateur de voir le recap. Toast +
                 // bascule avec best inconnu.
-                if (window.Toast && typeof window.Toast.afficher === "function") {
-                    window.Toast.afficher(
-                        "Impossible d'enregistrer le score : " + message,
-                        "erreur"
+                if (window.Toast && typeof window.Toast.erreur === "function") {
+                    window.Toast.erreur(
+                        "Impossible d'enregistrer le score : " + message
                     );
                 }
                 remplir_recap_fin_session(undefined);
